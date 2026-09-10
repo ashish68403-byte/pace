@@ -312,9 +312,9 @@ def _rename_map(root: Node, source: bytes) -> dict[str, str]:
 
         elif kind == "parameters" or kind == "lambda_parameters":
             for child in node.named_children:
-                ident = _first_identifier(child) if child.type != "identifier" else child
-                if ident is not None:
-                    bindings.append((ident.start_byte, node_text(ident, source)))
+                param = _first_identifier(child) if child.type != "identifier" else child
+                if param is not None:
+                    bindings.append((param.start_byte, node_text(param, source)))
 
         elif kind in _BINDING_HOLDERS:
             target = node.child_by_field_name("left") or node.child_by_field_name("name")
@@ -338,10 +338,10 @@ def _rename_map(root: Node, source: bytes) -> dict[str, str]:
         stack.extend(node.named_children)
 
     mapping: dict[str, str] = {}
-    for _offset, name in sorted(bindings, key=lambda pair: pair[0]):
-        if name in keep or name in mapping or name.startswith("__"):
+    for _offset, bound in sorted(bindings, key=lambda pair: pair[0]):
+        if bound in keep or bound in mapping or bound.startswith("__"):
             continue
-        mapping[name] = f"v{len(mapping)}"
+        mapping[bound] = f"v{len(mapping)}"
     return mapping
 
 

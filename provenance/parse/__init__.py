@@ -23,6 +23,8 @@ from importlib import metadata
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:  # pragma: no cover - typing only
+    from collections.abc import Iterator
+
     from tree_sitter import Language, Node, Parser, Tree
 
 __all__ = [
@@ -97,7 +99,7 @@ def node_text(node: Node, source: bytes) -> str:
     return source[node.start_byte : node.end_byte].decode("utf-8", errors="replace")
 
 
-def iter_nodes(node: Node, *, named_only: bool = False):
+def iter_nodes(node: Node, *, named_only: bool = False) -> Iterator[Node]:
     """Depth-first pre-order walk. Iterative: some Airflow files nest ~200 deep."""
     stack = [node]
     while stack:

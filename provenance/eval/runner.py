@@ -46,7 +46,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from importlib import import_module
 from pathlib import Path
-from typing import Annotated, Any, Protocol
+from typing import Annotated, Any, Protocol, cast
 
 import numpy as np
 import typer
@@ -245,12 +245,19 @@ def load_retriever(spec: str) -> Retriever:
         raise typer.BadParameter(f"retriever spec must be 'module:attr', got {spec!r}")
     module_name, attr = spec.split(":", 1)
     obj = getattr(import_module(module_name), attr)
-    retriever = obj() if callable(obj) and not hasattr(obj, "retrieve") else obj
+    # `isinstance(obj, type)` is load-bearing, not defensive. A class carries
+    # `retrieve` as an unbound function, so an attribute test alone reads it as an
+    # already-built retriever and hands back the class; every later
+    # `retrieve(question, qvec, k)` then binds `question` to `self` and dies on a
+    # missing `k`. The default spec is a class, so that path was the only one anyone
+    # ever ran.
+    is_factory = callable(obj) and not hasattr(obj, "retrieve")
+    retriever = obj() if isinstance(obj, type) or is_factory else obj
     if not hasattr(retriever, "retrieve"):
         raise typer.BadParameter(f"{spec} does not provide .retrieve(question, qvec, k)")
     if not hasattr(retriever, "name"):
-        retriever.name = attr  # type: ignore[attr-defined]
-    return retriever  # type: ignore[return-value]
+        retriever.name = attr
+    return cast(Retriever, retriever)
 
 
 # --------------------------------------------------------------------------- #
@@ -439,7 +446,7 @@ def load_baseline(path: Path = BASELINE_PATH) -> dict[str, Any]:
             "index_version": None,
             "model": None,
         }
-    return json.loads(path.read_text(encoding="utf-8"))
+    return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
 
 def compare_to_baseline(
@@ -1123,7 +1130,7 @@ def invariants_cmd(
 def _load_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
 
 def _finish(

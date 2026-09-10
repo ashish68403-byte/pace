@@ -77,7 +77,7 @@ import os
 import threading
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Final, Protocol, runtime_checkable
+from typing import Any, Final, Protocol, runtime_checkable
 
 import numpy as np
 
@@ -181,7 +181,8 @@ def _l2_normalise(m: np.ndarray) -> np.ndarray:
     # normalised, so leave it at zero rather than producing NaNs that only
     # surface as a confusing pgvector error 40 minutes into an ingest.
     np.maximum(norms, 1e-12, out=norms)
-    return (m / norms).astype(np.float32)
+    normalised: np.ndarray = (m / norms).astype(np.float32)
+    return normalised
 
 
 class LocalEmbedder:
@@ -199,10 +200,10 @@ class LocalEmbedder:
     def __init__(self, model_id: str | None = None, dim: int | None = None) -> None:
         self.model_id = model_id or settings.embedding_model_version
         self.dim = dim or settings.embedding_dim
-        self._model = None
+        self._model: Any = None
         self._lock = threading.Lock()
 
-    def _ensure(self):  # noqa: ANN202 - fastembed type is not importable at rest
+    def _ensure(self) -> Any:  # fastembed's TextEmbedding is not importable at rest
         if self._model is None:
             with self._lock:
                 if self._model is None:
@@ -237,7 +238,8 @@ class LocalEmbedder:
         # query_text(), not a second copy of the prefix: the frozen cache is
         # keyed on exactly this string, so the two must be one function.
         vecs = list(self._ensure().query_embed([query_text(text)]))
-        return _l2_normalise(np.asarray(vecs[0]))[0]
+        row: np.ndarray = _l2_normalise(np.asarray(vecs[0]))[0]
+        return row
 
 
 class FrozenEmbeddingMiss(RuntimeError):
@@ -324,7 +326,8 @@ class FrozenEmbedder:
     def encode_query(self, text: str) -> np.ndarray:
         # Freeze the PREFIXED string: what is cached must be exactly what a live
         # LocalEmbedder would have been handed, or the cache is not a stand-in.
-        return _l2_normalise(self._lookup(query_text(text)))[0]
+        row: np.ndarray = _l2_normalise(self._lookup(query_text(text)))[0]
+        return row
 
 
 class ApiEmbedder:
@@ -348,9 +351,9 @@ class ApiEmbedder:
         self._base_url = base_url.rstrip("/")
         self._api_key = api_key
         self._timeout = timeout
-        self._client = None
+        self._client: Any = None
 
-    def _http(self):  # noqa: ANN202 - httpx.Client, imported lazily
+    def _http(self) -> Any:  # httpx.Client, imported lazily
         if self._client is None:
             import httpx
 
@@ -376,7 +379,8 @@ class ApiEmbedder:
         return np.vstack(out)
 
     def encode_query(self, text: str) -> np.ndarray:
-        return self._embed([text])[0]
+        row: np.ndarray = self._embed([text])[0]
+        return row
 
 
 def _configured(field: str, env: str) -> str | None:

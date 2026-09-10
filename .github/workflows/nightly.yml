@@ -86,11 +86,12 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: ~/.cache/uv
-          key: uv-${{ runner.os }}-py312-${{ hashFiles('pyproject.toml') }}
+          key: uv-${{ runner.os }}-py312-${{ hashFiles('uv.lock') }}
           restore-keys: uv-${{ runner.os }}-py312-
 
-      # No --frozen: there is no committed uv.lock. See the same note in ci.yml.
-      - run: uv sync --extra dev
+      # `--frozen`: same reasoning as ci.yml. A trend line committed one file per day is
+      # only comparable across days if every run installed the same resolution.
+      - run: uv sync --frozen --extra dev
 
       - name: Stamp the run
         id: stamp

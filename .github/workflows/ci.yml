@@ -82,19 +82,21 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/uv
-          key: uv-${{ runner.os }}-py312-${{ hashFiles('pyproject.toml') }}
+          key: uv-${{ runner.os }}-py312-${{ hashFiles('uv.lock') }}
           restore-keys: uv-${{ runner.os }}-py312-
 
       - name: Sync dependencies (base + dev, NOT the ml extra)
-        # NO --frozen. `uv sync --frozen` requires a committed uv.lock, and this repo
-        # deliberately does not have one yet, so --frozen failed on the very first step
-        # of every run (audit #18). The day a lock IS committed, add `--frozen` back in
-        # THAT commit -- the flag and the file have to arrive together or CI is red
-        # either way. hashFiles() above already tolerates the missing lock.
+        # `--frozen` because uv.lock IS committed now: CI installs the resolution that
+        # was reviewed instead of re-resolving on every run. That matters more here than
+        # in most projects -- a silent minor bump in a tokenizer or retrieval dependency
+        # moves recall at fixed k, and every number in the writeup is supposed to be
+        # attributable to a commit. If this step ever fails with "lockfile is out of
+        # date", run `uv lock` and commit the result in the same commit as the
+        # dependency change; do not drop the flag to get green.
         #
         # The `ml` extra is never installed here: this job embeds nothing, and torch's
         # Linux wheel drags ~1.5-2 GB of CUDA packages onto a runner with no GPU.
-        run: uv sync --extra dev
+        run: uv sync --frozen --extra dev
 
       - name: Lint
         run: uv run ruff check .
@@ -197,7 +199,16 @@ jobs:
         # pulled in transitively by anything doing LLM routing. An audit step that runs
         # on every push is the control that turns "we were exposed for six weeks" into
         # "CI went red the morning the advisory landed".
-        run: uv run pip-audit --strict --progress-spinner off
+        #
+        # `--skip-editable` rather than `--strict`: `uv sync` installs pace itself into
+        # the environment as an editable, pip-audit cannot resolve a local path on PyPI,
+        # and `--strict` promotes "could not audit" to a hard failure -- so that flag
+        # could never have gone green here, on any machine, for as long as the project
+        # is installed into the environment it audits. Dropping it costs nothing that
+        # matters: pip-audit still exits non-zero the moment it finds a real advisory,
+        # which is the entire control. The skipped distribution is printed in the step
+        # log, so "what was not audited" stays visible rather than becoming a silent gap.
+        run: uv run pip-audit --skip-editable --progress-spinner off
 
       - uses: actions/upload-artifact@v7
         if: always()
@@ -230,10 +241,10 @@ jobs:
       - uses: actions/cache@v6
         with:
           path: ~/.cache/uv
-          key: uv-${{ runner.os }}-py312-${{ hashFiles('pyproject.toml') }}
+          key: uv-${{ runner.os }}-py312-${{ hashFiles('uv.lock') }}
           restore-keys: uv-${{ runner.os }}-py312-
 
-      - run: uv sync --extra dev
+      - run: uv sync --frozen --extra dev
 
       - name: Decide replay vs live
         id: mode

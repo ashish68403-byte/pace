@@ -56,6 +56,9 @@ eval/runs/
 eval/out/
 eval/reports/
 leakage_report*.json
+# CI writes the leakage probe's JSON here before uploading it as a job artifact;
+# running the gate locally produces the same directory, which is not a commit.
+artifacts/
 
 # --- Parquet ----------------------------------------------------------------
 # Ignore parquet everywhere EXCEPT the small committed eval fixtures, which are

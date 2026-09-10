@@ -520,7 +520,7 @@ def _whitespace_only(repo: Any, commit: Any) -> bool:
         return False
     plain_changed = plain.stats.insertions + plain.stats.deletions
     ignored_changed = ignored.stats.insertions + ignored.stats.deletions
-    return plain_changed > 0 and ignored_changed == 0
+    return bool(plain_changed > 0 and ignored_changed == 0)
 
 
 # ------------------------------------------------------------------- checkpointing
