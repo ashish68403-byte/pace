@@ -39,6 +39,19 @@ Final-year project. Built solo, in 14 weeks.
 
 ---
 
+## Documentation
+
+Start with the roadmap; it says what to build next and, more usefully, what not to build.
+
+| | |
+|---|---|
+| [docs/ROADMAP.md](docs/ROADMAP.md) | The 14-week plan: scope verdict, the nine decisions, six ranked traps, the week-by-week gates, the cut list, the novelty claim, the money model |
+| [docs/ADR-0001-typed-edges.md](docs/ADR-0001-typed-edges.md) | Why typed edge tables rather than one polymorphic `edges` table |
+| [docs/ADR-0002-golden-set-construction.md](docs/ADR-0002-golden-set-construction.md) | Why the anchor symbol must come from the code and never from the rationale text |
+| [docs/RUNBOOK.md](docs/RUNBOOK.md) | Starting everything, the degradation table, how to read a trace |
+| [docs/DATA-PROTECTION.md](docs/DATA-PROTECTION.md) | What personal data is processed, and what is deliberately excluded |
+| [provenance/eval/README.md](provenance/eval/README.md) | Why the CI gate splits in two, and why that half costs $0.00 |
+
 ## Quickstart
 
 ```bash
