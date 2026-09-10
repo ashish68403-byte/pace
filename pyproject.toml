@@ -1,0 +1,176 @@
+[project]
+name = "pace"
+version = "0.1.0"
+description = "PACE - Provenance-Aware Code Intelligence: retrieval that answers 'why is this code the way it is?' with citations, or refuses."
+readme = "README.md"
+requires-python = ">=3.12,<3.13"
+license = { text = "Apache-2.0" }
+authors = [{ name = "PACE" }]
+keywords = ["retrieval", "provenance", "code-intelligence", "postgres", "pgvector"]
+classifiers = [
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+
+# Base install must stay CPU-light and CUDA-free. Everything here installs on a
+# 2-core / 3.7 GB WSL box in under a minute; anything that drags in torch lives
+# in the "ml" extra below.
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "typer",
+    "pydantic",
+    "pydantic-settings",
+    "psycopg[binary,pool]",
+    "psycopg-pool",
+    "pgvector",
+    "pygit2",
+    "tree-sitter",
+    "tree-sitter-python",
+    "numpy",
+    "alembic",
+    # migrations/env.py does `from sqlalchemy import engine_from_config, pool`
+    # directly, and the `postgresql+psycopg://` URL scheme it builds needs the
+    # 2.x dialect. It has only ever arrived transitively through alembic, which
+    # is luck: the day alembic loosens or vendors that dependency,
+    # `alembic upgrade head` stops working with an ImportError that points at
+    # the wrong package. Declared, and floored at the version we actually need.
+    "sqlalchemy>=2.0",
+    "opentelemetry-sdk",
+    "opentelemetry-api",
+    "opentelemetry-exporter-otlp-proto-http",
+    "opentelemetry-instrumentation-fastapi",
+    "httpx",
+    # NOT here: orjson. It was declared and imported by nothing -- a dependency
+    # that exists only in this file is a package everyone downloads, pip-audit
+    # scans and dependabot files PRs against, for no code.
+]
+
+[project.optional-dependencies]
+# Only needed to (re)build embeddings. The retrieval half of the CI gate reads
+# frozen query vectors from a committed .npz and must never install this extra.
+#
+# `fastembed` is the whole extra, because LocalEmbedder -- the DOCUMENTED
+# DEFAULT backend (retrieve/embedder.py:188, get_embedder("local")) -- does
+# `from fastembed import TextEmbedding` and nothing else does. It was missing,
+# so `uv sync --extra ml` installed 40 MB of wheels and still left the default
+# embedder raising ImportError. fastembed brings onnxruntime and tokenizers
+# itself; naming its transitive deps here (onnxruntime, optimum, which is not
+# even one of them) pinned versions nothing asked for and imported nowhere.
+ml = [
+    "fastembed",
+]
+# sentence-transformers, and ONLY sentence-transformers, lives here.
+#
+# It depends on torch. Even against the CPU-only index pinned below it is a
+# ~200 MB install, and off the default PyPI index it is ~1.5-2 GB of nvidia-*
+# CUDA wheels on a machine with no NVIDIA GPU and 3.7 GB of RAM visible to WSL.
+# Putting it in `ml` would re-create exactly the download the extra exists to
+# avoid: base `uv sync` is 126 packages / 167 MB with no torch and no nvidia-*,
+# and that is a measured number worth protecting.
+#
+# It currently has NO importer: `_load_embedder` was deleted when skeleton.py
+# moved to a direct `get_embedder` import, and its stub fallback is
+# `_stub_embed`, not sentence-transformers. Kept as the documented escape
+# hatch for a future consumer that genuinely needs a torch model; delete it
+# if week 9 does not want one. Nothing in CI installs it.
+ml-heavy = [
+    "sentence-transformers",
+]
+# eval/runner.py writes the per-query table as parquet when pyarrow is present
+# and JSONL otherwise (runner.py:312-338). The fallback is real, so this stays
+# optional -- but the parquet path was unreachable because the `eval` extra
+# that runner.py's own docstring pointed at did not exist.
+eval = [
+    "pyarrow",
+]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    "mypy",
+    "pre-commit",
+    "pip-audit",
+]
+
+[project.scripts]
+pace = "provenance.cli:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["provenance"]
+
+# ---------------------------------------------------------------------------
+# torch index pin
+# ---------------------------------------------------------------------------
+# sentence-transformers (the "ml-heavy" extra) depends on torch. On Linux,
+# PyPI's default torch wheel is the CUDA build: it pulls ~1.5-2 GB of nvidia-*
+# packages (cudnn, cublas, nccl, ...). This machine is an i3-1115G4 with
+# integrated graphics and NO NVIDIA GPU, so every one of those bytes is
+# downloaded, unpacked into .venv, and never executed - on a box with 3.7 GB of
+# RAM visible to WSL and a small ext4 volume that is not a rounding error.
+# Pointing torch at the CPU-only index brings the same install down to ~200 MB.
+#
+# Keep this block even though nothing in `ml` needs torch any more: the moment
+# any extra pulls it in, the unpinned resolution is the CUDA one. It is
+# `explicit = true`, so it is inert until something actually requires torch.
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+# Migrations are raw SQL DDL inside triple-quoted strings. Wrapping those to
+# 100 columns breaks the column alignment that makes a CREATE TABLE readable,
+# and the alignment is the documentation.
+"migrations/versions/*.py" = ["E501"]
+# PEP 695 generic syntax (`def f[T](...)`) and `type X = ...` are fine, but the
+# TypeVar/TypeAlias spellings here read better to anyone who has not adopted
+# 3.12 syntax yet, and this is a solo codebase that gets read by an examiner.
+"provenance/obs/spans.py" = ["UP047"]
+"provenance/eval/schema.py" = ["UP040"]
+# Typer signatures are built out of function-call defaults; that is the API.
+"provenance/cli.py" = ["B008"]
+
+[tool.mypy]
+python_version = "3.12"
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_return_any = true
+no_implicit_optional = true
+check_untyped_defs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+# Deliberately NOT enabled: disallow_any_explicit / strict_equality /
+# disallow_any_generics. Plain-SQL row handling and psycopg cursors produce
+# enough legitimate Any that pedantic mode would only buy noise suppressions.
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["tests.*"]
+disallow_untyped_defs = false
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = "-q --strict-markers --strict-config"
+asyncio_mode = "auto"
+markers = [
+    "db: requires the pace-db container to be up on localhost:5432",
+    "slow: excluded from the default CI gate",
+]

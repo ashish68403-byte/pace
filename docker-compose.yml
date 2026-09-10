@@ -1,0 +1,86 @@
+# PACE local stack. THIS FILE IS THE ONLY DESCRIPTION OF THESE CONTAINERS.
+#
+# The compose plugin is installed (Docker Compose v2.40.3), so the Makefile and
+# scripts/bootstrap.sh both drive `docker compose` rather than carrying their own
+# `docker run` lines. They used to, and the two copies drifted: the Makefile ran
+# jaegertracing/all-in-one:1.62.0 -- the end-of-life v1 line -- while this file ran
+# jaegertracing/jaeger:2.x and explained why. One definition, no drift.
+#
+# The one value that still has to be copied is the database digest, because a GitHub
+# Actions `services:` block cannot read a compose file. It appears here and in
+# .github/workflows/ci.yml, .github/workflows/nightly.yml and scripts/bootstrap.sh, and
+# those four must move in one commit.
+#
+# There is no `version:` key. It has been ignored since Compose v2 and only produces a
+# deprecation warning.
+
+services:
+  pace-db:
+    container_name: pace-db
+    # Pinned by digest alone, not by tag. This exact image is PostgreSQL 18.6 +
+    # pgvector 0.8.4 + pg_search 0.25.7, all three verified against the running
+    # container. The spec said PG16; we are on 18.6 and that is fine -- but it is only
+    # fine because it is *pinned*, so the tokenizer behaviour we measured
+    # ('let my_variable = 2;'::pdb.source_code -> {let,my,variable,2}) is the behaviour
+    # we keep getting. A floating tag would silently change tokenization and move recall
+    # at fixed k, and the diff would show no code change at all.
+    image: paradedb/paradedb@sha256:e4e80f2408e556e84b62d18cda7f6bdd690f2939e109e1b132b49e934193f4ed
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pace
+      POSTGRES_DB: pace
+      # Deterministic collation. ICU/locale drift changes ORDER BY on text columns, which
+      # changes tie-breaking in retrieval results between machines.
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+    ports:
+      - "5432:5432"
+    volumes:
+      # MOUNT POINT MATTERS. PG18 images changed the PGDATA layout: the data directory
+      # now lives under /var/lib/postgresql (the versioned subdir is created inside it).
+      # Mounting at /var/lib/postgresql/data -- as every PG<=17 tutorial says -- or at
+      # /data gives you an empty or wrongly-nested PGDATA and the container EXITS AT
+      # BOOT with an initdb error that reads like a permissions problem and is not one.
+      - pace-pgdata:/var/lib/postgresql
+    healthcheck:
+      # A real query, not pg_isready. During initdb the image runs a temporary server
+      # that answers pg_isready and is then shut down; anything gated on pg_isready
+      # connects to a server that is about to disappear. `SELECT 1` over TCP as our
+      # actual user against our actual database is the only honest readiness signal.
+      # `docker compose up --wait` (what `make up` runs) blocks on exactly this.
+      test: ["CMD-SHELL", "psql -U postgres -d pace -h 127.0.0.1 -c 'SELECT 1' || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    shm_size: 256mb          # WSL2 default of 64mb is tight for parallel index builds
+    stop_grace_period: 30s
+    restart: unless-stopped
+
+  jaeger:
+    container_name: pace-jaeger
+    # jaegertracing/jaeger:2.x -- NOT jaegertracing/all-in-one. all-in-one is the v1
+    # line: end-of-life, no longer receiving fixes, and the thing every tutorial and
+    # blog post still tells you to run. v2 is built on the OpenTelemetry Collector, so
+    # the OTLP receivers below are collector receivers and behave like the real thing.
+    image: jaegertracing/jaeger:2.11.0
+    ports:
+      - "16686:16686"   # web UI
+      - "4317:4317"     # OTLP/gRPC
+      - "4318:4318"     # OTLP/HTTP  <- provenance/config.py otel_endpoint points here
+    # No storage configuration at all: v2's default is in-memory, which is what we want.
+    # Traces are a debugging aid for one dev box, nothing in the eval pipeline reads
+    # them back, and persistence would be pure overhead on a machine with 3.7 GB of
+    # visible RAM. (METRICS_STORAGE_TYPE=prometheus used to be set here and was doubly
+    # wrong: it is a v1 variable, and it configures metrics rather than the trace store
+    # the comment claimed it did.)
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://127.0.0.1:16686/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  pace-pgdata:
+    name: pace-pgdata

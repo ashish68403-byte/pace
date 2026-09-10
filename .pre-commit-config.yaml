@@ -1,0 +1,41 @@
+# Fast hooks only. Anything that needs the database or the corpus belongs in
+# `make test`, not here - a pre-commit hook that takes 40 seconds gets bypassed
+# with --no-verify within a week and then protects nothing.
+default_language_version:
+  python: python3.12
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        # Fixture bytes are load-bearing: chunk_id hashes them. Never let a
+        # whitespace hook silently rewrite them.
+        exclude: ^eval/fixtures/
+      - id: end-of-file-fixer
+        exclude: ^eval/fixtures/
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: ["--maxkb=2048"]
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+        exclude: ^eval/fixtures/
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.6
+    hooks:
+      - id: ruff
+        args: ["--fix"]
+      - id: ruff-format
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.15.0
+    hooks:
+      - id: mypy
+        files: ^provenance/
+        additional_dependencies:
+          - pydantic
+          - pydantic-settings
+          - types-requests

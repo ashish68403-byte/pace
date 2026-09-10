@@ -1,0 +1,16 @@
+# Every chunk_id in this project is sha256 over normalized file content. The
+# normalizer folds CRLF -> LF, but the golden set, the fixtures and the eval
+# outputs are compared byte-for-byte across machines, and git is not a neutral
+# party: core.autocrlf is `true` on the Windows install used for editing and
+# unset on the Ubuntu/WSL side and in CI. That difference alone rewrites line
+# endings on checkout, which shifts fixture bytes, which shifts chunk_ids, and
+# an eval that passed on the laptop fails in CI for no reason a diff can show.
+#
+# So: disable all text conversion, everywhere, unconditionally. Bytes in the
+# object store are the bytes on disk on every machine.
+* -text
+
+# Committed frozen artifacts are binary regardless of platform.
+*.npz binary
+*.parquet binary
+*.png binary

@@ -1,0 +1,67 @@
+# --- Python -----------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# --- Environments -----------------------------------------------------------
+.venv/
+venv/
+.env
+.env.*
+!.env.example
+
+# --- Editors / OS -----------------------------------------------------------
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# --- Corpus -----------------------------------------------------------------
+# The airflow clone lives at ~/corpus/airflow, outside the repo, but ignore a
+# local copy too in case someone clones it in-tree.
+corpus/
+
+# --- Raw GitHub comment dump ------------------------------------------------
+# We fetch issue, PR and inline review comment bodies from the GitHub API and
+# index them. That text is written by thousands of Airflow contributors and is
+# their copyright - it is NOT covered by this repo's Apache-2.0 licence, and
+# the ASF's licence covers the source tree, not third-party discussion prose.
+# Redistributing the dump in a public repo would be republishing other people's
+# words without permission.
+#
+# What may be committed: the IDs (commit_sha, pr_number, issue_number,
+# review_comment_id), the fetch script, and derived numeric artifacts. Anyone
+# reproducing the work re-fetches the bodies themselves with `pace ingest`.
+data/raw/
+data/github/
+*.comments.jsonl
+*.comments.json
+
+# --- Eval run outputs -------------------------------------------------------
+# Runs are reproducible from the golden set + a commit sha; keeping them in git
+# would bloat history with per-run noise.
+eval/runs/
+eval/out/
+eval/reports/
+leakage_report*.json
+
+# --- Parquet ----------------------------------------------------------------
+# Ignore parquet everywhere EXCEPT the small committed eval fixtures, which are
+# part of the CI gate and must be version-controlled.
+*.parquet
+!eval/fixtures/**/*.parquet
+
+# Frozen query embeddings ARE committed on purpose (CI runs with zero embedding
+# calls), so do not ignore eval/fixtures/*.npz here.

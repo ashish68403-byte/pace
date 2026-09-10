@@ -1,0 +1,196 @@
+name: nightly
+
+# The full golden-set run, every night, committed as a dated file.
+#
+# Why commit the results instead of just uploading an artifact: artifacts expire (90 days
+# at most, 30 on our retention settings) and this is a 14-week project whose examiners
+# will ask "when did recall move, and what commit moved it?". Putting one JSON per day
+# under eval/reports/ makes the six-month quality trend itself version-controlled, so
+# `git log -p eval/reports/` answers that question offline, forever, with no dashboard.
+#
+# WHAT THIS JOB CAN AND CANNOT DO TODAY.
+# A GitHub-hosted runner has no corpus: `~/corpus/airflow` is a multi-GB clone that
+# `pace ingest` walks over hours, and the ingest is deliberately a human-run step on the
+# machine that holds it. So this workflow runs the half that is honest on a clean runner
+# -- migrate, healthcheck, leakage gate, eval, invariants -- and records the result. The
+# numbers are zeros until a runner with an ingested corpus exists (a self-hosted runner
+# with PACE_CORPUS_PATH set, or a restored dump), and a zero recorded honestly is worth
+# more in the trend line than a number produced by a command that does not exist.
+#
+# Every `pace ...` line below is a real command in provenance/cli.py. This file used to
+# invoke `pace corpus load`, `pace eval retrieval`, `pace eval end-to-end` and
+# `pace eval summarise`; none of the four has ever existed (audit #17). The real surface
+# is `demo | ingest | scope | eval {run,fixtures,invariants} | leakage | health |
+# version`.
+
+on:
+  schedule:
+    - cron: "40 2 * * *"   # 02:40 UTC daily, well clear of the weekly cassette refresh
+  workflow_dispatch:
+    inputs:
+      commit_results:
+        description: "Commit the dated report back to main"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write   # needed to push the dated report; nothing else
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false   # never cancel a run that is mid-commit
+
+env:
+  PACE_DATABASE_URL: postgresql://postgres:pace@localhost:5432/pace
+  PACE_ALLOW_LIVE_CALLS: "0"
+
+jobs:
+  golden-set:
+    name: full golden-set run
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    services:
+      pace-db:
+        # Same digest as ci.yml, docker-compose.yml, the Makefile and bootstrap.sh. If
+        # any two of them ever disagree, the nightly trend line acquires a discontinuity
+        # that is an artefact of the image rather than of the code.
+        image: paradedb/paradedb@sha256:e4e80f2408e556e84b62d18cda7f6bdd690f2939e109e1b132b49e934193f4ed
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pace
+          POSTGRES_DB: pace
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "psql -U postgres -d pace -h 127.0.0.1 -c 'SELECT 1' || exit 1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 20s
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-py312-${{ hashFiles('pyproject.toml') }}
+          restore-keys: uv-${{ runner.os }}-py312-
+
+      # No --frozen: there is no committed uv.lock. See the same note in ci.yml.
+      - run: uv sync --extra dev
+
+      - name: Stamp the run
+        id: stamp
+        run: |
+          echo "date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+          echo "sha=$(git rev-parse --short HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Migrate
+        run: uv run alembic upgrade head
+
+      - name: Healthcheck
+        # Exits non-zero on a missing extension OR an unmigrated database. Both make
+        # every number below meaningless, so this runs before anything is measured.
+        run: uv run pace health
+
+      - name: Leakage probe (gate first, then trust the numbers)
+        # Deliberately BEFORE the eval. If the probe FAILs, the golden-set numbers about
+        # to be produced are meaningless, and committing them to the trend line would
+        # poison six months of history with a datapoint that looks like progress.
+        #
+        # `--allow-inconclusive` is here for exactly as long as this runner has no
+        # ingested corpus; delete it the day one does. INCONCLUSIVE is printed as
+        # "NOT A PASS" precisely so it cannot be mistaken for a green run in the log.
+        run: |
+          mkdir -p eval/reports
+          uv run python scripts/leakage_probe.py \
+            --from-db \
+            --allow-inconclusive \
+            --json-out "eval/reports/${{ steps.stamp.outputs.date }}-leakage.json"
+
+      - name: Full golden-set retrieval eval
+        # `--runs-dir` puts run.json and the per-query table under a known path; the
+        # next step lifts run.json into the dated trend file. `--embeddings none` until
+        # eval/fixtures/qvecs_<model>.npz is committed (bake with `pace eval fixtures`).
+        run: |
+          uv run pace eval run \
+            --golden provenance/eval/golden/ci_subset.jsonl \
+            --embeddings none \
+            --run-id "nightly-${{ steps.stamp.outputs.date }}" \
+            --runs-dir eval/runs
+          cp "eval/runs/nightly-${{ steps.stamp.outputs.date }}/run.json" \
+             "eval/reports/${{ steps.stamp.outputs.date }}-retrieval.json"
+
+      - name: Ingest invariants
+        # T1 idempotency, dead-letter volume and friends. Not strict: on a runner with
+        # no corpus these legitimately skip, and `--strict` would turn "nothing has been
+        # ingested" into a red build every night for the rest of the project.
+        run: uv run pace eval invariants
+
+      - name: Summarise into the job page
+        # No `pace eval summarise` -- it does not exist. Rendering two committed JSON
+        # files is a shell step's worth of work and does not need a CLI surface of its
+        # own, which is how the four phantom commands got written in the first place.
+        run: |
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json, pathlib
+          date = "${{ steps.stamp.outputs.date }}"
+          reports = pathlib.Path("eval/reports")
+          leak = json.loads((reports / f"{date}-leakage.json").read_text())
+          run = json.loads((reports / f"{date}-retrieval.json").read_text())
+          agg = run.get("aggregates", {})
+          print(f"## PACE nightly {date} (code ${{ steps.stamp.outputs.sha }})\n")
+          print(f"**Leakage verdict: {leak['verdict']}** "
+                f"(grep recall@10 {leak['grep_recall_at_10']:.3f}, "
+                f"ceiling {leak['ceiling']:.2f}, "
+                f"{leak['n_retained']}/{leak['n_golden']} records retained)\n")
+          print("| metric | value |\n| --- | --- |")
+          print(f"| queries scored | {agg.get('n_queries', 0)} |")
+          for key, value in sorted(agg.items()):
+              if key.startswith("recall@") or key.startswith("ndcg@") or key == "mrr@10":
+                  print(f"| {key} | {value:.4f} |")
+          print(f"| model | {run.get('model')} |")
+          print(f"| bootstrap seed | {run.get('bootstrap_seed')} |")
+          for baseline in leak["baselines"]:
+              state = f"{baseline['recall_at_10']:.3f}" if baseline["measured"] else "not measured"
+              print(f"| baseline {baseline['name']} recall@10 | {state} |")
+          PY
+
+      - name: Commit dated reports
+        if: github.event_name == 'schedule' || inputs.commit_results
+        run: |
+          set -euo pipefail
+          git config user.name  "pace-nightly[bot]"
+          git config user.email "pace-nightly@users.noreply.github.com"
+          git add eval/reports
+          if git diff --cached --quiet; then
+            echo "no report changes"
+            exit 0
+          fi
+          git commit -m "eval: nightly golden-set report ${{ steps.stamp.outputs.date }} (code ${{ steps.stamp.outputs.sha }})"
+          # Rebase rather than force: a human commit landing mid-run must survive.
+          git pull --rebase --autostash origin main
+          git push origin HEAD:main
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: nightly-${{ steps.stamp.outputs.date }}
+          path: |
+            eval/reports/
+            eval/runs/
+          if-no-files-found: error
+          retention-days: 90

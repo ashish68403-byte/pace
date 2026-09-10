@@ -1,0 +1,281 @@
+name: ci
+
+# Two jobs, split on one axis only: does it cost money?
+#   retrieval-gate  -- deterministic, ZERO LLM calls, ZERO embedding-API calls. Runs on
+#                      every push and PR. This is the job that is allowed to block merge,
+#                      it costs exactly $0.00, and it finishes in ~2 minutes.
+#   e2e-replay      -- the LLM-dependent half, replayed from committed cassettes. Only
+#                      goes live on a schedule or an explicit label.
+#
+# EVERY `pace ...` INVOCATION BELOW IS CHECKED AGAINST provenance/cli.py, which is the
+# single authority on the command surface (`demo | ingest | scope | eval | leakage |
+# health | version`, and `eval` has sub-commands `run | fixtures | invariants`). This
+# file previously ran `pace eval retrieval --frozen --fail-under-config
+# eval/thresholds.toml`: four things that do not exist -- the sub-command, the flag, the
+# other flag, and the file. A workflow that names a command nobody has ever run is a
+# workflow that has never been green.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 4 * * 1"   # Monday 04:17 UTC: refresh cassettes against live providers
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PACE_DATABASE_URL: postgresql://postgres:pace@localhost:5432/pace
+  UV_PYTHON: "3.12"
+  # Belt and braces: if any code path ever tries a live provider call inside the
+  # deterministic job, it fails on a missing key rather than quietly billing us.
+  PACE_ALLOW_LIVE_CALLS: "0"
+
+jobs:
+  retrieval-gate:
+    name: retrieval-gate (no LLM, no embedding API)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    services:
+      pace-db:
+        # Pinned by digest. The digest is what actually resolves; a floating tag silently
+        # moves across pgvector / pg_search minors, which changes recall at fixed k and
+        # breaks the determinism invariant for reasons that have nothing to do with our
+        # code. Bump this deliberately, in a commit whose message says which numbers
+        # moved, and in the same commit as docker-compose.yml, the Makefile and
+        # scripts/bootstrap.sh -- all four carry this exact digest.
+        image: paradedb/paradedb@sha256:e4e80f2408e556e84b62d18cda7f6bdd690f2939e109e1b132b49e934193f4ed
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pace
+          POSTGRES_DB: pace
+        ports:
+          - 5432:5432
+        # NOT pg_isready. During initdb the image runs a temporary server on a unix
+        # socket that answers pg_isready happily and is then shut down; a healthcheck
+        # built on it goes green, we connect, and the connection is torn out from under
+        # us. Poll a real query on the real TCP listener instead.
+        options: >-
+          --health-cmd "psql -U postgres -d pace -h 127.0.0.1 -c 'SELECT 1' || exit 1"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 30
+          --health-start-period 20s
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Cache uv artefacts
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-py312-${{ hashFiles('pyproject.toml') }}
+          restore-keys: uv-${{ runner.os }}-py312-
+
+      - name: Sync dependencies (base + dev, NOT the ml extra)
+        # NO --frozen. `uv sync --frozen` requires a committed uv.lock, and this repo
+        # deliberately does not have one yet, so --frozen failed on the very first step
+        # of every run (audit #18). The day a lock IS committed, add `--frozen` back in
+        # THAT commit -- the flag and the file have to arrive together or CI is red
+        # either way. hashFiles() above already tolerates the missing lock.
+        #
+        # The `ml` extra is never installed here: this job embeds nothing, and torch's
+        # Linux wheel drags ~1.5-2 GB of CUDA packages onto a runner with no GPU.
+        run: uv sync --extra dev
+
+      - name: Lint
+        run: uv run ruff check .
+
+      - name: Format check
+        run: uv run ruff format --check .
+
+      - name: Typecheck
+        run: uv run mypy provenance
+
+      - name: CLI surface is importable with no database and no ml extra
+        # `pace --help` must work on a fresh clone. It is the one command every other
+        # step's error message tells you to run, and it resolves every sub-command's
+        # heavy imports lazily precisely so this holds.
+        run: |
+          uv run pace --help
+          uv run pace version
+
+      - name: Unit tests (no database)
+        # `-m "not db"` is redundant today -- nothing under tests/unit is db-marked --
+        # and deliberately explicit: this step must stay runnable on a machine with no
+        # Postgres, which is what makes it the fast feedback loop.
+        run: uv run pytest tests/unit -q -m "not db"
+
+      - name: Alembic round-trip (twice)
+        # Twice, because a migration that is merely *idempotent* passes one round trip
+        # and still leaves residue (a dropped-but-not-recreated index, an enum value
+        # that cannot be re-added). The second cycle is what catches non-reversible
+        # downgrades, and it is what audit #23's `EXCEPTION WHEN duplicate_object`
+        # guards exist to survive. Raw-SQL revisions make this easy to get wrong.
+        run: |
+          set -euo pipefail
+          for i in 1 2; do
+            echo "::group::alembic round-trip $i"
+            uv run alembic upgrade head
+            uv run alembic downgrade base
+            uv run alembic upgrade head
+            echo "::endgroup::"
+          done
+
+      - name: Integration tests (pinned Postgres service container)
+        run: uv run pytest tests/integration -q
+
+      - name: Leakage probe (the invariant that makes every other number mean something)
+        # Deliberately BEFORE the eval. If literal substring search can answer the
+        # retained golden set, the benchmark measures nothing and every metric produced
+        # after it is decoration. Exit 1 => FAIL.
+        #
+        # `--allow-inconclusive` maps INCONCLUSIVE (nothing ingested, so nothing was
+        # scored) to exit 0. DELETE THIS FLAG the day CI ingests a corpus. It is the one
+        # thing standing between this step and the failure it exists to catch, and it is
+        # here only because an empty index cannot be distinguished from a clean bill of
+        # health -- which is exactly why "zero gold resolved" now prints INCONCLUSIVE
+        # rather than PASS (audit #12).
+        #
+        # Invoked as the script rather than `pace leakage` only to keep the log clean:
+        # the CLI tries `provenance.eval.leakage` first and prints a red not-found line
+        # before falling back to this file. Same entry point, same flags.
+        run: |
+          mkdir -p artifacts
+          uv run python scripts/leakage_probe.py \
+            --from-db \
+            --allow-inconclusive \
+            --json-out artifacts/leakage_probe.json
+
+      - name: Assert the leakage verdict is not FAIL
+        # Belt and braces on the step above: a future edit that swallows the exit code
+        # (a `|| true`, a wrapper script) would silently turn the project's central
+        # invariant back into decoration. This reads the verdict out of the JSON.
+        run: |
+          set -euo pipefail
+          verdict=$(python -c "import json;print(json.load(open('artifacts/leakage_probe.json'))['verdict'])")
+          echo "leakage verdict: $verdict"
+          test "$verdict" != "FAIL"
+
+      - name: Retrieval eval
+        # `pace eval run` -- the real sub-command. Flags checked against
+        # provenance/eval/runner.py:run.
+        #
+        # `--embeddings none` because no frozen query vectors are committed yet. The
+        # option accepts ONLY `frozen` or `none`; there is no live mode to fall back to
+        # and no env var that can add one, which is the whole $0.00 property. Flip this
+        # to `--embeddings frozen` in the same commit that lands
+        # eval/fixtures/qvecs_<model>.npz (bake it with `pace eval fixtures`, which
+        # lists the questions that have no vector and never runs a model itself).
+        #
+        # The database is up but empty, so anchors resolve to nothing and the run
+        # reports clean zeros against an empty baseline. That is not a formality: it
+        # executes anchors.py's SQL against the real schema on every push, which is
+        # where `chunk` vs `chunks` and the slug-as-bigint bugs would have died.
+        run: |
+          uv run pace eval run \
+            --golden provenance/eval/golden/ci_subset.jsonl \
+            --embeddings none \
+            --k 10
+
+      - name: Dependency audit
+        # Not theatre. In March 2026 litellm 1.82.7 and 1.82.8 shipped a supply-chain
+        # compromise: malicious code published to PyPI under a trusted package name and
+        # pulled in transitively by anything doing LLM routing. An audit step that runs
+        # on every push is the control that turns "we were exposed for six weeks" into
+        # "CI went red the morning the advisory landed".
+        run: uv run pip-audit --strict --progress-spinner off
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: retrieval-gate-artifacts
+          path: |
+            artifacts/
+            eval/runs/
+          if-no-files-found: warn
+          retention-days: 30
+
+  e2e-replay:
+    name: e2e-replay (cassettes; live only on schedule or label)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs: retrieval-gate
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/uv
+          key: uv-${{ runner.os }}-py312-${{ hashFiles('pyproject.toml') }}
+          restore-keys: uv-${{ runner.os }}-py312-
+
+      - run: uv sync --extra dev
+
+      - name: Decide replay vs live
+        id: mode
+        # Live provider traffic happens on exactly two triggers: the weekly schedule
+        # (which refreshes the cassettes) and a human attaching `run-live-eval` to a PR.
+        # Everything else replays. Default-deny, because the failure mode of the
+        # opposite default is an unbounded bill on a fork's PR.
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] \
+             || [ "${{ contains(github.event.pull_request.labels.*.name, 'run-live-eval') }}" = "true" ]; then
+            echo "mode=live" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=replay" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: End-to-end eval
+        env:
+          PACE_CASSETTE_MODE: ${{ steps.mode.outputs.mode }}
+          PACE_ALLOW_LIVE_CALLS: ${{ steps.mode.outputs.mode == 'live' && '1' || '0' }}
+          # Secrets are only readable when the job is genuinely going live; in replay
+          # mode the empty string means a stray call fails loudly instead of billing.
+          OPENAI_API_KEY: ${{ steps.mode.outputs.mode == 'live' && secrets.OPENAI_API_KEY || '' }}
+          ANTHROPIC_API_KEY: ${{ steps.mode.outputs.mode == 'live' && secrets.ANTHROPIC_API_KEY || '' }}
+        # tests/e2e does not exist yet -- the synthesis half of the system is not built,
+        # so there is nothing to replay. `--ignore-missing` is not a pytest flag, so the
+        # honest form is to skip the step until the directory lands. When it does,
+        # delete this `if:` and the step runs on every PR in replay mode.
+        if: ${{ hashFiles('tests/e2e/**') != '' }}
+        run: uv run pytest tests/e2e -q
+
+      - name: Cassette drift check
+        if: steps.mode.outputs.mode == 'live' && hashFiles('tests/e2e/cassettes/**') != ''
+        # A live run that rewrites cassettes means provider behaviour moved. Surface the
+        # diff as an artifact rather than committing it blind.
+        run: git diff --stat -- tests/e2e/cassettes || true
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: e2e-replay-artifacts
+          path: |
+            artifacts/
+            tests/e2e/cassettes/
+          if-no-files-found: warn
+          retention-days: 14
