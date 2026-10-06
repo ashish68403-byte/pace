@@ -46,6 +46,8 @@ Start with the roadmap; it says what to build next and, more usefully, what not 
 | | |
 |---|---|
 | [docs/ROADMAP.md](docs/ROADMAP.md) | The 14-week plan: scope verdict, the nine decisions, six ranked traps, the week-by-week gates, the cut list, the novelty claim, the money model |
+| [docs/tracker/](docs/tracker/README.md) | Where the work is tracked: one file per subsystem, plus the review-remediation backlog. The roadmap says *when*; the trackers say *what state it is in* |
+| [docs/LEARNING-AGENDA.md](docs/LEARNING-AGENDA.md) | The five concepts this project lives or dies on, week by week, with the misconceptions each one prevents |
 | [docs/ADR-0001-typed-edges.md](docs/ADR-0001-typed-edges.md) | Why typed edge tables rather than one polymorphic `edges` table |
 | [docs/ADR-0002-golden-set-construction.md](docs/ADR-0002-golden-set-construction.md) | Why the anchor symbol must come from the code and never from the rationale text |
 | [docs/RUNBOOK.md](docs/RUNBOOK.md) | Starting everything, the degradation table, how to read a trace |
