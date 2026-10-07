@@ -86,7 +86,7 @@ Each is reversible in week 1 and expensive in week 8. All are now settled and in
 
 | Decision | Choice | Why |
 |---|---|---|
-| **Corpus** | Airflow, ~81.6k lines / 303 files | Not the spec's 200k. `airflow-core/src/airflow` minus `ui/`, `example_dags/`, `migrations/`, `api_fastapi/`. The excluded `api_fastapi/` is 36.5k lines of REST boilerplate with short history and low rationale density. Measured: 5,628 in-scope PR numbers, 94% commit→PR linkage, ~190–370 golden items after filters — enough. |
+| **Corpus** | Airflow, ~81.6k lines / 303 files | Not the spec's 200k. `airflow-core/src/airflow` minus `ui/`, `example_dags/`, `migrations/`, `api_fastapi/`. The excluded `api_fastapi/` is 30,640 physical lines across 177 files of REST boilerplate with short history and low rationale density — 27% of the tree by file count, 37% by lines, measured at corpus `1e2ad803f7` and reproducible with `pace scope`. Measured: 5,628 in-scope PR numbers, 94% commit→PR linkage, ~190–370 golden items after filters — enough. |
 | **Python** | 3.12.3 (already in WSL) | The spec's exact version, zero install, matches `ubuntu-latest` in CI. |
 | **Code location** | WSL2 ext4, never `/mnt/c` | Measured: `/mnt/c` costs 0.2–0.9 s per `git status`, ~190 ms per `git blame`. This project runs blame tens of thousands of times. |
 | **Containers** | Docker already in WSL | Do *not* install Docker Desktop — it displaces a working engine and costs 1.5–2 GB on an 8 GB box. |

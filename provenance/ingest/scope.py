@@ -25,6 +25,7 @@ import argparse
 import json
 import logging
 import re
+import subprocess
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
@@ -49,15 +50,27 @@ __all__ = [
 # Bump ONLY when deliberately re-freezing. Every recall figure is scoped to this.
 SCOPE_VERSION = "v1"
 
+#: Tripwire for the FIRST freeze, which is the only one `ScopeDriftError` cannot
+#: catch: with no previous file to compare against, a wrong glob set is frozen as
+#: `v1` and every later run then agrees with it. This number is the one ROADMAP §3
+#: reports, so a mismatch means the globs and the write-up have diverged. Changing
+#: it is a deliberate re-scope: bump SCOPE_VERSION in the same commit.
+EXPECTED_SCOPE_FILES = 303
+
 # ~60-80k physical lines of the core package. Deliberately excluded:
 #   ui/          - TypeScript/React assets and generated API clients, not Python rationale
 #   example_dags/- documentation-by-example; high lexical overlap, no interesting history
 #   migrations/  - Alembic revisions are mechanical and dominate any lexical index
+#   api_fastapi/ - REST boilerplate with short history and low rationale density. Measured
+#                  at 1e2ad803f7: 177 files / 30,640 physical lines, i.e. 37% of the tree
+#                  by line count. Omitting this glob is what made `pace scope` report
+#                  480 files / 112,259 lines where ROADMAP §3 claims 303 / 81,619.
 DEFAULT_INCLUDE: tuple[str, ...] = ("airflow-core/src/airflow/**/*.py",)
 DEFAULT_EXCLUDE: tuple[str, ...] = (
     "**/ui/**",
     "**/example_dags/**",
     "**/migrations/**",
+    "**/api_fastapi/**",
     "**/__pycache__/**",
     "**/*.pyi",
 )
@@ -87,6 +100,7 @@ class ScopeReport:
     corpus_path: str
     include: list[str]
     exclude: list[str]
+    corpus_commit: str | None = None
     files: int = 0
     physical_lines: int = 0
     non_blank_lines: int = 0
@@ -96,7 +110,12 @@ class ScopeReport:
 
     @property
     def licence_share(self) -> float:
-        """Fraction of physical lines that are boilerplate. Sanity check: ~13%."""
+        """Fraction of physical lines that are boilerplate.
+
+        Sanity check: ~6% at SCOPE_VERSION v1 (5,074 of 81,619 at `1e2ad803f7`). The
+        previous "~13%" matched neither glob set — it is 7.2% even with `api_fastapi`
+        left in — so do not treat a number near 13 as confirmation of anything.
+        """
         return self.licence_header_lines / self.physical_lines if self.physical_lines else 0.0
 
     def summary(self) -> str:
@@ -262,6 +281,7 @@ def build_scope(
     report = ScopeReport(
         scope_version=SCOPE_VERSION,
         corpus_path=str(corpus),
+        corpus_commit=_corpus_commit(corpus),
         include=list(include),
         exclude=list(exclude),
     )
@@ -282,7 +302,16 @@ def build_scope(
 
 
 def _write_frozen(target: Path, paths: Iterable[str], *, force: bool) -> None:
-    body = "\n".join(paths) + "\n"
+    ordered = list(paths)
+    body = "\n".join(ordered) + "\n"
+    if not target.exists() and not force and len(ordered) != EXPECTED_SCOPE_FILES:
+        raise ScopeDriftError(
+            f"first freeze selects {len(ordered)} files, expected {EXPECTED_SCOPE_FILES}. "
+            f"Nothing exists to compare this against, so it is the one freeze that cannot "
+            f"drift-check itself — and a wrong glob set frozen now is invisible afterwards, "
+            f"because every later run agrees with it. Check the globs against ROADMAP §3; "
+            f"if the new count is deliberate, bump SCOPE_VERSION and re-run with force=True."
+        )
     if target.exists() and not force:
         existing = target.read_text(encoding="utf-8")
         if existing != body:
@@ -302,6 +331,26 @@ def _write_frozen(target: Path, paths: Iterable[str], *, force: bool) -> None:
 def default_scope_path() -> Path:
     """``<repo>/scope.txt`` — committed, next to pyproject.toml."""
     return _repo_root() / "scope.txt"
+
+
+def _corpus_commit(corpus: Path) -> str | None:
+    """HEAD of the corpus clone, or None if it is not a git repository.
+
+    A file list without the tree it was computed from is not reproducible: the upstream
+    repository moves daily, so "303 files" names a different 303 next month.
+    """
+    try:
+        done = subprocess.run(
+            ("git", "-C", str(corpus), "rev-parse", "HEAD"),
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:  # pragma: no cover - git absent from PATH
+        return None
+    if done.returncode != 0:
+        return None
+    return done.stdout.strip() or None
 
 
 def _repo_root() -> Path:

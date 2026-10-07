@@ -1,7 +1,7 @@
 # Task 004: Freeze the corpus scope, and make the frozen scope the denominator
 
 **Tracker:** [000_REVIEW_REMEDIATION](../../tracker/000_REVIEW_REMEDIATION.md) · finding 4
-**Priority:** P0 · **Severity:** critical · **Status:** ⬜ Not started
+**Priority:** P0 · **Severity:** critical · **Status:** ✅ Done (2026-10-07)
 
 ## User Story
 
@@ -85,7 +85,26 @@ already exists, so the first freeze — the one that matters — is unguarded.
 
 - Re-derive the "36.5k lines" claim at ROADMAP:89 while here. Measured at the pinned commit,
   `api_fastapi` is **30,640 physical lines / 177 files** — the argument for excluding it survives,
-  but the number does not.
+  but the number does not. **Done:** §3 now carries the measured figure and the corpus SHA.
+
+- **2026-10-07 — deviation from the acceptance criteria, deliberate.** The criterion said add
+  `uv run pace scope --check` to the `retrieval-gate` job. That cannot work: `--check` rebuilds the
+  scope from the corpus, and a GitHub runner has no apache/airflow clone, so the step would exit 2
+  on "corpus not found" on every run. Drift against the *tree* is only checkable where the tree
+  lives. What CI can check with no corpus — and what was actually broken — is whether the frozen
+  list exists and agrees with the number the write-up quotes, so that became two unit tests instead
+  (`test_the_committed_scope_exists_and_matches_the_pinned_count`,
+  `test_the_committed_stats_agree_with_the_committed_list`). Both were watched failing with the
+  artifacts moved aside. The corpus-side `--check` belongs in the nightly once a runner with
+  `PACE_CORPUS_PATH` exists — see `nightly.yml:17`, which already anticipates that runner.
+
+- **2026-10-07.** Third drift found in the same file while here: `ScopeReport.licence_share`'s
+  docstring claimed a "~13%" sanity check. Measured 6.2% on the corrected scope and 7.2% on the old
+  one, so it matched neither glob set and would have confirmed nothing. Corrected with both numbers
+  recorded, because a sanity check nobody can fail is the same bug class as a gate that cannot fail.
+
+- **2026-10-07.** `select_paths` ordering is the freeze order and `_write_frozen` now materialises
+  its `Iterable` to count it — worth knowing if anyone later passes a generator expecting laziness.
 - The fallback at `skeleton.py:263-270` is the more dangerous half of this task. A `log.warning` on
   a missing denominator is how a demo trace over an arbitrary file reads as a passing walking
   skeleton. Fail loudly instead — the same rule `leakage_probe.py` already applies to INCONCLUSIVE.

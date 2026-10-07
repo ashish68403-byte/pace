@@ -1,0 +1,2145 @@
+{
+  "code_lines": 60711,
+  "corpus_commit": "1e2ad803f74eadb5fb28d4504ca06b008c48b63e",
+  "corpus_path": "/home/ashish68403/corpus/airflow",
+  "exclude": [
+    "**/ui/**",
+    "**/example_dags/**",
+    "**/migrations/**",
+    "**/api_fastapi/**",
+    "**/__pycache__/**",
+    "**/*.pyi"
+  ],
+  "files": 303,
+  "include": [
+    "airflow-core/src/airflow/**/*.py"
+  ],
+  "licence_header_lines": 5074,
+  "licence_share": 0.0622,
+  "non_blank_lines": 69567,
+  "per_file": [
+    {
+      "code": 69,
+      "licence_header": 25,
+      "non_blank": 114,
+      "path": "airflow-core/src/airflow/__init__.py",
+      "physical": 136
+    },
+    {
+      "code": 23,
+      "licence_header": 19,
+      "non_blank": 56,
+      "path": "airflow-core/src/airflow/__main__.py",
+      "physical": 65
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/_shared/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 0,
+      "licence_header": 0,
+      "non_blank": 0,
+      "path": "airflow-core/src/airflow/_vendor/__init__.py",
+      "physical": 0
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/api/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 5,
+      "licence_header": 17,
+      "non_blank": 22,
+      "path": "airflow-core/src/airflow/api/client/__init__.py",
+      "physical": 26
+    },
+    {
+      "code": 78,
+      "licence_header": 17,
+      "non_blank": 95,
+      "path": "airflow-core/src/airflow/api/client/local_client.py",
+      "physical": 107
+    },
+    {
+      "code": 0,
+      "licence_header": 18,
+      "non_blank": 17,
+      "path": "airflow-core/src/airflow/api/common/__init__.py",
+      "physical": 17
+    },
+    {
+      "code": 128,
+      "licence_header": 16,
+      "non_blank": 144,
+      "path": "airflow-core/src/airflow/api/common/airflow_health.py",
+      "physical": 175
+    },
+    {
+      "code": 56,
+      "licence_header": 17,
+      "non_blank": 77,
+      "path": "airflow-core/src/airflow/api/common/delete_dag.py",
+      "physical": 90
+    },
+    {
+      "code": 361,
+      "licence_header": 17,
+      "non_blank": 390,
+      "path": "airflow-core/src/airflow/api/common/mark_tasks.py",
+      "physical": 446
+    },
+    {
+      "code": 154,
+      "licence_header": 17,
+      "non_blank": 175,
+      "path": "airflow-core/src/airflow/api/common/trigger_dag.py",
+      "physical": 200
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/assets/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 42,
+      "licence_header": 17,
+      "non_blank": 58,
+      "path": "airflow-core/src/airflow/assets/evaluation.py",
+      "physical": 73
+    },
+    {
+      "code": 707,
+      "licence_header": 17,
+      "non_blank": 755,
+      "path": "airflow-core/src/airflow/assets/manager.py",
+      "physical": 850
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/callbacks/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 9,
+      "licence_header": 17,
+      "non_blank": 26,
+      "path": "airflow-core/src/airflow/callbacks/base_callback_sink.py",
+      "physical": 31
+    },
+    {
+      "code": 122,
+      "licence_header": 16,
+      "non_blank": 147,
+      "path": "airflow-core/src/airflow/callbacks/callback_requests.py",
+      "physical": 183
+    },
+    {
+      "code": 15,
+      "licence_header": 17,
+      "non_blank": 32,
+      "path": "airflow-core/src/airflow/callbacks/database_callback_sink.py",
+      "physical": 39
+    },
+    {
+      "code": 0,
+      "licence_header": 18,
+      "non_blank": 17,
+      "path": "airflow-core/src/airflow/cli/__init__.py",
+      "physical": 17
+    },
+    {
+      "code": 2225,
+      "licence_header": 18,
+      "non_blank": 2278,
+      "path": "airflow-core/src/airflow/cli/cli_config.py",
+      "physical": 2377
+    },
+    {
+      "code": 199,
+      "licence_header": 18,
+      "non_blank": 234,
+      "path": "airflow-core/src/airflow/cli/cli_parser.py",
+      "physical": 280
+    },
+    {
+      "code": 0,
+      "licence_header": 18,
+      "non_blank": 17,
+      "path": "airflow-core/src/airflow/cli/commands/__init__.py",
+      "physical": 17
+    },
+    {
+      "code": 233,
+      "licence_header": 16,
+      "non_blank": 257,
+      "path": "airflow-core/src/airflow/cli/commands/api_server_command.py",
+      "physical": 306
+    },
+    {
+      "code": 123,
+      "licence_header": 17,
+      "non_blank": 139,
+      "path": "airflow-core/src/airflow/cli/commands/asset_command.py",
+      "physical": 175
+    },
+    {
+      "code": 95,
+      "licence_header": 17,
+      "non_blank": 111,
+      "path": "airflow-core/src/airflow/cli/commands/backfill_command.py",
+      "physical": 124
+    },
+    {
+      "code": 39,
+      "licence_header": 16,
+      "non_blank": 55,
+      "path": "airflow-core/src/airflow/cli/commands/cheat_sheet_command.py",
+      "physical": 66
+    },
+    {
+      "code": 1010,
+      "licence_header": 16,
+      "non_blank": 1050,
+      "path": "airflow-core/src/airflow/cli/commands/config_command.py",
+      "physical": 1117
+    },
+    {
+      "code": 374,
+      "licence_header": 16,
+      "non_blank": 392,
+      "path": "airflow-core/src/airflow/cli/commands/connection_command.py",
+      "physical": 472
+    },
+    {
+      "code": 55,
+      "licence_header": 16,
+      "non_blank": 72,
+      "path": "airflow-core/src/airflow/cli/commands/daemon_utils.py",
+      "physical": 82
+    },
+    {
+      "code": 750,
+      "licence_header": 17,
+      "non_blank": 771,
+      "path": "airflow-core/src/airflow/cli/commands/dag_command.py",
+      "physical": 895
+    },
+    {
+      "code": 46,
+      "licence_header": 16,
+      "non_blank": 62,
+      "path": "airflow-core/src/airflow/cli/commands/dag_processor_command.py",
+      "physical": 75
+    },
+    {
+      "code": 319,
+      "licence_header": 16,
+      "non_blank": 347,
+      "path": "airflow-core/src/airflow/cli/commands/db_command.py",
+      "physical": 406
+    },
+    {
+      "code": 41,
+      "licence_header": 16,
+      "non_blank": 57,
+      "path": "airflow-core/src/airflow/cli/commands/db_manager_command.py",
+      "physical": 66
+    },
+    {
+      "code": 304,
+      "licence_header": 16,
+      "non_blank": 327,
+      "path": "airflow-core/src/airflow/cli/commands/info_command.py",
+      "physical": 390
+    },
+    {
+      "code": 41,
+      "licence_header": 16,
+      "non_blank": 57,
+      "path": "airflow-core/src/airflow/cli/commands/jobs_command.py",
+      "physical": 66
+    },
+    {
+      "code": 20,
+      "licence_header": 16,
+      "non_blank": 36,
+      "path": "airflow-core/src/airflow/cli/commands/kerberos_command.py",
+      "physical": 42
+    },
+    {
+      "code": 18,
+      "licence_header": 16,
+      "non_blank": 34,
+      "path": "airflow-core/src/airflow/cli/commands/legacy_commands.py",
+      "physical": 39
+    },
+    {
+      "code": 106,
+      "licence_header": 16,
+      "non_blank": 122,
+      "path": "airflow-core/src/airflow/cli/commands/partition_command.py",
+      "physical": 139
+    },
+    {
+      "code": 19,
+      "licence_header": 16,
+      "non_blank": 38,
+      "path": "airflow-core/src/airflow/cli/commands/plugins_command.py",
+      "physical": 43
+    },
+    {
+      "code": 130,
+      "licence_header": 17,
+      "non_blank": 147,
+      "path": "airflow-core/src/airflow/cli/commands/pool_command.py",
+      "physical": 169
+    },
+    {
+      "code": 220,
+      "licence_header": 16,
+      "non_blank": 236,
+      "path": "airflow-core/src/airflow/cli/commands/provider_command.py",
+      "physical": 276
+    },
+    {
+      "code": 44,
+      "licence_header": 16,
+      "non_blank": 61,
+      "path": "airflow-core/src/airflow/cli/commands/rotate_fernet_key_command.py",
+      "physical": 71
+    },
+    {
+      "code": 74,
+      "licence_header": 16,
+      "non_blank": 90,
+      "path": "airflow-core/src/airflow/cli/commands/scheduler_command.py",
+      "physical": 107
+    },
+    {
+      "code": 236,
+      "licence_header": 16,
+      "non_blank": 271,
+      "path": "airflow-core/src/airflow/cli/commands/standalone_command.py",
+      "physical": 314
+    },
+    {
+      "code": 33,
+      "licence_header": 16,
+      "non_blank": 50,
+      "path": "airflow-core/src/airflow/cli/commands/state_store_command.py",
+      "physical": 60
+    },
+    {
+      "code": 431,
+      "licence_header": 17,
+      "non_blank": 468,
+      "path": "airflow-core/src/airflow/cli/commands/task_command.py",
+      "physical": 541
+    },
+    {
+      "code": 216,
+      "licence_header": 17,
+      "non_blank": 248,
+      "path": "airflow-core/src/airflow/cli/commands/team_command.py",
+      "physical": 310
+    },
+    {
+      "code": 83,
+      "licence_header": 16,
+      "non_blank": 99,
+      "path": "airflow-core/src/airflow/cli/commands/triggerer_command.py",
+      "physical": 119
+    },
+    {
+      "code": 159,
+      "licence_header": 17,
+      "non_blank": 177,
+      "path": "airflow-core/src/airflow/cli/commands/variable_command.py",
+      "physical": 206
+    },
+    {
+      "code": 6,
+      "licence_header": 16,
+      "non_blank": 22,
+      "path": "airflow-core/src/airflow/cli/commands/version_command.py",
+      "physical": 26
+    },
+    {
+      "code": 123,
+      "licence_header": 17,
+      "non_blank": 157,
+      "path": "airflow-core/src/airflow/cli/hot_reload.py",
+      "physical": 196
+    },
+    {
+      "code": 101,
+      "licence_header": 16,
+      "non_blank": 119,
+      "path": "airflow-core/src/airflow/cli/simple_table.py",
+      "physical": 142
+    },
+    {
+      "code": 91,
+      "licence_header": 17,
+      "non_blank": 108,
+      "path": "airflow-core/src/airflow/cli/utils.py",
+      "physical": 141
+    },
+    {
+      "code": 0,
+      "licence_header": 18,
+      "non_blank": 17,
+      "path": "airflow-core/src/airflow/config_templates/__init__.py",
+      "physical": 17
+    },
+    {
+      "code": 301,
+      "licence_header": 17,
+      "non_blank": 346,
+      "path": "airflow-core/src/airflow/config_templates/airflow_local_settings.py",
+      "physical": 397
+    },
+    {
+      "code": 8,
+      "licence_header": 17,
+      "non_blank": 111,
+      "path": "airflow-core/src/airflow/config_templates/default_webserver_config.py",
+      "physical": 130
+    },
+    {
+      "code": 636,
+      "licence_header": 16,
+      "non_blank": 688,
+      "path": "airflow-core/src/airflow/configuration.py",
+      "physical": 821
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/dag_processing/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/dag_processing/bundles/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 398,
+      "licence_header": 17,
+      "non_blank": 421,
+      "path": "airflow-core/src/airflow/dag_processing/bundles/base.py",
+      "physical": 521
+    },
+    {
+      "code": 22,
+      "licence_header": 17,
+      "non_blank": 38,
+      "path": "airflow-core/src/airflow/dag_processing/bundles/local.py",
+      "physical": 50
+    },
+    {
+      "code": 508,
+      "licence_header": 16,
+      "non_blank": 579,
+      "path": "airflow-core/src/airflow/dag_processing/bundles/manager.py",
+      "physical": 687
+    },
+    {
+      "code": 1008,
+      "licence_header": 18,
+      "non_blank": 1090,
+      "path": "airflow-core/src/airflow/dag_processing/collection.py",
+      "physical": 1225
+    },
+    {
+      "code": 470,
+      "licence_header": 17,
+      "non_blank": 514,
+      "path": "airflow-core/src/airflow/dag_processing/dagbag.py",
+      "physical": 608
+    },
+    {
+      "code": 20,
+      "licence_header": 16,
+      "non_blank": 36,
+      "path": "airflow-core/src/airflow/dag_processing/importers/__init__.py",
+      "physical": 39
+    },
+    {
+      "code": 194,
+      "licence_header": 16,
+      "non_blank": 213,
+      "path": "airflow-core/src/airflow/dag_processing/importers/base.py",
+      "physical": 266
+    },
+    {
+      "code": 286,
+      "licence_header": 16,
+      "non_blank": 307,
+      "path": "airflow-core/src/airflow/dag_processing/importers/python_importer.py",
+      "physical": 360
+    },
+    {
+      "code": 1434,
+      "licence_header": 17,
+      "non_blank": 1569,
+      "path": "airflow-core/src/airflow/dag_processing/manager.py",
+      "physical": 1811
+    },
+    {
+      "code": 624,
+      "licence_header": 16,
+      "non_blank": 667,
+      "path": "airflow-core/src/airflow/dag_processing/processor.py",
+      "physical": 768
+    },
+    {
+      "code": 20,
+      "licence_header": 16,
+      "non_blank": 36,
+      "path": "airflow-core/src/airflow/decorators/__init__.py",
+      "physical": 38
+    },
+    {
+      "code": 230,
+      "licence_header": 19,
+      "non_blank": 262,
+      "path": "airflow-core/src/airflow/exceptions.py",
+      "physical": 372
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/executors/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 575,
+      "licence_header": 16,
+      "non_blank": 624,
+      "path": "airflow-core/src/airflow/executors/base_executor.py",
+      "physical": 770
+    },
+    {
+      "code": 17,
+      "licence_header": 16,
+      "non_blank": 33,
+      "path": "airflow-core/src/airflow/executors/executor_constants.py",
+      "physical": 39
+    },
+    {
+      "code": 289,
+      "licence_header": 16,
+      "non_blank": 347,
+      "path": "airflow-core/src/airflow/executors/executor_loader.py",
+      "physical": 407
+    },
+    {
+      "code": 33,
+      "licence_header": 16,
+      "non_blank": 51,
+      "path": "airflow-core/src/airflow/executors/executor_utils.py",
+      "physical": 59
+    },
+    {
+      "code": 214,
+      "licence_header": 17,
+      "non_blank": 268,
+      "path": "airflow-core/src/airflow/executors/local_executor.py",
+      "physical": 325
+    },
+    {
+      "code": 31,
+      "licence_header": 16,
+      "non_blank": 47,
+      "path": "airflow-core/src/airflow/executors/workloads/__init__.py",
+      "physical": 55
+    },
+    {
+      "code": 111,
+      "licence_header": 16,
+      "non_blank": 131,
+      "path": "airflow-core/src/airflow/executors/workloads/base.py",
+      "physical": 173
+    },
+    {
+      "code": 86,
+      "licence_header": 16,
+      "non_blank": 106,
+      "path": "airflow-core/src/airflow/executors/workloads/callback.py",
+      "physical": 135
+    },
+    {
+      "code": 53,
+      "licence_header": 16,
+      "non_blank": 69,
+      "path": "airflow-core/src/airflow/executors/workloads/connection_test.py",
+      "physical": 84
+    },
+    {
+      "code": 80,
+      "licence_header": 16,
+      "non_blank": 101,
+      "path": "airflow-core/src/airflow/executors/workloads/task.py",
+      "physical": 125
+    },
+    {
+      "code": 25,
+      "licence_header": 16,
+      "non_blank": 43,
+      "path": "airflow-core/src/airflow/executors/workloads/trigger.py",
+      "physical": 52
+    },
+    {
+      "code": 23,
+      "licence_header": 16,
+      "non_blank": 43,
+      "path": "airflow-core/src/airflow/executors/workloads/types.py",
+      "physical": 51
+    },
+    {
+      "code": 17,
+      "licence_header": 19,
+      "non_blank": 35,
+      "path": "airflow-core/src/airflow/hooks/__init__.py",
+      "physical": 38
+    },
+    {
+      "code": 60,
+      "licence_header": 17,
+      "non_blank": 77,
+      "path": "airflow-core/src/airflow/hooks/base.py",
+      "physical": 103
+    },
+    {
+      "code": 23,
+      "licence_header": 16,
+      "non_blank": 39,
+      "path": "airflow-core/src/airflow/io/__init__.py",
+      "physical": 41
+    },
+    {
+      "code": 0,
+      "licence_header": 18,
+      "non_blank": 17,
+      "path": "airflow-core/src/airflow/jobs/__init__.py",
+      "physical": 17
+    },
+    {
+      "code": 38,
+      "licence_header": 17,
+      "non_blank": 54,
+      "path": "airflow-core/src/airflow/jobs/base_job_runner.py",
+      "physical": 70
+    },
+    {
+      "code": 43,
+      "licence_header": 17,
+      "non_blank": 59,
+      "path": "airflow-core/src/airflow/jobs/dag_processor_job_runner.py",
+      "physical": 71
+    },
+    {
+      "code": 322,
+      "licence_header": 17,
+      "non_blank": 351,
+      "path": "airflow-core/src/airflow/jobs/job.py",
+      "physical": 412
+    },
+    {
+      "code": 3428,
+      "licence_header": 17,
+      "non_blank": 3837,
+      "path": "airflow-core/src/airflow/jobs/scheduler_job_runner.py",
+      "physical": 4300
+    },
+    {
+      "code": 1341,
+      "licence_header": 16,
+      "non_blank": 1521,
+      "path": "airflow-core/src/airflow/jobs/triggerer_job_runner.py",
+      "physical": 1764
+    },
+    {
+      "code": 9,
+      "licence_header": 17,
+      "non_blank": 26,
+      "path": "airflow-core/src/airflow/lineage/__init__.py",
+      "physical": 28
+    },
+    {
+      "code": 3,
+      "licence_header": 17,
+      "non_blank": 20,
+      "path": "airflow-core/src/airflow/listeners/__init__.py",
+      "physical": 22
+    },
+    {
+      "code": 26,
+      "licence_header": 17,
+      "non_blank": 43,
+      "path": "airflow-core/src/airflow/listeners/listener.py",
+      "physical": 52
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/listeners/spec/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 23,
+      "licence_header": 18,
+      "non_blank": 40,
+      "path": "airflow-core/src/airflow/listeners/spec/asset.py",
+      "physical": 54
+    },
+    {
+      "code": 15,
+      "licence_header": 17,
+      "non_blank": 32,
+      "path": "airflow-core/src/airflow/listeners/spec/dagrun.py",
+      "physical": 42
+    },
+    {
+      "code": 9,
+      "licence_header": 18,
+      "non_blank": 26,
+      "path": "airflow-core/src/airflow/listeners/spec/importerrors.py",
+      "physical": 33
+    },
+    {
+      "code": 19,
+      "licence_header": 18,
+      "non_blank": 36,
+      "path": "airflow-core/src/airflow/listeners/types.py",
+      "physical": 45
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/logging/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 3,
+      "licence_header": 17,
+      "non_blank": 19,
+      "path": "airflow-core/src/airflow/logging/remote.py",
+      "physical": 22
+    },
+    {
+      "code": 179,
+      "licence_header": 17,
+      "non_blank": 216,
+      "path": "airflow-core/src/airflow/logging_config.py",
+      "physical": 262
+    },
+    {
+      "code": 6,
+      "licence_header": 17,
+      "non_blank": 23,
+      "path": "airflow-core/src/airflow/macros/__init__.py",
+      "physical": 25
+    },
+    {
+      "code": 151,
+      "licence_header": 17,
+      "non_blank": 173,
+      "path": "airflow-core/src/airflow/models/__init__.py",
+      "physical": 190
+    },
+    {
+      "code": 810,
+      "licence_header": 17,
+      "non_blank": 863,
+      "path": "airflow-core/src/airflow/models/asset.py",
+      "physical": 1018
+    },
+    {
+      "code": 36,
+      "licence_header": 16,
+      "non_blank": 52,
+      "path": "airflow-core/src/airflow/models/asset_state_store.py",
+      "physical": 64
+    },
+    {
+      "code": 663,
+      "licence_header": 17,
+      "non_blank": 697,
+      "path": "airflow-core/src/airflow/models/backfill.py",
+      "physical": 808
+    },
+    {
+      "code": 45,
+      "licence_header": 17,
+      "non_blank": 77,
+      "path": "airflow-core/src/airflow/models/base.py",
+      "physical": 98
+    },
+    {
+      "code": 204,
+      "licence_header": 16,
+      "non_blank": 241,
+      "path": "airflow-core/src/airflow/models/callback.py",
+      "physical": 320
+    },
+    {
+      "code": 483,
+      "licence_header": 17,
+      "non_blank": 524,
+      "path": "airflow-core/src/airflow/models/connection.py",
+      "physical": 614
+    },
+    {
+      "code": 183,
+      "licence_header": 16,
+      "non_blank": 199,
+      "path": "airflow-core/src/airflow/models/connection_test.py",
+      "physical": 230
+    },
+    {
+      "code": 119,
+      "licence_header": 17,
+      "non_blank": 136,
+      "path": "airflow-core/src/airflow/models/crypto.py",
+      "physical": 175
+    },
+    {
+      "code": 684,
+      "licence_header": 17,
+      "non_blank": 768,
+      "path": "airflow-core/src/airflow/models/dag.py",
+      "physical": 895
+    },
+    {
+      "code": 11,
+      "licence_header": 17,
+      "non_blank": 28,
+      "path": "airflow-core/src/airflow/models/dag_favorite.py",
+      "physical": 34
+    },
+    {
+      "code": 199,
+      "licence_header": 17,
+      "non_blank": 226,
+      "path": "airflow-core/src/airflow/models/dag_version.py",
+      "physical": 258
+    },
+    {
+      "code": 229,
+      "licence_header": 17,
+      "non_blank": 281,
+      "path": "airflow-core/src/airflow/models/dagbag.py",
+      "physical": 348
+    },
+    {
+      "code": 101,
+      "licence_header": 16,
+      "non_blank": 118,
+      "path": "airflow-core/src/airflow/models/dagbundle.py",
+      "physical": 146
+    },
+    {
+      "code": 150,
+      "licence_header": 16,
+      "non_blank": 168,
+      "path": "airflow-core/src/airflow/models/dagcode.py",
+      "physical": 196
+    },
+    {
+      "code": 2135,
+      "licence_header": 17,
+      "non_blank": 2303,
+      "path": "airflow-core/src/airflow/models/dagrun.py",
+      "physical": 2575
+    },
+    {
+      "code": 70,
+      "licence_header": 17,
+      "non_blank": 87,
+      "path": "airflow-core/src/airflow/models/dagwarning.py",
+      "physical": 107
+    },
+    {
+      "code": 3,
+      "licence_header": 17,
+      "non_blank": 20,
+      "path": "airflow-core/src/airflow/models/db_callback_request.py",
+      "physical": 22
+    },
+    {
+      "code": 406,
+      "licence_header": 16,
+      "non_blank": 448,
+      "path": "airflow-core/src/airflow/models/deadline.py",
+      "physical": 563
+    },
+    {
+      "code": 83,
+      "licence_header": 16,
+      "non_blank": 101,
+      "path": "airflow-core/src/airflow/models/deadline_alert.py",
+      "physical": 121
+    },
+    {
+      "code": 21,
+      "licence_header": 17,
+      "non_blank": 38,
+      "path": "airflow-core/src/airflow/models/errors.py",
+      "physical": 45
+    },
+    {
+      "code": 136,
+      "licence_header": 17,
+      "non_blank": 157,
+      "path": "airflow-core/src/airflow/models/expandinput.py",
+      "physical": 210
+    },
+    {
+      "code": 142,
+      "licence_header": 16,
+      "non_blank": 160,
+      "path": "airflow-core/src/airflow/models/hitl.py",
+      "physical": 197
+    },
+    {
+      "code": 61,
+      "licence_header": 16,
+      "non_blank": 79,
+      "path": "airflow-core/src/airflow/models/hitl_history.py",
+      "physical": 91
+    },
+    {
+      "code": 112,
+      "licence_header": 17,
+      "non_blank": 138,
+      "path": "airflow-core/src/airflow/models/log.py",
+      "physical": 163
+    },
+    {
+      "code": 309,
+      "licence_header": 17,
+      "non_blank": 332,
+      "path": "airflow-core/src/airflow/models/pool.py",
+      "physical": 400
+    },
+    {
+      "code": 22,
+      "licence_header": 17,
+      "non_blank": 38,
+      "path": "airflow-core/src/airflow/models/referencemixin.py",
+      "physical": 49
+    },
+    {
+      "code": 271,
+      "licence_header": 17,
+      "non_blank": 296,
+      "path": "airflow-core/src/airflow/models/renderedtifields.py",
+      "physical": 349
+    },
+    {
+      "code": 47,
+      "licence_header": 17,
+      "non_blank": 65,
+      "path": "airflow-core/src/airflow/models/revoked_token.py",
+      "physical": 79
+    },
+    {
+      "code": 803,
+      "licence_header": 17,
+      "non_blank": 884,
+      "path": "airflow-core/src/airflow/models/serialized_dag.py",
+      "physical": 1010
+    },
+    {
+      "code": 37,
+      "licence_header": 16,
+      "non_blank": 57,
+      "path": "airflow-core/src/airflow/models/task_state_store.py",
+      "physical": 69
+    },
+    {
+      "code": 2094,
+      "licence_header": 17,
+      "non_blank": 2299,
+      "path": "airflow-core/src/airflow/models/taskinstance.py",
+      "physical": 2638
+    },
+    {
+      "code": 179,
+      "licence_header": 17,
+      "non_blank": 201,
+      "path": "airflow-core/src/airflow/models/taskinstancehistory.py",
+      "physical": 225
+    },
+    {
+      "code": 27,
+      "licence_header": 17,
+      "non_blank": 44,
+      "path": "airflow-core/src/airflow/models/taskinstancekey.py",
+      "physical": 53
+    },
+    {
+      "code": 21,
+      "licence_header": 17,
+      "non_blank": 38,
+      "path": "airflow-core/src/airflow/models/tasklog.py",
+      "physical": 47
+    },
+    {
+      "code": 225,
+      "licence_header": 17,
+      "non_blank": 258,
+      "path": "airflow-core/src/airflow/models/taskmap.py",
+      "physical": 293
+    },
+    {
+      "code": 8,
+      "licence_header": 16,
+      "non_blank": 24,
+      "path": "airflow-core/src/airflow/models/taskmixin.py",
+      "physical": 28
+    },
+    {
+      "code": 62,
+      "licence_header": 17,
+      "non_blank": 79,
+      "path": "airflow-core/src/airflow/models/taskreschedule.py",
+      "physical": 94
+    },
+    {
+      "code": 54,
+      "licence_header": 17,
+      "non_blank": 81,
+      "path": "airflow-core/src/airflow/models/team.py",
+      "physical": 101
+    },
+    {
+      "code": 547,
+      "licence_header": 16,
+      "non_blank": 618,
+      "path": "airflow-core/src/airflow/models/trigger.py",
+      "physical": 729
+    },
+    {
+      "code": 400,
+      "licence_header": 17,
+      "non_blank": 452,
+      "path": "airflow-core/src/airflow/models/variable.py",
+      "physical": 523
+    },
+    {
+      "code": 338,
+      "licence_header": 17,
+      "non_blank": 369,
+      "path": "airflow-core/src/airflow/models/xcom.py",
+      "physical": 437
+    },
+    {
+      "code": 11,
+      "licence_header": 17,
+      "non_blank": 27,
+      "path": "airflow-core/src/airflow/models/xcom_arg.py",
+      "physical": 32
+    },
+    {
+      "code": 9,
+      "licence_header": 16,
+      "non_blank": 25,
+      "path": "airflow-core/src/airflow/notifications/__init__.py",
+      "physical": 28
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/observability/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 0,
+      "licence_header": 17,
+      "non_blank": 16,
+      "path": "airflow-core/src/airflow/observability/metrics/__init__.py",
+      "physical": 16
+    },
+    {
+      "code": 20,
+      "licence_header": 16,
+      "non_blank": 36,
+      "path": "airflow-core/src/airflow/observability/metrics/datadog_logger.py",
+      "physical": 41
+    },
+    {
+      "code": 26,
+      "licence_header": 16,
+      "non_blank": 46,
+      "path": "airflow-core/src/airflow/observability/metrics/otel_logger.py",
+      "physical": 53
+    },
+    {
+      "code": 15,
+      "licence_header": 17,
+      "non_blank": 32,
+      "path": "airflow-core/src/airflow/observability/metrics/stats_utils.py",
+      "physical": 39
+    },
+    {
+      "code": 44,
+      "licence_header": 16,
+      "non_blank": 61,
+      "path": "airflow-core/src/airflow/observability/metrics/statsd_logger.py",
+      "physical": 70
+    },
+    {
+      "code": 22,
+      "licence_header": 17,
+      "non_blank": 39,
+      "path": "airflow-core/src/airflow/observability/stats.py",
+      "physical": 42
+    },
+    {
+      "code": 50,
+      "licence_header": 18,
+      "non_blank": 68,
+      "path": "airflow-core/src/airflow/operators/__init__.py",
+      "physical": 73
+    },
+    {
+      "code": 53,
+      "licence_header": 16,
+      "non_blank": 69,
+      "path": "airflow-core/src/airflow/partition_mappers/__init__.py",
+      "physical": 71
+    },
+    {
+      "code": 20,
+      "licence_header": 17,
+      "non_blank": 36,
+      "path": "airflow-core/src/airflow/partition_mappers/allowed_key.py",
+      "physical": 45
+    },
+    {
+      "code": 176,
+      "licence_header": 17,
+      "non_blank": 200,
+      "path": "airflow-core/src/airflow/partition_mappers/base.py",
+      "physical": 242
+    },
+    {
+      "code": 54,
+      "licence_header": 17,
+      "non_blank": 71,
+      "path": "airflow-core/src/airflow/partition_mappers/chain.py",
+      "physical": 85
+    },
+    {
+      "code": 39,
+      "licence_header": 16,
+      "non_blank": 55,
+      "path": "airflow-core/src/airflow/partition_mappers/fixed_key.py",
+      "physical": 68
+    },
+    {
+      "code": 11,
+      "licence_header": 16,
+      "non_blank": 30,
+      "path": "airflow-core/src/airflow/partition_mappers/identity.py",
+      "physical": 37
+    },
+    {
+      "code": 74,
+      "licence_header": 17,
+      "non_blank": 90,
+      "path": "airflow-core/src/airflow/partition_mappers/product.py",
+      "physical": 105
+    },
+    {
+      "code": 463,
+      "licence_header": 16,
+      "non_blank": 512,
+      "path": "airflow-core/src/airflow/partition_mappers/temporal.py",
+      "physical": 603
+    },
+    {
+      "code": 119,
+      "licence_header": 16,
+      "non_blank": 136,
+      "path": "airflow-core/src/airflow/partition_mappers/wait_policy.py",
+      "physical": 174
+    },
+    {
+      "code": 212,
+      "licence_header": 16,
+      "non_blank": 242,
+      "path": "airflow-core/src/airflow/partition_mappers/window.py",
+      "physical": 310
+    },
+    {
+      "code": 535,
+      "licence_header": 17,
+      "non_blank": 561,
+      "path": "airflow-core/src/airflow/plugins_manager.py",
+      "physical": 666
+    },
+    {
+      "code": 142,
+      "licence_header": 17,
+      "non_blank": 187,
+      "path": "airflow-core/src/airflow/policies.py",
+      "physical": 248
+    },
+    {
+      "code": 1309,
+      "licence_header": 17,
+      "non_blank": 1382,
+      "path": "airflow-core/src/airflow/providers_manager.py",
+      "physical": 1609
+    },
+    {
+      "code": 38,
+      "licence_header": 17,
+      "non_blank": 56,
+      "path": "airflow-core/src/airflow/secrets/__init__.py",
+      "physical": 69
+    },
+    {
+      "code": 15,
+      "licence_header": 16,
+      "non_blank": 32,
+      "path": "airflow-core/src/airflow/secrets/base_secrets.py",
+      "physical": 39
+    },
+    {
+      "code": 42,
+      "licence_header": 17,
+      "non_blank": 63,
+      "path": "airflow-core/src/airflow/secrets/environment_variables.py",
+      "physical": 79
+    },
+    {
+      "code": 272,
+      "licence_header": 17,
+      "non_blank": 294,
+      "path": "airflow-core/src/airflow/secrets/local_filesystem.py",
+      "physical": 367
+    },
+    {
+      "code": 55,
+      "licence_header": 17,
+      "non_blank": 72,
+      "path": "airflow-core/src/airflow/secrets/metastore.py",
+      "physical": 86
+    },
+    {
+      "code": 0,
+      "licence_header": 18,
+      "non_blank": 17,
+      "path": "airflow-core/src/airflow/security/__init__.py",
+      "physical": 17
+    },
+    {
+      "code": 144,
+      "licence_header": 17,
+      "non_blank": 181,
+      "path": "airflow-core/src/airflow/security/kerberos.py",
+      "physical": 217
+    },
+    {
+      "code": 88,
+      "licence_header": 16,
+      "non_blank": 107,
+      "path": "airflow-core/src/airflow/security/permissions.py",
+      "physical": 124
+    },
+    {
+      "code": 38,
+      "licence_header": 17,
+      "non_blank": 71,
+      "path": "airflow-core/src/airflow/security/utils.py",
+      "physical": 84
+    },
+    {
+      "code": 43,
+      "licence_header": 18,
+      "non_blank": 61,
+      "path": "airflow-core/src/airflow/sensors/__init__.py",
+      "physical": 65
+    },
+    {
+      "code": 9,
+      "licence_header": 17,
+      "non_blank": 26,
+      "path": "airflow-core/src/airflow/serialization/__init__.py",
+      "physical": 30
+    },
+    {
+      "code": 80,
+      "licence_header": 16,
+      "non_blank": 98,
+      "path": "airflow-core/src/airflow/serialization/dag_dependency.py",
+      "physical": 121
+    },
+    {
+      "code": 225,
+      "licence_header": 18,
+      "non_blank": 245,
+      "path": "airflow-core/src/airflow/serialization/decoders.py",
+      "physical": 300
+    },
+    {
+      "code": 0,
+      "licence_header": 18,
+      "non_blank": 17,
+      "path": "airflow-core/src/airflow/serialization/definitions/__init__.py",
+      "physical": 17
+    },
+    {
+      "code": 205,
+      "licence_header": 18,
+      "non_blank": 224,
+      "path": "airflow-core/src/airflow/serialization/definitions/assets.py",
+      "physical": 314
+    },
+    {
+      "code": 350,
+      "licence_header": 18,
+      "non_blank": 381,
+      "path": "airflow-core/src/airflow/serialization/definitions/baseoperator.py",
+      "physical": 457
+    },
+    {
+      "code": 1256,
+      "licence_header": 18,
+      "non_blank": 1330,
+      "path": "airflow-core/src/airflow/serialization/definitions/dag.py",
+      "physical": 1493
+    },
+    {
+      "code": 299,
+      "licence_header": 16,
+      "non_blank": 323,
+      "path": "airflow-core/src/airflow/serialization/definitions/deadline.py",
+      "physical": 415
+    },
+    {
+      "code": 424,
+      "licence_header": 18,
+      "non_blank": 467,
+      "path": "airflow-core/src/airflow/serialization/definitions/mappedoperator.py",
+      "physical": 585
+    },
+    {
+      "code": 27,
+      "licence_header": 17,
+      "non_blank": 43,
+      "path": "airflow-core/src/airflow/serialization/definitions/node.py",
+      "physical": 55
+    },
+    {
+      "code": 19,
+      "licence_header": 18,
+      "non_blank": 36,
+      "path": "airflow-core/src/airflow/serialization/definitions/notset.py",
+      "physical": 50
+    },
+    {
+      "code": 57,
+      "licence_header": 18,
+      "non_blank": 78,
+      "path": "airflow-core/src/airflow/serialization/definitions/operatorlink.py",
+      "physical": 92
+    },
+    {
+      "code": 118,
+      "licence_header": 18,
+      "non_blank": 136,
+      "path": "airflow-core/src/airflow/serialization/definitions/param.py",
+      "physical": 171
+    },
+    {
+      "code": 329,
+      "licence_header": 18,
+      "non_blank": 355,
+      "path": "airflow-core/src/airflow/serialization/definitions/taskgroup.py",
+      "physical": 417
+    },
+    {
+      "code": 164,
+      "licence_header": 17,
+      "non_blank": 186,
+      "path": "airflow-core/src/airflow/serialization/definitions/xcom_arg.py",
+      "physical": 233
+    },
+    {
+      "code": 598,
+      "licence_header": 17,
+      "non_blank": 635,
+      "path": "airflow-core/src/airflow/serialization/encoders.py",
+      "physical": 762
+    },
+    {
+      "code": 65,
+      "licence_header": 17,
+      "non_blank": 85,
+      "path": "airflow-core/src/airflow/serialization/enums.py",
+      "physical": 96
+    },
+    {
+      "code": 150,
+      "licence_header": 16,
+      "non_blank": 185,
+      "path": "airflow-core/src/airflow/serialization/helpers.py",
+      "physical": 247
+    },
+    {
+      "code": 39,
+      "licence_header": 17,
+      "non_blank": 56,
+      "path": "airflow-core/src/airflow/serialization/json_schema.py",
+      "physical": 74
+    },
+    {
+      "code": 1814,
+      "licence_header": 16,
+      "non_blank": 2016,
+      "path": "airflow-core/src/airflow/serialization/serialized_objects.py",
+      "physical": 2367
+    },
+    {
+      "code": 17,
+      "licence_header": 18,
+      "non_blank": 34,
+      "path": "airflow-core/src/airflow/serialization/serializers/__init__.py",
+      "physical": 40
+    },
+    {
+      "code": 92,
+      "licence_header": 17,
+      "non_blank": 126,
+      "path": "airflow-core/src/airflow/serialization/stringify.py",
+      "physical": 161
+    },
+    {
+      "code": 207,
+      "licence_header": 16,
+      "non_blank": 243,
+      "path": "airflow-core/src/airflow/serialization/stub_arg_bindings.py",
+      "physical": 286
+    },
+    {
+      "code": 14,
+      "licence_header": 17,
+      "non_blank": 34,
+      "path": "airflow-core/src/airflow/serialization/typing.py",
+      "physical": 38
+    },
+    {
+      "code": 583,
+      "licence_header": 17,
+      "non_blank": 682,
+      "path": "airflow-core/src/airflow/settings.py",
+      "physical": 852
+    },
+    {
+      "code": 28,
+      "licence_header": 17,
+      "non_blank": 45,
+      "path": "airflow-core/src/airflow/state/__init__.py",
+      "physical": 54
+    },
+    {
+      "code": 522,
+      "licence_header": 17,
+      "non_blank": 541,
+      "path": "airflow-core/src/airflow/state/metastore.py",
+      "physical": 591
+    },
+    {
+      "code": 15,
+      "licence_header": 17,
+      "non_blank": 33,
+      "path": "airflow-core/src/airflow/stats.py",
+      "physical": 38
+    },
+    {
+      "code": 0,
+      "licence_header": 18,
+      "non_blank": 17,
+      "path": "airflow-core/src/airflow/task/__init__.py",
+      "physical": 17
+    },
+    {
+      "code": 97,
+      "licence_header": 17,
+      "non_blank": 114,
+      "path": "airflow-core/src/airflow/task/priority_strategy.py",
+      "physical": 146
+    },
+    {
+      "code": 27,
+      "licence_header": 17,
+      "non_blank": 44,
+      "path": "airflow-core/src/airflow/task/trigger_rule.py",
+      "physical": 51
+    },
+    {
+      "code": 19,
+      "licence_header": 17,
+      "non_blank": 36,
+      "path": "airflow-core/src/airflow/task/weight_rule.py",
+      "physical": 44
+    },
+    {
+      "code": 0,
+      "licence_header": 18,
+      "non_blank": 17,
+      "path": "airflow-core/src/airflow/ti_deps/__init__.py",
+      "physical": 17
+    },
+    {
+      "code": 98,
+      "licence_header": 17,
+      "non_blank": 115,
+      "path": "airflow-core/src/airflow/ti_deps/dep_context.py",
+      "physical": 136
+    },
+    {
+      "code": 38,
+      "licence_header": 16,
+      "non_blank": 69,
+      "path": "airflow-core/src/airflow/ti_deps/dependencies_deps.py",
+      "physical": 74
+    },
+    {
+      "code": 25,
+      "licence_header": 16,
+      "non_blank": 55,
+      "path": "airflow-core/src/airflow/ti_deps/dependencies_states.py",
+      "physical": 61
+    },
+    {
+      "code": 1,
+      "licence_header": 17,
+      "non_blank": 18,
+      "path": "airflow-core/src/airflow/ti_deps/deps/__init__.py",
+      "physical": 18
+    },
+    {
+      "code": 95,
+      "licence_header": 17,
+      "non_blank": 116,
+      "path": "airflow-core/src/airflow/ti_deps/deps/base_ti_dep.py",
+      "physical": 150
+    },
+    {
+      "code": 16,
+      "licence_header": 17,
+      "non_blank": 33,
+      "path": "airflow-core/src/airflow/ti_deps/deps/dag_ti_slots_available_dep.py",
+      "physical": 38
+    },
+    {
+      "code": 17,
+      "licence_header": 17,
+      "non_blank": 34,
+      "path": "airflow-core/src/airflow/ti_deps/deps/dag_unpaused_dep.py",
+      "physical": 42
+    },
+    {
+      "code": 15,
+      "licence_header": 17,
+      "non_blank": 32,
+      "path": "airflow-core/src/airflow/ti_deps/deps/dagrun_exists_dep.py",
+      "physical": 37
+    },
+    {
+      "code": 28,
+      "licence_header": 17,
+      "non_blank": 45,
+      "path": "airflow-core/src/airflow/ti_deps/deps/exec_date_after_start_date_dep.py",
+      "physical": 51
+    },
+    {
+      "code": 14,
+      "licence_header": 17,
+      "non_blank": 31,
+      "path": "airflow-core/src/airflow/ti_deps/deps/mapped_task_expanded.py",
+      "physical": 36
+    },
+    {
+      "code": 69,
+      "licence_header": 18,
+      "non_blank": 94,
+      "path": "airflow-core/src/airflow/ti_deps/deps/mapped_task_upstream_dep.py",
+      "physical": 109
+    },
+    {
+      "code": 30,
+      "licence_header": 17,
+      "non_blank": 49,
+      "path": "airflow-core/src/airflow/ti_deps/deps/not_in_retry_period_dep.py",
+      "physical": 56
+    },
+    {
+      "code": 59,
+      "licence_header": 17,
+      "non_blank": 90,
+      "path": "airflow-core/src/airflow/ti_deps/deps/not_previously_skipped_dep.py",
+      "physical": 107
+    },
+    {
+      "code": 52,
+      "licence_header": 17,
+      "non_blank": 71,
+      "path": "airflow-core/src/airflow/ti_deps/deps/pool_slots_available_dep.py",
+      "physical": 85
+    },
+    {
+      "code": 167,
+      "licence_header": 17,
+      "non_blank": 187,
+      "path": "airflow-core/src/airflow/ti_deps/deps/prev_dagrun_dep.py",
+      "physical": 219
+    },
+    {
+      "code": 68,
+      "licence_header": 17,
+      "non_blank": 91,
+      "path": "airflow-core/src/airflow/ti_deps/deps/ready_to_reschedule.py",
+      "physical": 106
+    },
+    {
+      "code": 35,
+      "licence_header": 17,
+      "non_blank": 52,
+      "path": "airflow-core/src/airflow/ti_deps/deps/runnable_exec_date_dep.py",
+      "physical": 61
+    },
+    {
+      "code": 28,
+      "licence_header": 17,
+      "non_blank": 45,
+      "path": "airflow-core/src/airflow/ti_deps/deps/task_concurrency_dep.py",
+      "physical": 51
+    },
+    {
+      "code": 21,
+      "licence_header": 17,
+      "non_blank": 38,
+      "path": "airflow-core/src/airflow/ti_deps/deps/task_not_running_dep.py",
+      "physical": 47
+    },
+    {
+      "code": 603,
+      "licence_header": 17,
+      "non_blank": 678,
+      "path": "airflow-core/src/airflow/ti_deps/deps/trigger_rule_dep.py",
+      "physical": 741
+    },
+    {
+      "code": 35,
+      "licence_header": 17,
+      "non_blank": 52,
+      "path": "airflow-core/src/airflow/ti_deps/deps/valid_state_dep.py",
+      "physical": 64
+    },
+    {
+      "code": 1,
+      "licence_header": 18,
+      "non_blank": 19,
+      "path": "airflow-core/src/airflow/timetables/__init__.py",
+      "physical": 19
+    },
+    {
+      "code": 146,
+      "licence_header": 16,
+      "non_blank": 169,
+      "path": "airflow-core/src/airflow/timetables/_cron.py",
+      "physical": 209
+    },
+    {
+      "code": 38,
+      "licence_header": 17,
+      "non_blank": 54,
+      "path": "airflow-core/src/airflow/timetables/_delta.py",
+      "physical": 71
+    },
+    {
+      "code": 58,
+      "licence_header": 17,
+      "non_blank": 74,
+      "path": "airflow-core/src/airflow/timetables/assets.py",
+      "physical": 92
+    },
+    {
+      "code": 428,
+      "licence_header": 16,
+      "non_blank": 451,
+      "path": "airflow-core/src/airflow/timetables/base.py",
+      "physical": 567
+    },
+    {
+      "code": 98,
+      "licence_header": 16,
+      "non_blank": 120,
+      "path": "airflow-core/src/airflow/timetables/events.py",
+      "physical": 141
+    },
+    {
+      "code": 194,
+      "licence_header": 16,
+      "non_blank": 226,
+      "path": "airflow-core/src/airflow/timetables/interval.py",
+      "physical": 272
+    },
+    {
+      "code": 319,
+      "licence_header": 16,
+      "non_blank": 341,
+      "path": "airflow-core/src/airflow/timetables/simple.py",
+      "physical": 428
+    },
+    {
+      "code": 481,
+      "licence_header": 16,
+      "non_blank": 509,
+      "path": "airflow-core/src/airflow/timetables/trigger.py",
+      "physical": 600
+    },
+    {
+      "code": 16,
+      "licence_header": 17,
+      "non_blank": 32,
+      "path": "airflow-core/src/airflow/triggers/__init__.py",
+      "physical": 35
+    },
+    {
+      "code": 378,
+      "licence_header": 16,
+      "non_blank": 424,
+      "path": "airflow-core/src/airflow/triggers/base.py",
+      "physical": 535
+    },
+    {
+      "code": 54,
+      "licence_header": 17,
+      "non_blank": 74,
+      "path": "airflow-core/src/airflow/triggers/callback.py",
+      "physical": 89
+    },
+    {
+      "code": 1022,
+      "licence_header": 16,
+      "non_blank": 1159,
+      "path": "airflow-core/src/airflow/triggers/shared_stream.py",
+      "physical": 1312
+    },
+    {
+      "code": 23,
+      "licence_header": 16,
+      "non_blank": 41,
+      "path": "airflow-core/src/airflow/triggers/testing.py",
+      "physical": 53
+    },
+    {
+      "code": 9,
+      "licence_header": 17,
+      "non_blank": 28,
+      "path": "airflow-core/src/airflow/typing_compat.py",
+      "physical": 33
+    },
+    {
+      "code": 44,
+      "licence_header": 18,
+      "non_blank": 63,
+      "path": "airflow-core/src/airflow/utils/__init__.py",
+      "physical": 68
+    },
+    {
+      "code": 383,
+      "licence_header": 17,
+      "non_blank": 415,
+      "path": "airflow-core/src/airflow/utils/cli.py",
+      "physical": 504
+    },
+    {
+      "code": 120,
+      "licence_header": 17,
+      "non_blank": 141,
+      "path": "airflow-core/src/airflow/utils/cli_action_loggers.py",
+      "physical": 171
+    },
+    {
+      "code": 52,
+      "licence_header": 16,
+      "non_blank": 71,
+      "path": "airflow-core/src/airflow/utils/code_utils.py",
+      "physical": 87
+    },
+    {
+      "code": 77,
+      "licence_header": 17,
+      "non_blank": 94,
+      "path": "airflow-core/src/airflow/utils/context.py",
+      "physical": 118
+    },
+    {
+      "code": 21,
+      "licence_header": 17,
+      "non_blank": 38,
+      "path": "airflow-core/src/airflow/utils/dag_cycle_tester.py",
+      "physical": 48
+    },
+    {
+      "code": 89,
+      "licence_header": 16,
+      "non_blank": 119,
+      "path": "airflow-core/src/airflow/utils/dag_edges.py",
+      "physical": 142
+    },
+    {
+      "code": 437,
+      "licence_header": 16,
+      "non_blank": 482,
+      "path": "airflow-core/src/airflow/utils/dag_version_inflation_checker.py",
+      "physical": 602
+    },
+    {
+      "code": 19,
+      "licence_header": 17,
+      "non_blank": 40,
+      "path": "airflow-core/src/airflow/utils/dates.py",
+      "physical": 44
+    },
+    {
+      "code": 1614,
+      "licence_header": 17,
+      "non_blank": 1714,
+      "path": "airflow-core/src/airflow/utils/db.py",
+      "physical": 2030
+    },
+    {
+      "code": 703,
+      "licence_header": 16,
+      "non_blank": 777,
+      "path": "airflow-core/src/airflow/utils/db_cleanup.py",
+      "physical": 873
+    },
+    {
+      "code": 273,
+      "licence_header": 16,
+      "non_blank": 307,
+      "path": "airflow-core/src/airflow/utils/db_manager.py",
+      "physical": 377
+    },
+    {
+      "code": 150,
+      "licence_header": 16,
+      "non_blank": 180,
+      "path": "airflow-core/src/airflow/utils/deprecation_tools.py",
+      "physical": 210
+    },
+    {
+      "code": 13,
+      "licence_header": 16,
+      "non_blank": 29,
+      "path": "airflow-core/src/airflow/utils/docs.py",
+      "physical": 32
+    },
+    {
+      "code": 186,
+      "licence_header": 18,
+      "non_blank": 212,
+      "path": "airflow-core/src/airflow/utils/dot_renderer.py",
+      "physical": 244
+    },
+    {
+      "code": 2,
+      "licence_header": 16,
+      "non_blank": 19,
+      "path": "airflow-core/src/airflow/utils/edgemodifier.py",
+      "physical": 20
+    },
+    {
+      "code": 280,
+      "licence_header": 17,
+      "non_blank": 298,
+      "path": "airflow-core/src/airflow/utils/email.py",
+      "physical": 341
+    },
+    {
+      "code": 38,
+      "licence_header": 17,
+      "non_blank": 58,
+      "path": "airflow-core/src/airflow/utils/event_scheduler.py",
+      "physical": 66
+    },
+    {
+      "code": 147,
+      "licence_header": 17,
+      "non_blank": 164,
+      "path": "airflow-core/src/airflow/utils/file.py",
+      "physical": 207
+    },
+    {
+      "code": 12,
+      "licence_header": 17,
+      "non_blank": 29,
+      "path": "airflow-core/src/airflow/utils/hashlib_wrapper.py",
+      "physical": 34
+    },
+    {
+      "code": 230,
+      "licence_header": 17,
+      "non_blank": 252,
+      "path": "airflow-core/src/airflow/utils/helpers.py",
+      "physical": 323
+    },
+    {
+      "code": 63,
+      "licence_header": 17,
+      "non_blank": 82,
+      "path": "airflow-core/src/airflow/utils/json.py",
+      "physical": 95
+    },
+    {
+      "code": 29,
+      "licence_header": 18,
+      "non_blank": 47,
+      "path": "airflow-core/src/airflow/utils/log/__init__.py",
+      "physical": 50
+    },
+    {
+      "code": 69,
+      "licence_header": 17,
+      "non_blank": 91,
+      "path": "airflow-core/src/airflow/utils/log/colored_log.py",
+      "physical": 110
+    },
+    {
+      "code": 99,
+      "licence_header": 17,
+      "non_blank": 123,
+      "path": "airflow-core/src/airflow/utils/log/file_processor_handler.py",
+      "physical": 153
+    },
+    {
+      "code": 775,
+      "licence_header": 17,
+      "non_blank": 868,
+      "path": "airflow-core/src/airflow/utils/log/file_task_handler.py",
+      "physical": 1013
+    },
+    {
+      "code": 33,
+      "licence_header": 17,
+      "non_blank": 50,
+      "path": "airflow-core/src/airflow/utils/log/json_formatter.py",
+      "physical": 58
+    },
+    {
+      "code": 128,
+      "licence_header": 16,
+      "non_blank": 152,
+      "path": "airflow-core/src/airflow/utils/log/log_reader.py",
+      "physical": 185
+    },
+    {
+      "code": 134,
+      "licence_header": 18,
+      "non_blank": 162,
+      "path": "airflow-core/src/airflow/utils/log/log_stream_accumulator.py",
+      "physical": 193
+    },
+    {
+      "code": 205,
+      "licence_header": 17,
+      "non_blank": 249,
+      "path": "airflow-core/src/airflow/utils/log/logging_mixin.py",
+      "physical": 318
+    },
+    {
+      "code": 38,
+      "licence_header": 16,
+      "non_blank": 57,
+      "path": "airflow-core/src/airflow/utils/log/non_caching_file_handler.py",
+      "physical": 72
+    },
+    {
+      "code": 36,
+      "licence_header": 16,
+      "non_blank": 53,
+      "path": "airflow-core/src/airflow/utils/log/task_handler_with_custom_formatter.py",
+      "physical": 67
+    },
+    {
+      "code": 26,
+      "licence_header": 16,
+      "non_blank": 42,
+      "path": "airflow-core/src/airflow/utils/log/timezone_aware.py",
+      "physical": 50
+    },
+    {
+      "code": 52,
+      "licence_header": 17,
+      "non_blank": 71,
+      "path": "airflow-core/src/airflow/utils/memray_utils.py",
+      "physical": 87
+    },
+    {
+      "code": 29,
+      "licence_header": 17,
+      "non_blank": 47,
+      "path": "airflow-core/src/airflow/utils/net.py",
+      "physical": 56
+    },
+    {
+      "code": 30,
+      "licence_header": 17,
+      "non_blank": 47,
+      "path": "airflow-core/src/airflow/utils/operator_helpers.py",
+      "physical": 59
+    },
+    {
+      "code": 62,
+      "licence_header": 17,
+      "non_blank": 80,
+      "path": "airflow-core/src/airflow/utils/orm_event_handlers.py",
+      "physical": 96
+    },
+    {
+      "code": 53,
+      "licence_header": 16,
+      "non_blank": 70,
+      "path": "airflow-core/src/airflow/utils/platform.py",
+      "physical": 85
+    },
+    {
+      "code": 337,
+      "licence_header": 17,
+      "non_blank": 379,
+      "path": "airflow-core/src/airflow/utils/process_utils.py",
+      "physical": 455
+    },
+    {
+      "code": 29,
+      "licence_header": 16,
+      "non_blank": 45,
+      "path": "airflow-core/src/airflow/utils/providers_configuration_loader.py",
+      "physical": 56
+    },
+    {
+      "code": 73,
+      "licence_header": 16,
+      "non_blank": 95,
+      "path": "airflow-core/src/airflow/utils/retries.py",
+      "physical": 117
+    },
+    {
+      "code": 41,
+      "licence_header": 16,
+      "non_blank": 57,
+      "path": "airflow-core/src/airflow/utils/scheduler_health.py",
+      "physical": 68
+    },
+    {
+      "code": 4,
+      "licence_header": 16,
+      "non_blank": 20,
+      "path": "airflow-core/src/airflow/utils/serve_logs/__init__.py",
+      "physical": 22
+    },
+    {
+      "code": 33,
+      "licence_header": 16,
+      "non_blank": 57,
+      "path": "airflow-core/src/airflow/utils/serve_logs/core.py",
+      "physical": 72
+    },
+    {
+      "code": 127,
+      "licence_header": 16,
+      "non_blank": 146,
+      "path": "airflow-core/src/airflow/utils/serve_logs/log_server.py",
+      "physical": 164
+    },
+    {
+      "code": 67,
+      "licence_header": 16,
+      "non_blank": 88,
+      "path": "airflow-core/src/airflow/utils/session.py",
+      "physical": 109
+    },
+    {
+      "code": 509,
+      "licence_header": 17,
+      "non_blank": 557,
+      "path": "airflow-core/src/airflow/utils/sqlalchemy.py",
+      "physical": 709
+    },
+    {
+      "code": 182,
+      "licence_header": 17,
+      "non_blank": 207,
+      "path": "airflow-core/src/airflow/utils/state.py",
+      "physical": 253
+    },
+    {
+      "code": 15,
+      "licence_header": 16,
+      "non_blank": 31,
+      "path": "airflow-core/src/airflow/utils/strings.py",
+      "physical": 39
+    },
+    {
+      "code": 23,
+      "licence_header": 16,
+      "non_blank": 40,
+      "path": "airflow-core/src/airflow/utils/thread_safe_dict.py",
+      "physical": 49
+    },
+    {
+      "code": 45,
+      "licence_header": 17,
+      "non_blank": 61,
+      "path": "airflow-core/src/airflow/utils/types.py",
+      "physical": 76
+    },
+    {
+      "code": 31,
+      "licence_header": 16,
+      "non_blank": 52,
+      "path": "airflow-core/src/airflow/utils/yaml.py",
+      "physical": 71
+    },
+    {
+      "code": 3,
+      "licence_header": 17,
+      "non_blank": 21,
+      "path": "airflow-core/src/airflow/version.py",
+      "physical": 23
+    }
+  ],
+  "physical_lines": 81619,
+  "scope_version": "v1"
+}

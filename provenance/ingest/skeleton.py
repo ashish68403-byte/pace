@@ -69,7 +69,7 @@ from provenance.graph.tables import (
     halfvec_probe,
 )
 from provenance.ingest.git_walk import CatFileBatch, rev_parse
-from provenance.ingest.scope import default_scope_path, load_scope
+from provenance.ingest.scope import load_scope
 from provenance.obs.otel import current_trace_id, setup_tracing, shutdown_tracing
 from provenance.obs.spans import (
     ATTR_DEGRADED,
@@ -256,19 +256,14 @@ def _embed(
 # ------------------------------------------------------------------------ ingest
 
 
-def _pick_path(repo: Path, explicit: str | None) -> str:
+def _pick_path(explicit: str | None) -> str:
     if explicit:
         return explicit
-    try:
-        scope = load_scope()
-    except FileNotFoundError:
-        log.warning(
-            "%s not found; falling back to the first .py under the corpus",
-            default_scope_path(),
-        )
-        for candidate in sorted(repo.glob("airflow-core/src/airflow/**/*.py")):
-            return candidate.relative_to(repo).as_posix()
-        raise
+    # No fallback. The frozen scope is the denominator of every recall figure, so a demo
+    # that quietly runs over "the first .py under the corpus" still emits its 14 spans and
+    # still reads as a passing walking skeleton -- over a file nobody chose. Let the
+    # FileNotFoundError out; `pace scope` is the fix and its message says so.
+    scope = load_scope()
     # Prefer a file with real logic over an __init__.py of re-exports.
     for rel in scope:
         if not rel.endswith("__init__.py"):
@@ -341,7 +336,7 @@ def run_demo(
 
         # ---- ingest ----------------------------------------------------
         with stage(tool_span_name("ingest.read_blob")) as span:
-            rel_path = _pick_path(repo, path)
+            rel_path = _pick_path(path)
             commit_sha = rev_parse(repo, commit)
             if commit_sha is None:
                 raise RuntimeError(f"cannot resolve {commit!r} in {repo}")

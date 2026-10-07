@@ -20,7 +20,7 @@ block it, and one is a schedule risk large enough to eat weeks 6-7.
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 1 | [Freeze the corpus scope](../tasks/review-remediation/004_scope_freeze.md) (finding 4) | ⬜ | `provenance/ingest/scope.py`, `scope.txt` |
+| 1 | [Freeze the corpus scope](../tasks/review-remediation/004_scope_freeze.md) (finding 4) | ✅ | `provenance/ingest/scope.py`, `scope.txt`, `scope_stats.json` |
 | 2 | Rate-limit budget: filter comment collectors to in-scope PRs; persist bodies during the manifest pass (finding 10) | ⬜ | `scripts/fetch_corpus.py` |
 | 3 | `make db-dump` at each ringed gate; private full dump + body-stripped examiner dump (finding 12) | ⬜ | `Makefile`, `docs/RUNBOOK.md` |
 | 4 | Commit `artifacts/corpus_facts.json` with the corpus SHA and the command behind each §4 number (finding 18) | ⬜ | `artifacts/corpus_facts.json` |

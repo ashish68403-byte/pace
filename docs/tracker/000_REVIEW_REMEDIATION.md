@@ -2,7 +2,7 @@
 
 **Task(s):** [docs/tasks/review-remediation/](../tasks/review-remediation/)
 **Priority:** P0
-**Status:** 🚧 In progress (0 of 20 closed)
+**Status:** 🚧 In progress (1 of 20 closed)
 **Date:** 2026-10-06
 
 ---
@@ -45,7 +45,7 @@ Severity is the audited severity. "Before week 3" means it gates the next ringed
 | 1 | [§5 is not an executable schedule; §6 cannot rescue it](../tasks/review-remediation/001_executable_schedule.md) | critical | ⬜ | `docs/ROADMAP.md` §5, §6; `docs/ADR-0002` header |
 | 2 | [No dev/test split; optimistic bias ≈ the claimed lift](../tasks/review-remediation/002_dev_test_split.md) | major | ⬜ | `provenance/eval/schema.py`, `runner.py`, `retrieve/fusion.py` |
 | 3 | [Week-8 comparison has no control, no dependent variable, no falsifier](../tasks/review-remediation/003_control_arms_and_preregistration.md) | critical | ⬜ | `provenance/eval/metrics.py`, `docs/PREREGISTRATION.md` (new) |
-| 4 | [Corpus is 480 files / 112,259 lines; `scope.txt` never committed](../tasks/review-remediation/004_scope_freeze.md) | critical | ⬜ | `provenance/ingest/scope.py`, `.github/workflows/ci.yml` |
+| 4 | [Corpus is 480 files / 112,259 lines; `scope.txt` never committed](../tasks/review-remediation/004_scope_freeze.md) | critical | ✅ | `provenance/ingest/scope.py`, `skeleton.py`, `scope.txt`, `scope_stats.json` |
 | 5 | No writing scheduled before week 15; the graded artifact is on no week and no cut list | critical | ⬜ | `docs/ROADMAP.md` §5, §6 |
 | 6 | The load-bearing premise ("a merged PR that closed an issue IS the rationale") has no measurement | critical | ⬜ | gold-validity audit, new ADR |
 | 7 | CI gate cannot detect 2 points; its denominator moves with the chunker | major | ⬜ | `provenance/eval/runner.py`, `metrics.py`, `anchors.py` |
@@ -107,3 +107,12 @@ Populated as tasks close.
 - **2026-10-06.** Findings the review explicitly declined to raise are recorded in its "Worth
   knowing" section — including that a fourth placebo arm for week 8 would be the strongest control
   and is correctly out of budget for a solo project. Three arms is the right call.
+- **2026-10-07 — finding 4 closed.** `api_fastapi` added to `DEFAULT_EXCLUDE`; `pace scope` now
+  reports exactly 303 files / 81,619 physical lines, matching §3. `scope.txt` and
+  `scope_stats.json` are committed, carrying `SCOPE_VERSION` and `corpus_commit`
+  `1e2ad803f74eadb5fb28d4504ca06b008c48b63e`. The first freeze is now guarded by
+  `EXPECTED_SCOPE_FILES`, which was the one freeze `ScopeDriftError` could never catch. The
+  `skeleton.py` fallback to "the first .py under the corpus" is gone — a missing denominator is an
+  error, not a `log.warning` and a demo over a file nobody chose. 13 new tests in
+  `tests/unit/test_scope.py`. The corpus-side `pace scope --check` could not go in CI (no clone on
+  a GitHub runner); see the task file for what replaced it.
