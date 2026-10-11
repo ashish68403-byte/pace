@@ -7,8 +7,6 @@ Realistic full scope is closer to 1,150–1,450. This plan assumes ~210–320 ho
 hands, and is ordered so that if time runs out after week 10 the submission is still complete,
 measured and defensible.
 
-Interactive version: <https://claude.ai/code/artifact/a77dd097-5c77-44da-a2e9-1aac358f6517>
-
 ---
 
 ## Status
@@ -326,7 +324,6 @@ fetch script, never a comment dump. See [DATA-PROTECTION.md](DATA-PROTECTION.md)
   [000_REVIEW_REMEDIATION](tracker/000_REVIEW_REMEDIATION.md), the 20 findings from the 2026-10-06
   review of this document. **This file stays the only place weeks are assigned**; the trackers
   mirror the code, not the calendar
-- [LEARNING-AGENDA.md](LEARNING-AGENDA.md) — the concepts behind each week's gate
 - [ADR-0001](ADR-0001-typed-edges.md) — typed edge tables over one polymorphic table
 - [ADR-0002](ADR-0002-golden-set-construction.md) — the anchor symbol comes from code, never the rationale
 - [RUNBOOK.md](RUNBOOK.md) — starting everything, degradation behaviour, reading a trace
