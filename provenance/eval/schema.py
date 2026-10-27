@@ -44,6 +44,7 @@ like that day.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from collections.abc import Iterable, Iterator
 from datetime import datetime
@@ -58,6 +59,17 @@ GOLDEN_SCHEMA_VERSION = "v1"
 #: A retained record must score at or below this with plain substring search.
 #: Above it, the question is answerable by ``grep`` and measures nothing.
 RETAINED_GREP_R10_MAX = 0.35
+
+#: ADR-0003 §7. A record's split is decided by its group -- the PR when the change has
+#: one, else the commit -- so one PR's records can never sit on both sides (finding 2).
+Split: TypeAlias = Literal["dev", "test"]
+
+#: Dev is the larger side because every gate and every tuning decision reads it.
+DEV_FRACTION = 0.6
+
+#: Committed and fixed. Changing it reshuffles every split, which silently "opens" the
+#: test side, so it must never change once a generated record exists.
+SPLIT_SEED = "pace-adr-0003"
 
 #: Stable evidence key: ("commit", sha) | ("pr", "1234") | ("issue", "5678")
 #: | ("review_comment", "9012") | ("symbol", "path::qualified_name").
@@ -201,6 +213,9 @@ class GoldenRecord(BaseModel):
     schema_version: Literal["v1"] = "v1"
     qid: str = Field(min_length=1, pattern=r"^[A-Za-z0-9._:-]+$")
     query_class: QueryClass
+    #: ADR-0003 §7: required, and assigned at generation from `assign_splits`. Every gate
+    #: and every tuning decision reads dev; test is opened at most twice in the project.
+    split: Split
     question: str = Field(min_length=8)
 
     required_evidence: GoldEvidence = Field(default_factory=GoldEvidence)
@@ -282,6 +297,40 @@ def passes_leakage_filter(
     if record.leakage is None:  # unreachable via the validator, kept as a hard floor
         return False
     return record.leakage.baseline_grep_r10 <= max_grep_r10
+
+
+def group_key(commit_sha: str, pr_number: int | None) -> str:
+    """The unit a split is assigned to: the PR when the change has one, else the commit."""
+    return f"pr:{pr_number}" if pr_number is not None else f"commit:{commit_sha}"
+
+
+def assign_splits(groups: Iterable[str], *, seed: str = SPLIT_SEED) -> dict[str, Split]:
+    """Map each group to dev or test, deterministically (ADR-0003 §7).
+
+    A group goes to dev when sha256("seed:group"), read as a fraction in [0, 1), falls
+    below DEV_FRACTION. The answer depends only on the seed and the group -- never on the
+    run, the record order, or how many other groups exist -- and a group's records move
+    together because the decision is made once per group.
+    """
+    splits: dict[str, Split] = {}
+    for group in groups:
+        if group in splits:
+            continue
+        digest = hashlib.sha256(f"{seed}:{group}".encode()).digest()
+        fraction = int.from_bytes(digest[:8], "big") / 2**64
+        splits[group] = "dev" if fraction < DEV_FRACTION else "test"
+    return splits
+
+
+def dev_share_by_class(records: Iterable[GoldenRecord]) -> dict[str, float]:
+    """Each query class's share of records in dev. ADR-0003 expects 55-65% on real data."""
+    totals: dict[str, int] = {}
+    in_dev: dict[str, int] = {}
+    for record in records:
+        cls = str(record.query_class)
+        totals[cls] = totals.get(cls, 0) + 1
+        in_dev[cls] = in_dev.get(cls, 0) + int(record.split == "dev")
+    return {cls: in_dev[cls] / totals[cls] for cls in totals}
 
 
 def load_golden_set(path: Path | str) -> list[GoldenRecord]:
