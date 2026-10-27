@@ -24,8 +24,8 @@ block it, and one is a schedule risk large enough to eat checkpoint B.
 | 2 | Rate-limit budget: filter comment collectors to in-scope PRs; persist bodies during the manifest pass (finding 10) | ⬜ | `scripts/fetch_corpus.py` |
 | 3 | `make db-dump` at each checkpoint gate; private full dump + body-stripped examiner dump (finding 12) | ⬜ | `Makefile`, `docs/RUNBOOK.md` |
 | 4 | Commit `artifacts/corpus_facts.json` with the corpus SHA and the command behind each §4 number (finding 18) | ⬜ | `artifacts/corpus_facts.json` |
-| 5 | The graph write path. Checkpoint A: [commits and parent links](../tasks/ingest/001_commit_graph.md), then [files and revisions across renames](../tasks/ingest/002_file_history.md). `chunks` / `chunk_evidence` move to checkpoint B | ⬜ | `provenance/ingest/graph_writer.py` |
-| 6 | [Measure how much history a current-path view loses](../tasks/ingest/003_history_truncation.md) — checkpoint A's headline number, and `pace history` as its demo | ⬜ | `provenance/analysis/`, `results/` |
+| 5 | The graph write path. Checkpoint A: [commits and parent links](../tasks/ingest/001_commit_graph.md), then [files and revisions across renames](../tasks/ingest/002_file_history.md). `chunks` / `chunk_evidence` move to checkpoint B | ✅ | `provenance/ingest/graph_writer.py` |
+| 6 | [Measure how much history a current-path view loses](../tasks/ingest/003_history_truncation.md) — checkpoint A's headline number, and `pace history` as its demo | ✅ | `provenance/analysis/`, `results/` |
 
 ## Dependencies
 - Task 1 blocks everything downstream: the scope file list is the recall denominator.
@@ -61,3 +61,15 @@ block it, and one is a schedule risk large enough to eat checkpoint B.
   `SELECT count(*) FROM commit_parents;`, `SELECT count(*) FROM files;`,
   `SELECT count(*) FROM dead_letters;`, and
   `SELECT run_id, status, rows_inserted, rows_updated, rows_skipped FROM ingest_runs;`.
+- **2026-10-27 — checkpoint A closed.** `pace measure truncation` on the full corpus: a
+  current-path view hides **75.6%** of all (file, commit) history (median per file 70.0%, IQR
+  25.0–83.3%; 194/303 files hide more than half); 5,243 of 6,810 commits touching in-scope files
+  are hidden from *every* current-path lookup; 82.4% of that hidden history references a PR.
+  Agreement with `git --follow`: precision 0.9912, recall 0.8657, 191/303 files agree exactly.
+  `models/dag.py`: 95 current-path vs 611 rename-aware (84.5% hidden), 611 via `--follow`
+  (precision and recall both 1.0) — matches ROADMAP Trap 2 exactly, now with a committed
+  derivation (finding 18). Both runs byte-identical (`sha256 b49198dc…`), 303/303 files pass the
+  built-in check. **One real defect found and fixed along the way**, in the measurement's check,
+  not the walker — see [003_history_truncation.md](../tasks/ingest/003_history_truncation.md)
+  Notes for the root cause (3 files where a path was renamed away, then reused by an unrelated
+  later file) and the fix (`_explain_path_reuse`, test-driven on a dedicated 4-commit fixture).

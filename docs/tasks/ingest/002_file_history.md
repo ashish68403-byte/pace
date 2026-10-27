@@ -1,7 +1,7 @@
 # Task 002: Write file history across renames
 
 **Tracker:** [001_INGEST](../../tracker/001_INGEST.md) · task 5 · **checkpoint A**, slice S2 of 3
-**Priority:** P0 · **Status:** ⬜ Not started · **Blocked by:** [001](001_commit_graph.md)
+**Priority:** P0 · **Status:** ✅ Done (2026-10-27)
 **Measured at:** corpus commit `1e2ad803f74eadb5fb28d4504ca06b008c48b63e`
 
 ## User Story

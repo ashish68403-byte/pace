@@ -14,20 +14,26 @@ so that wherever time runs out the submission is still complete, measured and de
 | | |
 |---|---|
 | Last updated | 2026-10-27 |
-| Current checkpoint | **A** — the history graph and the truncation measurement |
-| Last completed | Phase 0 (`7951158`), scope freeze (`81f121b`) |
+| Current checkpoint | **B** — the GitHub backfill and the leakage-checked benchmark |
+| Last completed | Phase 0 (`7951158`), scope freeze (`81f121b`), **checkpoint A** (history graph + truncation measurement, [tasks/ingest/001-003](tasks/ingest/)) |
 | Deadline | final submission mid-to-late December 2026 |
 
 **Done.** Environment (WSL2 ext4, Postgres 18.6 + pgvector 0.8.4 + pg_search 0.25.7), corpus
 cloned at `1e2ad803f7`. Scope frozen and committed: 303 files / 81,619 lines (`scope.txt`).
-Schema: five Alembic revisions, 26 tables and one view (`provenance_edges`); a live `\dt` shows
+Schema: six Alembic revisions, 26 tables and one view (`provenance_edges`); a live `\dt` shows
 28 because the database also holds PostGIS's `spatial_ref_sys` and `alembic_version`. Walking
-skeleton: `pace demo` produces one trace in Jaeger. 117 tests, ruff clean.
+skeleton: `pace demo` produces one trace in Jaeger. **Checkpoint A**: `pace ingest` writes the
+full first-parent history (38,888 commits, 303 in-scope files) idempotently and self-checked;
+`pace measure truncation` finds a current-path view hides **75.6%** of all (file, commit) history
+(82.4% of it behind a PR), measured and committed at
+[results/history_truncation.json](../results/history_truncation.json); `pace history <path>` is
+the demo. 168 tests, ruff clean.
 
-**Next.** Checkpoint A ([tasks/ingest/](tasks/ingest/)): `pace ingest` writes commits, parent
-links, files and file revisions; `pace measure truncation` measures how much history a
-current-path view hides. Until it lands the graph is empty, and every evaluation number is
-structurally zero.
+**Next.** Checkpoint B (§5): the ethics self-assessment and the GitHub backfill under a request
+budget (findings 11, 10), HEAD chunks and `chunk_evidence`, the dev/test split and the
+generator's target `n` (findings 2, 7), the diff-anchored golden-set generator v0, the leakage
+probe, and grep/BM25/dense baselines. Until it lands, no benchmark exists and every retrieval
+number is structurally zero.
 
 ---
 
