@@ -7,6 +7,10 @@ c6 (#13), c7 (#14).
 
 from __future__ import annotations
 
+import importlib.util
+import sys
+from pathlib import Path
+
 import pytest
 
 from provenance.ingest.message_pool import (
@@ -143,3 +147,29 @@ def test_the_resolver_finds_the_commit_and_its_pr_in_one_document(
         ("pr", "14"): {document},
     }
     assert resolved.unresolved_required == set()
+
+
+def _leakage_probe():
+    """scripts/ is not a package: load the probe the way `pace leakage` does."""
+    path = Path(__file__).resolve().parents[2] / "scripts" / "leakage_probe.py"
+    spec = importlib.util.spec_from_file_location("leakage_probe_for_b2", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module  # dataclasses resolve their module through sys.modules
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_the_probe_pools_rationale_text_only(history_repo, test_repo_id, ingest, migrated_database):
+    ingest()
+    sha = history_repo.sha
+    write_pool(migrated_database, test_repo_id, numbering_starts=sha["c1"])
+    migrated_database.execute(  # a stand-in for checkpoint C's code chunks
+        "INSERT INTO chunks (chunk_id, repo_id, path, qualified_name, kind, start_line, end_line, "
+        "content, content_sha, chunking_strategy_version, first_seen_commit, last_seen_commit) "
+        "VALUES (%s, %s, 'core/src/pkg/alpha.py', 'alpha', 'chunk', 1, 2, %s, %s, 'v1', %s, %s)",
+        ("c" * 64, test_repo_id, "def alpha():\n    return 3", "d" * 64, sha["c7"], sha["c7"]),
+    )
+    pool = _leakage_probe().load_pool_from_db(migrated_database, test_repo_id)
+    assert len(pool) == 8
+    assert all(document.path.startswith("commit/") for document in pool)

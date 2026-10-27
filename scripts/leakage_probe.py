@@ -255,12 +255,16 @@ def load_pool_from_db(conn: Any, repo_id: int) -> list[Document]:
     FROM a table called `chunk` -- neither the table nor any of those columns exists
     (audit #2, #3). Commit/PR/issue evidence lives in `chunk_evidence` and is reached
     through the project resolver, not through columns on `chunks`.
+
+    Rationale text only (ADR-0003 §1): rows whose kind is in RATIONALE_KINDS. Without
+    that filter, checkpoint C's code chunks would silently join the benchmark's pool.
     """
     from provenance.graph.tables import (
         CHUNKS,
         COL_CHUNK_ID,
         COL_REPO_ID,
         COL_TOMBSTONE,
+        RATIONALE_KINDS,
     )
 
     sql = f"""
@@ -268,12 +272,13 @@ def load_pool_from_db(conn: Any, repo_id: int) -> list[Document]:
         FROM {CHUNKS}
         WHERE {COL_REPO_ID} = %s
           AND {COL_TOMBSTONE} IS NULL
+          AND kind = ANY(%s::artifact_kind[])
         ORDER BY {COL_CHUNK_ID}
     """
     # Rows are TUPLES: graph.db.connection defaults to tuple_row. Positional
     # unpacking is correct BY DEFAULT here and must not be "fixed" to dict access.
     with conn.cursor() as cur:
-        cur.execute(sql, (repo_id,))
+        cur.execute(sql, (repo_id, list(RATIONALE_KINDS)))
         return [
             Document(chunk_id=row[0], content=row[1] or "", path=row[2], qualified_name=row[3])
             for row in cur.fetchall()

@@ -6,7 +6,8 @@ Canonical commands, and nothing else claims to exist:
     pace ingest       walk git history into the graph
     pace scope        select/freeze the ~60-80k-line subset under study
     pace history      one file's history vs a current-path view
-    pace measure      truncation: the measurement checkpoint A reports
+    pace measure      truncation | pool: the measurements the write-up quotes
+    pace pool         build: the benchmark's document pool (ADR-0003)
     pace eval         run | fixtures | invariants
     pace leakage      substring-search baseline over the golden set
     pace health       database + extension healthcheck
@@ -202,6 +203,23 @@ def truncation(ctx: typer.Context) -> None:
 
 
 app.add_typer(measure_app, name="measure")
+
+
+pool_app = typer.Typer(no_args_is_help=True, add_completion=False)
+
+
+@pool_app.callback()
+def _pool() -> None:
+    """The benchmark's document pool: rationale text, one document per artifact (ADR-0003)."""
+
+
+@pool_app.command(context_settings=PASSTHROUGH)
+def build(ctx: typer.Context) -> None:
+    """Write every in-scope commit message as a document, with its commit and PR evidence."""
+    _call(_load("provenance.ingest.message_pool", "main"), ctx.args)
+
+
+app.add_typer(pool_app, name="pool")
 
 
 # --- eval: mounted as a real Typer sub-app ---------------------------------- #

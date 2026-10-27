@@ -17,3 +17,9 @@ def test_pace_history_has_help():
     result = CliRunner().invoke(app, ["history", "--help"])
     assert result.exit_code == 0
     assert "current-path" in result.output
+
+
+def test_pace_pool_lists_build():
+    result = CliRunner().invoke(app, ["pool", "--help"])
+    assert result.exit_code == 0
+    assert "build" in result.output

@@ -23,13 +23,17 @@ documents carry none.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
+import json
 import re
+import sys
 from collections import Counter
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any, Final
 
+from provenance.config import settings
 from provenance.graph.ids import chunk_id, normalize_content
 from provenance.graph.tables import CHUNK_EVIDENCE, CHUNKS, COMMITS, FILE_REVISIONS, REPOSITORIES
 from provenance.parse.chunker import lexical_tokens
@@ -52,8 +56,10 @@ __all__ = [
     "PoolReport",
     "link_decisions",
     "load_pool",
+    "main",
     "message_document",
     "pr_reference",
+    "render_report",
     "write_pool",
 ]
 
@@ -346,3 +352,51 @@ def _check_invariants(conn: Any, repo_id: int, documents: Sequence[MessageDocume
             f"{len(outside):,} message documents belong to no pool commit (first: "
             f"{', '.join(outside[:5])}). Nothing was written."
         )
+
+
+# --------------------------------------------------------------------------- CLI
+
+
+def render_report(report: PoolReport) -> str:
+    links = report.outcomes
+    return "\n".join(
+        [
+            f"commit-message pool: {report.commits:,} commits",
+            f"  documents: {report.documents_inserted:,} inserted, "
+            f"{report.documents_skipped:,} already present",
+            f"  evidence:  {report.evidence_inserted:,} inserted, "
+            f"{report.evidence_skipped:,} already present",
+            f"  PR links:  {links[LINKED]:,} linked, {links[NO_REFERENCE]:,} without a reference, "
+            f"{links[DROPPED_BEFORE_NUMBERING]:,} dropped (before apache/airflow numbering), "
+            f"{links[DROPPED_IMPLAUSIBLE]:,} dropped (implausible number)",
+        ]
+    )
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """`pace pool build`: write the commit-message pool and its evidence."""
+    parser = argparse.ArgumentParser(
+        prog="pace pool build",
+        description="Write every in-scope commit message as a document, with its evidence.",
+    )
+    parser.add_argument("--json", action="store_true", help="print the report as JSON")
+    args = parser.parse_args(list(argv) if argv is not None else None)
+
+    from provenance.graph.db import connection
+    from provenance.graph.repos import UnknownRepository, resolve_repo_id
+
+    try:
+        with connection() as conn:
+            repo_id = resolve_repo_id(conn, settings.repo_owner, settings.repo_name)
+            report = write_pool(conn, repo_id)
+    except (UnknownRepository, NothingToBuild) as exc:
+        print(f"nothing to build: {exc}", file=sys.stderr)
+        return 2
+    except PoolInvariantError as exc:
+        print(f"POOL CHECK FAILED: {exc}", file=sys.stderr)
+        return 1
+    if args.json:
+        print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
+    else:
+        print(render_report(report))
+    return 0

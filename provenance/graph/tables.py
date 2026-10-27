@@ -66,3 +66,8 @@ def halfvec_probe(dim: int) -> str:
 
 # --- evidence -------------------------------------------------------------
 CHUNK_EVIDENCE: Final = "chunk_evidence"
+
+# --- the benchmark's pool (ADR-0003 §1) -------------------------------------
+# chunks.kind values that are rationale text. The benchmark searches these and only
+# these: code chunks (kind 'chunk', checkpoint C) must never enter its pool.
+RATIONALE_KINDS: Final = ("commit", "pull_request", "review_comment", "issue", "issue_comment")
