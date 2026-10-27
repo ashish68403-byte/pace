@@ -142,3 +142,39 @@ def query(migrated_database: Any) -> Callable[..., list[tuple[Any, ...]]]:
         return list(migrated_database.execute(sql, params).fetchall())
 
     return run
+
+
+@pytest.fixture
+def writer_conn(migrated_database: Any) -> Iterator[Any]:
+    """A NON-autocommit connection, as GraphWriter requires (savepoints need a transaction)."""
+    import psycopg
+
+    from provenance.config import settings
+
+    with psycopg.connect(settings.database_url) as conn:
+        yield conn
+
+
+@pytest.fixture
+def ingest(history_repo: HistoryRepo, test_repo_id: int, writer_conn: Any) -> Callable[..., Any]:
+    """Walk the fixture repository into the test repository row; returns the writer."""
+    from provenance.ingest.git_walk import walk_history
+    from provenance.ingest.graph_writer import GraphWriter
+
+    def run(
+        *, rev: str = "HEAD", max_commits: int | None = None, scope: list[str] | None = None
+    ) -> Any:
+        chosen = history_repo.scope if scope is None else scope
+        writer = GraphWriter(writer_conn, repo_id=test_repo_id, batch_size=3)
+        walk_history(
+            history_repo.root,
+            rev=rev,
+            scope=chosen,
+            repo_id=test_repo_id,
+            writer=writer,
+            checkpoint_every=3,
+            max_commits=max_commits,
+        )
+        return writer
+
+    return run
