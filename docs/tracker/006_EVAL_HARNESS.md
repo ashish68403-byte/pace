@@ -22,9 +22,9 @@ honouring the identity contract its own reasoning establishes.
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 1 | [Dev/test split](../tasks/review-remediation/002_dev_test_split.md) (finding 2) — field and `assign_splits` in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md) | ⬜ | `provenance/eval/schema.py`, `runner.py` |
-| 2 | Print `D` (discordant queries) and `1.96·√D/n` beside the paired delta; decide target `n` vs threshold (finding 7) — `mde()` and the sizes in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); printing D in B5 | ⬜ | `provenance/eval/runner.py:89`, `metrics.py` |
-| 3 | Set-valued relevance: `required_units: list[set[str]]`, recall as fraction of units with a member in top k; persist `n_units`, `max_parts_per_unit` (finding 7) — units are evidence keys, in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md) | ⬜ | `anchors.py:113-159`, `metrics.py` |
+| 1 | [Dev/test split](../tasks/review-remediation/002_dev_test_split.md) (finding 2) — field and `assign_splits` done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); the runner's `--split` filter and its refusal to update a baseline from test come in B5 | 🚧 | `provenance/eval/schema.py`, `runner.py` |
+| 2 | Print `D` (discordant queries) and `1.96·√D/n` beside the paired delta; decide target `n` vs threshold (finding 7) — `mde()` and the sizes done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); printing D in B5 | 🚧 | `provenance/eval/runner.py:89`, `metrics.py` |
+| 3 | Set-valued relevance: `required_units: list[set[str]]`, recall as fraction of units with a member in top k; persist `n_units`, `max_parts_per_unit` (finding 7) — units are evidence keys, done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md) | ✅ | `anchors.py:113-159`, `metrics.py` |
 | 4 | `_verdict` takes the **strongest** cheap baseline, not grep alone; gate `retention_rate` too (finding 8) — pre-registered in ADR-0003 §6, implemented in B3 | ⬜ | `scripts/leakage_probe.py:657-660` |
 | 5 | Add `baseline_grep_r10`, `gold_symbol_df` to `PER_QUERY_COLUMNS`; second `per_class` breakdown on `gold_symbol_df == 0` vs `> 0` (finding 8) | ⬜ | `runner.py:266-285` |
 | 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) | ⬜ | new ADR + committed JSONL |
@@ -59,3 +59,14 @@ honouring the identity contract its own reasoning establishes.
   the strongest lexical baseline's recall@10 < 0.35; retention ≥ 25%) and the sizes (≥ 360 dev,
   ≥ 240 test, from MDE ≈ 1.96·√(f/n)). Slice plan B1–B5 is in
   [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md).
+- **2026-10-27 — slice B1 closed.** `split` is required on every golden record and assigned per PR
+  group by a seeded hash (`assign_splits`); the runner's `recall_at_k` column is unit recall, beside
+  `n_units` and `max_parts_per_unit`; `mde` and `wilson_interval` pin ADR-0003's numbers in tests;
+  migration 0007 allows `self` and `linked` evidence. Three items stay open, each with an owner:
+  - **The CI golden subset is empty.** The week-1 seeds are retired (ADR-0003, Consequences), so
+    CI's retrieval gate scores nothing until a generated dev subset and the fixture pool it needs
+    are committed. Owner: B5.
+  - **nDCG still counts documents.** Harmless while a change has one document (B2, B3); it must
+    become unit-aware, or be reported with that caveat, before PR text joins the pool. Owner: B5.
+  - **A PR that landed in more than one commit** lets a record score 0.5 (ADR-0003 §4). Owner: B2,
+    which counts such PRs in the commit-message pool.

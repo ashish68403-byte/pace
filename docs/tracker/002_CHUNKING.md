@@ -8,7 +8,7 @@
 ---
 
 ## Summary
-tree-sitter AST chunking of Python, the token budget, and chunk identity. ROADMAP §5 checkpoint B (HEAD chunks).
+tree-sitter AST chunking of Python, the token budget, and chunk identity. ROADMAP §5 checkpoint C: [ADR-0003](../ADR-0003-rationale-pool-benchmark.md) moved code chunks out of B, whose benchmark searches rationale text ([eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md)).
 
 ## Problem Statement
 Measured on the in-scope corpus (5,601 chunks): **338 chunks (6.0%) exceed bge-small's 512-token
@@ -43,3 +43,11 @@ to be believed.
   hold 368 lines — 269 blank, **99 comment-only**, zero code; 38 functions lose at least one comment
   line. No code is lost, so no test or line count would ever have noticed. This violates the
   chunker's own opening rule at `chunker.py:5-8`, which justifies AST chunking on exactly this ground.
+- **2026-10-27 — census at the frozen scope.** 303 files → 4,122 chunks in 2.1 s (the 5,601 above
+  was measured on the pre-freeze 480-file scope). 252 chunks (6.1%) exceed the chunker's own
+  400-token estimate, the largest at 4,809; 274 of 3,575 `(path, qualified_name)` keys map to more
+  than one chunk. 21 files raise `ChunkParseError("empty after licence-header strip")` — all empty
+  `__init__.py` files, which should yield zero chunks rather than a dead letter. All of it is now
+  checkpoint C's work (ADR-0003).
+- **2026-10-27 — the dependency on 006's set-valued relevance is met.** Recall now counts one unit per
+  evidence key (slice B1), so the chunker's grouping decision no longer moves its denominator.

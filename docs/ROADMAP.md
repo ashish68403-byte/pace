@@ -29,11 +29,13 @@ full first-parent history (38,888 commits, 303 in-scope files) idempotently and 
 [results/history_truncation.json](../results/history_truncation.json); `pace history <path>` is
 the demo. 168 tests, ruff clean.
 
-**Next.** Checkpoint B (§5): the ethics self-assessment and the GitHub backfill under a request
-budget (findings 11, 10), HEAD chunks and `chunk_evidence`, the dev/test split and the
-generator's target `n` (findings 2, 7), the diff-anchored golden-set generator v0, the leakage
-probe, and grep/BM25/dense baselines. Until it lands, no benchmark exists and every retrieval
-number is structurally zero.
+**Next.** Checkpoint B (§5), re-founded by [ADR-0003](ADR-0003-rationale-pool-benchmark.md) on
+a pool of rationale text — commit messages first, PR text after the GitHub backfill. Slice B1,
+the definition (relevance units, the dev/test split, sizes from the MDE; findings 2, 7), is
+done. Then: commit messages as the pool (B2); the diff-anchored golden-set generator v0 and its
+leakage verdict (B3); the ethics self-assessment and the backfill under a request budget (B4;
+findings 11, 10); grep/BM25/dense baselines (B5). Until B3 lands, no benchmark exists and every
+retrieval number is structurally zero.
 
 ---
 
@@ -202,8 +204,8 @@ Every gate states its liveness check, because a gate that passes on an empty inp
 | Checkpoint | Target | Adds | Gate | Submittable as |
 |---|---|---|---|---|
 | **A** | Sun 8 Nov | Commit graph, file history across renames, the truncation measurement, `pace history` ([tasks/ingest/001-003](tasks/ingest/)) | Run 2 inserts 0 rows **and** skips exactly run 1's inserts; the current-path check agrees with git on 303/303 files; `results/history_truncation.json` reproduces byte for byte | A rename-aware history graph of Airflow, and a census of how much history a current-path view hides |
-| **B** | Sun 22 Nov | Ethics self-assessment dated before the first fetch (finding 11); GitHub backfill under a request budget (finding 10); HEAD chunks and `chunk_evidence`; the dev/test split (finding 2) and the generator's target `n` (finding 7); golden-set generator v0 — diff-anchored, AST-only anchors ([ADR-0002](ADR-0002-golden-set-construction.md)); leakage probe; grep and BM25 baselines, then dense retrieval and RRF — the ablation table's first rows | The leakage verdict is computed on `n_retained ≥ N`, with `N` fixed from finding 7's MDE before the generator runs, **and** grep recall@10 < 0.35. An empty retained set is INCONCLUSIVE, never a pass | A + a benchmark grep cannot ace, with honest baselines |
-| **C** | Sun 6 Dec | Blame with `--ignore-revs-file`; function identity, minimum viable (§7: two hash tiers, same-file, one cross-file rule); `docs/PREREGISTRATION.md`; the three-arm lineage-vs-blame comparison (finding 3) | `PREREGISTRATION.md`'s commit precedes the first comparison run in `git log`; the volume-matched arm is reported beside the unbudgeted one | B + the novelty measurement: provenance-chain recall, lineage vs blame |
+| **B** | Sun 22 Nov | A benchmark over rationale text ([ADR-0003](ADR-0003-rationale-pool-benchmark.md)), in five slices ([tasks/eval-harness/001](tasks/eval-harness/001_benchmark_definition.md)): **B1** the definition — relevance units, the dev/test split (finding 2), sizes from the MDE (finding 7); **B2** commit messages as the first pool; **B3** golden-set generator v0 — diff-anchored, AST-only anchors ([ADR-0002](ADR-0002-golden-set-construction.md)) — and the leakage verdict; **B4** the ethics self-assessment dated before the first fetch (finding 11) and the GitHub backfill under a request budget (finding 10), adding PR text to the pool; **B5** grep and BM25 baselines, then dense retrieval and RRF — the ablation table's first rows | Pre-registered in ADR-0003 §6, on the dev split: ≥ 100 retained records, **and** the strongest lexical baseline's Wilson 95% upper bound on recall@10 < 0.35, **and** retention ≥ 25%. Fewer records is INCONCLUSIVE, never a pass | A + a benchmark grep cannot ace, with honest baselines |
+| **C** | Sun 6 Dec | HEAD code chunks and their `chunk_evidence`, moved from B by [ADR-0003](ADR-0003-rationale-pool-benchmark.md); blame with `--ignore-revs-file`; function identity, minimum viable (§7: two hash tiers, same-file, one cross-file rule); `docs/PREREGISTRATION.md`; the three-arm lineage-vs-blame comparison (finding 3) | `PREREGISTRATION.md`'s commit precedes the first comparison run in `git log`; the volume-matched arm is reported beside the unbudgeted one | B + the novelty measurement: provenance-chain recall, lineage vs blame |
 | **D** | Sun 13 Dec | The warm-resident reranker, so the evaluated and the served system are one process (finding 17); agent loop (five tools, enforced budgets); grounding verification and refusal; per-query score logging from the first agent run (finding 15); the demo | Refusal precision **and** recall with Wilson intervals; the risk-coverage curve against two trivial abstainers | The full system |
 | **Report** | weekly from Mon 2 Nov | One chapter per checkpoint as it lands, methods first | A complete draft by Sun 13 Dec | — |
 | **Buffer** | 14–20 Dec | The report, viva preparation | — | — |
@@ -227,7 +229,7 @@ what they always were: deliberate exclusions.)
 3. **C entirely.** B's benchmark becomes the evaluation; the lineage claim becomes future work,
    with its pre-registration already written.
 4. **B's dense retrieval.** grep and BM25 are the baselines the leakage argument needs.
-5. **B's GitHub backfill.** The benchmark falls back to commit messages as its rationale documents —
+5. **B's GitHub backfill (slice B4).** The benchmark stays on commit messages as its rationale documents —
    weaker, still a measurement, and reported as such.
 
 > **STOP — below here is the grade.** Checkpoint A, the report, and whichever benchmark exists
@@ -346,6 +348,7 @@ fetch script, never a comment dump. See [DATA-PROTECTION.md](DATA-PROTECTION.md)
   mirror the code, not the calendar
 - [ADR-0001](ADR-0001-typed-edges.md) — typed edge tables over one polymorphic table
 - [ADR-0002](ADR-0002-golden-set-construction.md) — the anchor symbol comes from code, never the rationale
+- [ADR-0003](ADR-0003-rationale-pool-benchmark.md) — the benchmark searches rationale text and scores one relevance unit per change
 - [RUNBOOK.md](RUNBOOK.md) — starting everything, degradation behaviour, reading a trace
 - [DATA-PROTECTION.md](DATA-PROTECTION.md) — what personal data is processed, and what is excluded
 - [../provenance/eval/README.md](../provenance/eval/README.md) — why the CI gate splits in two

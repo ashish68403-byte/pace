@@ -1,7 +1,7 @@
 # Task 001: Define the benchmark — rationale pool, relevance units, split, sizes
 
 **Tracker:** [006_EVAL_HARNESS](../../tracker/006_EVAL_HARNESS.md) · **checkpoint B**, slice B1 of 5
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-10-27)
 **Decision record:** [ADR-0003](../../ADR-0003-rationale-pool-benchmark.md)
 **Deadline:** ADR-0003 committed before slice B3's generator writes its first record
 
@@ -47,7 +47,7 @@ benchmark can start from. Slices B2–B5 build on this one:
 
 - **Scenario:** a split is deterministic and grouped
   - **Given:** a list of records with query classes and group keys (PR number, else commit sha)
-  - **When:** `assign_splits(records, seed)` runs twice, or over the records in another order
+  - **When:** `assign_splits` runs twice over the records' group keys (from `group_key(sha, pr)`), or over them in another order
   - **Then:** every record gets the same split both times; no group appears on both sides; and a
     report gives each query class's dev share (expected 55–65% on real data; on a synthetic set of
     1,000 groups the overall share is within 0.55–0.65).
@@ -94,15 +94,15 @@ benchmark can start from. Slices B2–B5 build on this one:
 ## Files to Modify
 
 - `docs/ADR-0003-rationale-pool-benchmark.md` — new (this design)
-- `provenance/eval/schema.py` — `split` on `GoldenRecord`; `assign_splits()`
+- `provenance/eval/schema.py` — `split` on `GoldenRecord`; `group_key()`, `assign_splits()`, `dev_share_by_class()`
 - `provenance/eval/anchors.py` — `ResolvedAnchors.required_units` (per-key chunk sets)
-- `provenance/eval/metrics.py` — `unit_recall_at_k`, `mde`, `wilson_interval`
+- `provenance/eval/metrics.py` — `unit_recall_at_k`, `mde`, `wilson_interval`; every new name is exported from `provenance/eval/__init__.py`
 - `provenance/eval/runner.py` — the `recall_at_k` column becomes unit recall; `n_units`,
   `max_parts_per_unit` columns
 - `migrations/versions/0007_rationale_evidence.py` — new
 - `provenance/eval/golden/ci_subset.jsonl` — seeds retired, header explains
 - `tests/unit/test_metrics.py`, `tests/unit/test_golden_schema.py` (new),
-  `tests/integration/test_schema.py` — the scenarios above
+  `tests/unit/test_relevance_units.py` (new), `tests/integration/test_schema.py` — the scenarios above
 - `docs/ROADMAP.md` §5–§6, `docs/tracker/002_CHUNKING.md`, `docs/tracker/006_EVAL_HARNESS.md`
 
 ## Verification
