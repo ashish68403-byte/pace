@@ -30,6 +30,7 @@ test that re-reads the DDL it is testing proves nothing.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 import pytest
@@ -55,7 +56,7 @@ from provenance.graph.tables import (
 
 pytestmark = pytest.mark.db
 
-HEAD_REVISION = "0006_history_columns"
+HEAD_REVISION = "0007_rationale_evidence"
 
 CORE_TABLES = (
     REPOSITORIES,
@@ -141,6 +142,19 @@ def test_chunk_evidence_carries_the_scoring_time_lookup_index(migrated_database:
     # resolver's equality predicates use. A different order still answers the
     # query, by scanning.
     assert "(repo_id, evidence_kind, evidence_key)" in definition
+
+
+def test_chunk_evidence_accepts_the_rationale_sources(migrated_database: Any) -> None:
+    """Migration 0007 (ADR-0003 §2). A document can BE an artifact (self) or belong to one
+    joined by an edge (linked); the five code-linkage sources stay."""
+    definition = _scalar(
+        migrated_database,
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conrelid = 'chunk_evidence'::regclass AND conname = 'chunk_evidence_source_check'",
+    )
+    # Postgres prints the list back as ARRAY['blame'::text, ...].
+    allowed = set(re.findall(r"'(\w+)'::text", definition))
+    assert allowed == {"blame", "ast_identity", "diff", "lineage_edge", "manual", "self", "linked"}
 
 
 # ---------------------------------------------------------------- physical names
