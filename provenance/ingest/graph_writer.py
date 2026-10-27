@@ -77,13 +77,13 @@ _ZERO_SHA: Final = "0" * 40
 _INSERT_COMMIT: Final = f"""
     INSERT INTO {COMMITS} (
         repo_id, commit_sha, tree_sha, topo_order,
-        author_name, author_email, authored_at,
-        committer_name, committer_email, committed_at,
+        author_name, author_email_sha256, authored_at,
+        committer_name, committer_email_sha256, committed_at,
         subject, message, files_changed, is_merge, is_mechanical, mechanical_reason
     ) VALUES (
         %(repo_id)s, %(commit_sha)s, %(tree_sha)s, %(topo_order)s,
-        %(author_name)s, %(author_email)s, %(authored_at)s,
-        %(committer_name)s, %(committer_email)s, %(committed_at)s,
+        %(author_name)s, %(author_email_sha256)s, %(authored_at)s,
+        %(committer_name)s, %(committer_email_sha256)s, %(committed_at)s,
         %(subject)s, %(message)s, %(files_changed)s, %(is_merge)s, %(is_mechanical)s,
         %(mechanical_reason)s
     )
@@ -444,10 +444,10 @@ class GraphWriter:
             "tree_sha": record.tree_sha,
             "topo_order": record.topo_order,
             "author_name": record.author_name,
-            "author_email": record.author_email_sha256,
+            "author_email_sha256": record.author_email_sha256,
             "authored_at": record.author_time,
             "committer_name": record.committer_name,
-            "committer_email": record.committer_email_sha256,
+            "committer_email_sha256": record.committer_email_sha256,
             "committed_at": record.committer_time,
             "subject": record.subject,
             "message": record.message,

@@ -165,6 +165,28 @@ def reused_path_repo(tmp_path: Path, hermetic_git: None) -> HistoryRepo:
 
 
 @pytest.fixture
+def email_repo(tmp_path: Path, hermetic_git: None) -> HistoryRepo:
+    """Two commits whose text carries addresses, as real Airflow trailers do.
+
+    c1  add a (#1)              body: Co-authored-by: Lin <lin@example.org>
+    c2  ping ann@example.net    an address in the SUBJECT
+    """
+    root = tmp_path / "email-repo"
+    root.mkdir()
+    _git(root, "init", "-q", "-b", "main")
+    sha: dict[str, str] = {}
+    (root / "a.py").write_text("x = 1\n", encoding="utf-8")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", "add a (#1)\n\nCo-authored-by: Lin <lin@example.org>", day=1)
+    sha["c1"] = _git(root, "rev-parse", "HEAD")
+    (root / "a.py").write_text("x = 2\n", encoding="utf-8")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", "ping ann@example.net about a", day=2)
+    sha["c2"] = _git(root, "rev-parse", "HEAD")
+    return HistoryRepo(root=root, sha=sha, scope=["a.py"])
+
+
+@pytest.fixture
 def test_repo_id(migrated_database: Any) -> Iterator[int]:
     """A throwaway repositories row. Deleting it cascades to everything a test wrote."""
     row = migrated_database.execute(

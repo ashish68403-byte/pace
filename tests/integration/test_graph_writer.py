@@ -173,3 +173,29 @@ def test_an_in_scope_file_that_ends_deleted_fails_the_walk(history_repo, ingest)
     # Walking only up to c8 leaves b.py's newest revision a deletion, which scope rules out.
     with pytest.raises(IngestInvariantError, match="end in a deletion"):
         ingest(rev=history_repo.sha["c8"])
+
+
+def test_a_fresh_ingest_stores_no_address(email_repo, test_repo_id, writer_conn, query):
+    """DATA-PROTECTION.md §2, end to end: hashes in, scrubbed text in, nothing else."""
+    from provenance.ingest.git_walk import walk_history
+    from provenance.ingest.graph_writer import GraphWriter
+    from provenance.privacy import EMAIL_RE, hash_email
+
+    writer = GraphWriter(writer_conn, repo_id=test_repo_id, scope=email_repo.scope, batch_size=3)
+    walk_history(
+        email_repo.root,
+        rev="HEAD",
+        scope=email_repo.scope,
+        repo_id=test_repo_id,
+        writer=writer,
+        checkpoint_every=3,
+    )
+    rows = query(
+        "SELECT author_email_sha256, committer_email_sha256, subject, message "
+        "FROM commits WHERE repo_id = %s",
+        test_repo_id,
+    )
+    fixture = hash_email("fixture@example.com")
+    assert len(rows) == 2
+    assert all(r[0] == fixture and r[1] == fixture for r in rows)
+    assert not any(EMAIL_RE.search(r[2]) or EMAIL_RE.search(r[3]) for r in rows)

@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
+from types import ModuleType
 
 from provenance.privacy import EMAIL_RE, hash_email, scrub_emails
 
@@ -39,3 +41,43 @@ def test_the_github_path_imports_the_shared_helpers() -> None:
     fetch = (ROOT / "scripts" / "fetch_corpus.py").read_text(encoding="utf-8")
     assert "from provenance.privacy import hash_email, scrub_emails" in fetch
     assert "def hash_email" not in fetch and "def scrub_emails" not in fetch
+
+
+# ------------------------------------------------- migration 0008's frozen copy
+
+SAMPLE_ADDRESSES = [
+    "ada@example.com",
+    "  Ada@Example.COM ",
+    "49699333+dependabot[bot]@users.noreply.github.com",
+]
+SAMPLE_TEXTS = [
+    "Co-authored-by: Lin <lin@example.org>",
+    "no address here (#12)",
+    "two: a@b.co and c.d@e-f.org",
+]
+
+
+def _migration_0008() -> ModuleType:
+    path = ROOT / "migrations" / "versions" / "0008_hashed_emails.py"
+    spec = importlib.util.spec_from_file_location("migration_0008", path)
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_migration_0008_froze_the_same_rules() -> None:
+    """A migration must not change behaviour when the package does, so 0008 carries its
+    own copy. This test is what keeps the copy honest at the revision it was written."""
+    m = _migration_0008()
+    assert m._EMAIL_RE.pattern == EMAIL_RE.pattern
+    assert [m._hash_email(a) for a in SAMPLE_ADDRESSES] == [hash_email(a) for a in SAMPLE_ADDRESSES]
+    assert [m._scrub_emails(t) for t in SAMPLE_TEXTS] == [scrub_emails(t) for t in SAMPLE_TEXTS]
+
+
+def test_migration_0008_keeps_hashes_and_turns_blanks_into_null() -> None:
+    m = _migration_0008()
+    digest = hash_email("ada@example.com")
+    assert m._hashed(digest) == digest
+    assert m._hashed("ada@example.com") == digest
+    assert m._hashed("") is None and m._hashed("  ") is None and m._hashed(None) is None

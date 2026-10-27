@@ -48,6 +48,7 @@ from provenance.graph.tables import (
     COL_LANGUAGE,
     COL_REPO_ID,
     COL_TOMBSTONE,
+    COMMITS,
     EMBED_CODE_TABLES,
     EMBED_PROSE_TABLES,
     INDEX_ALIASES,
@@ -56,7 +57,7 @@ from provenance.graph.tables import (
 
 pytestmark = pytest.mark.db
 
-HEAD_REVISION = "0007_rationale_evidence"
+HEAD_REVISION = "0008_hashed_emails"
 
 CORE_TABLES = (
     REPOSITORIES,
@@ -155,6 +156,66 @@ def test_chunk_evidence_accepts_the_rationale_sources(migrated_database: Any) ->
     # Postgres prints the list back as ARRAY['blame'::text, ...].
     allowed = set(re.findall(r"'(\w+)'::text", definition))
     assert allowed == {"blame", "ast_identity", "diff", "lineage_edge", "manual", "self", "linked"}
+
+
+# ---------------------------------------------------------------- personal data
+
+
+def test_commits_hold_email_hashes_under_named_checks(migrated_database: Any) -> None:
+    """Migration 0008 (DATA-PROTECTION.md §2): the columns say what they hold, and the
+    schema refuses anything else."""
+    columns = _column_types(migrated_database, COMMITS)
+    assert {"author_email_sha256", "committer_email_sha256"} <= set(columns)
+    assert not {"author_email", "committer_email"} & set(columns)
+    checks = {
+        name
+        for (name,) in migrated_database.execute(
+            "SELECT conname FROM pg_constraint "
+            "WHERE conrelid = 'commits'::regclass AND contype = 'c'"
+        ).fetchall()
+    }
+    assert {
+        "commits_author_email_hashed",
+        "commits_committer_email_hashed",
+        "commits_no_raw_email",
+    } <= checks
+
+
+@pytest.mark.parametrize(
+    ("column", "value", "constraint"),
+    [
+        ("author_email_sha256", "ada@example.com", "commits_author_email_hashed"),
+        ("committer_email_sha256", "ADA@EXAMPLE.COM", "commits_committer_email_hashed"),
+        ("message", "fix\n\nCo-authored-by: Lin <lin@example.org>", "commits_no_raw_email"),
+        ("subject", "mail bob@example.net", "commits_no_raw_email"),
+    ],
+)
+def test_the_database_refuses_a_raw_address(
+    migrated_database: Any, test_repo_id: int, column: str, value: str, constraint: str
+) -> None:
+    import psycopg
+
+    with pytest.raises(psycopg.errors.CheckViolation, match=constraint):
+        migrated_database.execute(
+            "INSERT INTO commits (repo_id, commit_sha, topo_order, authored_at, "
+            f"committed_at, {column}) VALUES (%s, %s, 1, now(), now(), %s)",
+            (test_repo_id, "f" * 40, value),
+        )
+
+
+def test_the_database_accepts_redacted_values(migrated_database: Any, test_repo_id: int) -> None:
+    from provenance.privacy import hash_email, scrub_emails
+
+    migrated_database.execute(
+        "INSERT INTO commits (repo_id, commit_sha, topo_order, authored_at, committed_at, "
+        "author_email_sha256, message) VALUES (%s, %s, 1, now(), now(), %s, %s)",
+        (
+            test_repo_id,
+            "e" * 40,
+            hash_email("ada@example.com"),
+            scrub_emails("Co-authored-by: Lin <lin@example.org>"),
+        ),
+    )
 
 
 # ---------------------------------------------------------------- physical names
