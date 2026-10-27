@@ -63,9 +63,9 @@ from provenance.eval.metrics import (
     ndcg_at_k,
     paired_bootstrap,
     percentile,
-    recall_at_k,
     refusal_precision,
     refusal_recall,
+    unit_recall_at_k,
 )
 from provenance.eval.schema import GoldenRecord, load_golden_set
 from provenance.graph.tables import CHUNKS, COL_CHUNK_ID, COL_REPO_ID
@@ -269,6 +269,8 @@ PER_QUERY_COLUMNS = (
     "query_class",
     "k",
     "n_required",
+    "n_units",
+    "max_parts_per_unit",
     "n_supporting",
     "n_retrieved",
     "recall_at_k",
@@ -296,14 +298,19 @@ def _score_one(
     citations: Sequence[str],
 ) -> dict[str, Any]:
     gains = resolved.gains
+    units = list(resolved.required_units.values())
     return {
         "qid": record.qid,
         "query_class": str(record.query_class),
         "k": k,
         "n_required": len(resolved.required_chunk_ids),
+        "n_units": len(units),
+        "max_parts_per_unit": max((len(unit) for unit in units), default=0),
         "n_supporting": len(resolved.supporting_chunk_ids),
         "n_retrieved": len(retrieved),
-        "recall_at_k": recall_at_k(retrieved, resolved.required_chunk_ids, k),
+        # ADR-0003 §4: recall counts relevance UNITS (one per required evidence key), not
+        # documents -- a PR with thirty review comments is one answer, not thirty.
+        "recall_at_k": unit_recall_at_k(retrieved, units, k),
         "mrr": mrr(retrieved, resolved.required_chunk_ids, k),
         "ndcg_at_k": ndcg_at_k(retrieved, gains, k),
         "citation_precision": citation_precision(citations, set(gains)),
@@ -492,7 +499,7 @@ def compare_to_baseline(
     run_point = float(agg.get(key, 0.0) or 0.0)
 
     # NaN is not a regression and it is not a pass -- it is an unscored run.
-    # recall_at_k returns NaN for a record with no required evidence, which is
+    # Unit recall is NaN for a record with no resolved required evidence, which is
     # EVERY record when the index is empty. `NaN < -threshold` evaluates False,
     # so without this guard the gate prints "PASS recall@10 nan" the first day a
     # real baseline is committed. That is the same failure SHAPE as the leakage

@@ -86,6 +86,11 @@ class ResolvedAnchors:
     qid: str
     required_chunk_ids: set[str] = field(default_factory=set)
     supporting_chunk_ids: set[str] = field(default_factory=set)
+    #: ADR-0003 §4: one relevance unit per RESOLVED required evidence key -- that key's
+    #: documents. Recall is the share of units with any member in the top k, so a PR that
+    #: owns thirty documents counts once. Unresolved keys are not units: they are listed
+    #: in ``unresolved_required`` and fail the run on their own.
+    required_units: dict[EvidenceKey, set[str]] = field(default_factory=dict)
     #: Anchors that matched no chunk. A non-empty set here is a *scoring* bug or an
     #: ingest gap -- never a retrieval miss -- so the runner surfaces it separately
     #: instead of quietly counting it against the system.
@@ -269,14 +274,17 @@ def resolve_anchors(
         )
         chunk_ids: set[str] = set()
         unresolved: set[EvidenceKey] = set()
+        units: dict[EvidenceKey, set[str]] = {}
         for key in keys:
             hits = mapping.get(key, set())
             if hits:
                 chunk_ids |= hits
+                units[key] = set(hits)
             else:
                 unresolved.add(key)
         if tier == "required":
             resolved.required_chunk_ids = chunk_ids
+            resolved.required_units = units
             resolved.unresolved_required = unresolved
         else:
             resolved.supporting_chunk_ids = chunk_ids
