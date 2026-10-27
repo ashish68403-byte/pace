@@ -178,8 +178,10 @@ numeric artifacts. Anyone reproducing this re-fetches the bodies themselves with
 
 ```
 pace demo       walking skeleton request, end to end
-pace ingest     walk git history into Postgres
+pace ingest     walk git history into Postgres: commits, links, files, revisions
 pace scope      select the subset of the repo under study
+pace history    one file's history, marking what a current-path view misses
+pace measure    measurements the write-up quotes (truncation)
 pace eval       run an eval suite
 pace leakage    substring-search leakage probe over the golden set
 pace version    installed version + derivation versions in effect

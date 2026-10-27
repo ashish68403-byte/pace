@@ -5,6 +5,8 @@ Canonical commands, and nothing else claims to exist:
     pace demo         walking skeleton: one request, one complete trace
     pace ingest       walk git history into the graph
     pace scope        select/freeze the ~60-80k-line subset under study
+    pace history      one file's history vs a current-path view
+    pace measure      truncation: the measurement checkpoint A reports
     pace eval         run | fixtures | invariants
     pace leakage      substring-search baseline over the golden set
     pace health       database + extension healthcheck
@@ -177,6 +179,29 @@ def ingest(ctx: typer.Context) -> None:
 def scope(ctx: typer.Context) -> None:
     """Select the subset of the repo under study (~60-80k lines, not the whole tree)."""
     _call(_load("provenance.ingest.scope", "main"), ctx.args)
+
+
+@app.command(context_settings=PASSTHROUGH)
+def history(ctx: typer.Context) -> None:
+    """One file's history, marking the commits a current-path view misses."""
+    _call(_load("provenance.analysis.history", "main"), ctx.args)
+
+
+measure_app = typer.Typer(no_args_is_help=True, add_completion=False)
+
+
+@measure_app.callback()
+def _measure() -> None:
+    """Measurements the write-up quotes. Each writes one file under results/."""
+
+
+@measure_app.command(context_settings=PASSTHROUGH)
+def truncation(ctx: typer.Context) -> None:
+    """How much history a current-path view hides, for every in-scope file."""
+    _call(_load("provenance.analysis.truncation", "main"), ctx.args)
+
+
+app.add_typer(measure_app, name="measure")
 
 
 # --- eval: mounted as a real Typer sub-app ---------------------------------- #

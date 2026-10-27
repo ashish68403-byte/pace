@@ -40,3 +40,18 @@ def test_the_report_is_byte_identical_across_runs(
 def test_an_empty_graph_is_refused(history_repo, test_repo_id, migrated_database):
     with pytest.raises(NothingToMeasure, match="run `pace ingest` first"):
         build_report(migrated_database, test_repo_id, history_repo.root, history_repo.scope)
+
+
+def test_history_marks_what_a_current_path_view_misses(
+    history_repo, test_repo_id, ingest, migrated_database
+):
+    from provenance.analysis.history import render_history
+    from provenance.analysis.truncation import graph_history
+
+    ingest()
+    path = "core/src/pkg/alpha.py"
+    lines = render_history(graph_history(migrated_database, test_repo_id, path), path).splitlines()
+    marked = [line for line in lines if line.startswith("+ ")]
+    assert len(marked) == 3
+    assert "pkg/a.py" in marked[-1]  # the oldest commit, under the name it had then
+    assert lines[-1] == "current path: 2 commits | rename-aware: 5 | hidden: 3 (60.0%)"
