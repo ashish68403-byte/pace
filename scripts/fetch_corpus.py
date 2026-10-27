@@ -51,33 +51,15 @@ from typing import Any
 import httpx
 
 from provenance.config import settings
+from provenance.privacy import hash_email, scrub_emails
 
 GITHUB_API = "https://api.github.com"
 USER_AGENT = "pace-research-corpus/0.1 (final-year project; open-access output)"
 MANIFEST_VERSION = "v1"
 
-# Deliberately broad. A false positive costs us a redacted token in a comment body; a
-# false negative puts someone's email address in a corpus we then index and query.
-_EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
-
-
 # ------------------------------------------------------------------ personal data
-
-
-def hash_email(email: str) -> str:
-    """One-way, stable, and NOT reversible without the original address.
-
-    Stable so that "same author across commits" is still a queryable join key; hashed so
-    that the address itself never lands in the database, the manifest, or a backup.
-    Lowercased first because git records mixed case and the same human would otherwise
-    hash to two different identities.
-    """
-    return hashlib.sha256(email.strip().lower().encode("utf-8")).hexdigest()[:32]
-
-
-def scrub_emails(text: str) -> str:
-    """Replace every email address in free text with a stable opaque marker."""
-    return _EMAIL_RE.sub(lambda m: f"<email:{hash_email(m.group(0))[:12]}>", text)
+# hash_email() and scrub_emails() live in provenance/privacy.py, shared with the git
+# walk, so the same address hashes the same on both ingestion paths.
 
 
 def body_sha256(text: str) -> str:
