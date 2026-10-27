@@ -20,6 +20,12 @@ REPOSITORIES: Final = "repositories"
 CHUNKS: Final = "chunks"
 COMMITS: Final = "commits"
 FILES: Final = "files"
+COMMIT_PARENTS: Final = "commit_parents"
+FILE_REVISIONS: Final = "file_revisions"
+
+# --- ingest bookkeeping ---------------------------------------------------
+INGEST_RUNS: Final = "ingest_runs"
+DEAD_LETTERS: Final = "dead_letters"
 
 # chunks columns that differ from the obvious spelling
 COL_REPO_ID: Final = "repo_id"  # bigint FK, NOT the "owner/name" string

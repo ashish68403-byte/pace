@@ -8,8 +8,8 @@
 ---
 
 ## Summary
-Golden set, leakage gate, metrics, the CI retrieval gate. ROADMAP §5 weeks 2-3, alive all fourteen
-weeks. This is the subsystem the "engineering-measurement project" claim rests on.
+Golden set, leakage gate, metrics, the CI retrieval gate. ROADMAP §5 checkpoint B, and alive from then
+on. This is the subsystem the "engineering-measurement project" claim rests on.
 
 ## Problem Statement
 Seven of the twenty review findings land here. The harness's design is strong — the paired bootstrap
@@ -28,14 +28,14 @@ honouring the identity contract its own reasoning establishes.
 | 5 | Add `baseline_grep_r10`, `gold_symbol_df` to `PER_QUERY_COLUMNS`; second `per_class` breakdown on `gold_symbol_df == 0` vs `> 0` (finding 8) | ⬜ | `runner.py:266-285` |
 | 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) | ⬜ | new ADR + committed JSONL |
 | 7 | Bootstrap the refusal pair; report `None` not 0.0 when `ci.n == 0` (finding 14) | ⬜ | `runner.py:396-399, 413-416` |
-| 8 | Define the submission bundle: repo + corpus SHA + ID manifest + frozen `.npz` + body-stripped dump (finding 20) | ⬜ | `docs/ROADMAP.md` §5 weeks 15-16 |
+| 8 | Define the submission bundle: repo + corpus SHA + ID manifest + frozen `.npz` + body-stripped dump (finding 20) | ⬜ | `docs/ROADMAP.md` §5 Report and Buffer rows |
 
 ## Dependencies
-- Tasks 1 and 2 **decide the week-3 generator's target `n`** — do them before the generator runs at
+- Tasks 1 and 2 **decide checkpoint B's generator target `n`** — do them before the generator runs at
   scale, or not at all.
 - Task 3 interacts with [002_CHUNKING](002_CHUNKING.md): today the recall denominator is the
   chunker's grouping decision for the 7.5% of anchors resolving to multiple chunks.
-- Task 6 before week 9 locks the ablation.
+- Task 6 before B's ablation rows are reported.
 
 ## Verification Steps
 1. `uv run pace eval run --golden … --embeddings none` exits 0 and prints its own MDE.

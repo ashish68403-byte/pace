@@ -9,7 +9,7 @@
 
 ## Summary
 The typed lineage DAG with N:M extract/inline edges and per-edge confidence, built forward over
-Python without rewriting the repository. ROADMAP §5 week 8 (ringed), §7. **This is the contribution.**
+Python without rewriting the repository. ROADMAP §5 checkpoint C, §7. **This is the contribution.**
 
 ## Problem Statement
 The novelty claim rests on one ablation table, and that table currently has no control, no
@@ -21,17 +21,18 @@ implemented dependent variable, and a ground truth that may not exist.
 |---|------|--------|------|
 | 1 | [Control arms, dependent variable, pre-registration](../tasks/review-remediation/003_control_arms_and_preregistration.md) (finding 3) | ⬜ | `provenance/eval/metrics.py`, `docs/PREREGISTRATION.md` |
 | 2 | One-hour spike: confirm CodeShovel's Python oracle exists (file, method count, source projects, label scheme); record the no-oracle fallback in an ADR (finding 9) | ⬜ | new ADR |
-| 3 | Promote ROADMAP:195's own 100-stratified-function comparison to the week-8 oracle; re-measure the identity-breaking-event rate on Airflow at n≥300 using the `243fe86d4b` fixture | ⬜ | `symbol_lineage`, `lineage_edges` |
+| 3 | Promote ROADMAP:195's own 100-stratified-function comparison to checkpoint C's oracle; re-measure the identity-breaking-event rate on Airflow at n≥300 using the `243fe86d4b` fixture | ⬜ | `symbol_lineage`, `lineage_edges` |
 | 4 | Two hash tiers (`h1` token stream, `h3` alpha-renamed AST); forward pass, same-file bucketing; one cross-file rule | ⬜ | identity layer |
 
 ## Dependencies
-- Task 2 **before week 6**, not week 8. If the oracle is not what §7 claims, the fallback is 500
-  hand-labels, and discovering that in week 8 is exactly when ROADMAP:85 says decisions get expensive.
-- Task 1 before any week-8 run.
+- Task 2 **before checkpoint C starts**, not during it. If the oracle is not what §7 claims, the
+  fallback is 500 hand-labels, and discovering that mid-checkpoint is exactly when ROADMAP §3 says
+  decisions get expensive.
+- Task 1 before any comparison run.
 - Blocked on [003_SYMBOLS_BLAME](003_SYMBOLS_BLAME.md) task 1 for a non-straw-man blame arm.
 
 ## Verification Steps
-1. Two numbers at the week-8 gate: oracle accuracy vs a path-anchored baseline, and
+1. Two numbers at checkpoint C's gate: oracle accuracy vs a path-anchored baseline, and
    provenance-chain recall with lineage on vs the **volume-matched** control.
 2. `docs/PREREGISTRATION.md` commit date precedes the first ablation run in `git log`.
 

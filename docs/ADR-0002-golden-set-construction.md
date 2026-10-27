@@ -2,7 +2,7 @@
 
 - **Status:** Accepted
 - **Date:** 2026-09-10
-- **Applies to:** the golden-set generator (week 3), `scripts/leakage_probe.py`, `provenance/eval/schema.py`
+- **Applies to:** the golden-set generator (checkpoint B, AST-only anchors; `symbol_versions` from checkpoint C), `scripts/leakage_probe.py`, `provenance/eval/schema.py`
 
 ## Context
 
@@ -35,8 +35,9 @@ of the gold evidence.
 
 Concretely, at generation time:
 
-1. Extract the modified symbol from the diff, via `symbol_versions` / the AST, not by scanning
-   prose for backticked tokens.
+1. Extract the modified symbol from the diff — at checkpoint B by parsing the before and after
+   blobs with tree-sitter, from checkpoint C through `symbol_versions` — never by scanning prose
+   for backticked tokens.
 2. Compute and persist `gold_symbol_df` — how many documents in the pool contain the symbol.
 3. Compute and persist `baseline_grep_r10` per query.
 4. Discard any query that pure substring search answers at rank 1.

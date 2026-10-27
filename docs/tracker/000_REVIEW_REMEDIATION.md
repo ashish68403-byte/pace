@@ -2,7 +2,7 @@
 
 **Task(s):** [docs/tasks/review-remediation/](../tasks/review-remediation/)
 **Priority:** P0
-**Status:** 🚧 In progress (1 of 20 closed)
+**Status:** 🚧 In progress (4 of 20 closed)
 **Date:** 2026-10-06
 
 ---
@@ -26,27 +26,27 @@ Four of these cannot be fixed later, and that is the only reason this tracker is
 1. **A held-out split cannot be designated retrospectively.** Once CI has shown you the full set
    for six weeks, no half of it is held out any more.
 2. **A control arm is an experiment, not a paragraph.** The lineage-vs-blame comparison needs a
-   volume-matched control *run*, and week 8 is where that becomes expensive.
+   volume-matched control *run*, and checkpoint C is where that becomes expensive.
 3. **A pre-registered falsifier is only evidence if it predates the result.** Its value is its
    position in git history.
-4. **Per-query telemetry cannot be reconstructed.** If week 11's agent runs do not log fused
+4. **Per-query telemetry cannot be reconstructed.** If D's first agent runs do not log fused
    scores for refused queries, finding 15 is unanswerable forever.
 
 Everything else here is repairable at any point. These four are not.
 
 ## Task Breakdown
 
-Severity is the audited severity. "Before week 3" means it gates the next ringed gate in §5.
+Severity is the audited severity. "Before checkpoint B" means it gates B's work or B's gate in §5.
 
-### Before week 3
+### Before checkpoint B
 
 | # | Finding | Sev | Status | File |
 |---|---|---|---|---|
-| 1 | [§5 is not an executable schedule; §6 cannot rescue it](../tasks/review-remediation/001_executable_schedule.md) | critical | ⬜ | `docs/ROADMAP.md` §5, §6; `docs/ADR-0002` header |
+| 1 | [§5 is not an executable schedule; §6 cannot rescue it](../tasks/review-remediation/001_executable_schedule.md) | critical | ✅ | `docs/ROADMAP.md` §5, §6; `docs/ADR-0002` header |
 | 2 | [No dev/test split; optimistic bias ≈ the claimed lift](../tasks/review-remediation/002_dev_test_split.md) | major | ⬜ | `provenance/eval/schema.py`, `runner.py`, `retrieve/fusion.py` |
 | 3 | [Week-8 comparison has no control, no dependent variable, no falsifier](../tasks/review-remediation/003_control_arms_and_preregistration.md) | critical | ⬜ | `provenance/eval/metrics.py`, `docs/PREREGISTRATION.md` (new) |
 | 4 | [Corpus is 480 files / 112,259 lines; `scope.txt` never committed](../tasks/review-remediation/004_scope_freeze.md) | critical | ✅ | `provenance/ingest/scope.py`, `skeleton.py`, `scope.txt`, `scope_stats.json` |
-| 5 | No writing scheduled before week 15; the graded artifact is on no week and no cut list | critical | ⬜ | `docs/ROADMAP.md` §5, §6 |
+| 5 | No writing scheduled before week 15; the graded artifact is on no week and no cut list | critical | ✅ | `docs/ROADMAP.md` §5, §6 |
 | 6 | The load-bearing premise ("a merged PR that closed an issue IS the rationale") has no measurement | critical | ⬜ | gold-validity audit, new ADR |
 | 7 | CI gate cannot detect 2 points; its denominator moves with the chunker | major | ⬜ | `provenance/eval/runner.py`, `metrics.py`, `anchors.py` |
 | 8 | Leakage gate has three ways to pass green; the thesis stratum is dropped before aggregation | major | ⬜ | `scripts/leakage_probe.py`, `runner.py` |
@@ -65,16 +65,16 @@ Severity is the audited severity. "Before week 3" means it gates the next ringed
 | 16 | 6% of HEAD chunks exceed the embedder window; splitting drops comments | major | ⬜ | `provenance/parse/chunker.py` |
 | 17 | "Warm-resident reranker" is a hard constraint on no week and no cut list | major | ⬜ | `provenance/retrieve/`, `api/main.py`, `docs/ROADMAP.md` §6 |
 | 18 | Two of Trap 2's numbers have no reproducible method; 0.986/n=358 has no committed derivation | major | ⬜ | `docs/ROADMAP.md` §4, `artifacts/corpus_facts.json` (new) |
-| 19 | The Status block has three checkable errors | minor | ⬜ | `docs/ROADMAP.md` lines 18-25, `tests/integration/test_schema.py` |
+| 19 | The Status block has three checkable errors | minor | ✅ | `docs/ROADMAP.md` lines 18-25, `tests/integration/test_schema.py` |
 | 20 | "Every number reproduces from one command" has no defined bundle | minor | ⬜ | `docs/ROADMAP.md` §5 week 15-16 |
 
 ## Dependencies
 
-- Findings 2, 3, 7 and 15 are **ordered before** the work they constrain: 2 and 7 before the week-3
-  generator fixes its target `n`; 3 before week 8 runs; 15's logging before the first week-11 agent run.
+- Findings 2, 3, 7 and 15 are **ordered before** the work they constrain: 2 and 7 before B's
+  generator fixes its target `n`; 3 before C's comparison runs; 15's logging before D's first agent run.
 - Finding 4 blocks any recall number, since the scope file list is the denominator.
-- Finding 1 blocks the week-3 row itself, and findings 5 and 10 change the week table with it —
-  do them in one editing pass rather than three.
+- Finding 1 blocked the week-3 row itself, and findings 5 and 10 changed the week table with it —
+  so 1 and 5 were done in one editing pass (2026-10-27); 10 is scheduled inside B.
 
 ## Verification Steps
 
@@ -116,3 +116,16 @@ Populated as tasks close.
   error, not a `log.warning` and a demo over a file nobody chose. 13 new tests in
   `tests/unit/test_scope.py`. The corpus-side `pace scope --check` could not go in CI (no clone on
   a GitHub runner); see the task file for what replaced it.
+- **2026-10-27 — findings 1, 5 and 19 closed in one pass, as the dependency note asks.** §5's
+  week table is replaced by four checkpoints, each a complete submission, re-cut from the real
+  position (Phase 0 done, the graph empty, a mid-December deadline, under 8 h/week). Finding 1:
+  B's generator needs only A's graph (diff-anchored AST anchors; `symbol_versions` deferred to C,
+  and ADR-0002's header now says so); every gate carries its liveness check (`n_retained ≥ N` for
+  the leakage verdict); the 2.6–3.2× under-costing is absorbed by scope rather than by stretching
+  dates — C is §7's minimum viable version and §6 cuts C's parts first; §6 now lists only scheduled
+  work, with the thirteen never-scheduled exclusions moved to their own list. Finding 5: the report
+  has a weekly slot from 2 Nov and a draft date of 13 Dec. Finding 19: the Status block was
+  rewritten from measured values (117 tests; 26 PACE tables and one view, `provenance_edges`).
+  Finding 10 is scheduled inside B, before the backfill, and finding 11's ethics self-assessment
+  before B's first fetch. The subsystem trackers' "ROADMAP §5 weeks N" pointers now name
+  checkpoints; dated notes keep the week numbers they were written with.

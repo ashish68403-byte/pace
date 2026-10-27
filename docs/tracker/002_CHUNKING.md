@@ -8,7 +8,7 @@
 ---
 
 ## Summary
-tree-sitter AST chunking of Python, the token budget, and chunk identity. ROADMAP §5 weeks 6-7.
+tree-sitter AST chunking of Python, the token budget, and chunk identity. ROADMAP §5 checkpoint B (HEAD chunks).
 
 ## Problem Statement
 Measured on the in-scope corpus (5,601 chunks): **338 chunks (6.0%) exceed bge-small's 512-token
