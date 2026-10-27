@@ -4,11 +4,13 @@ Every rule in this module is here because breaking it produced a measured wrong
 number on this corpus.
 
 1. NEVER path-scope the walk.
-   Commit ``2025-03-21`` moved ``airflow/`` -> ``airflow-core/src/airflow/``.
-   ``git log -- airflow-core/src/airflow`` reports **4,007** commits; the full
-   walk reports **17,015**. A path-scoped walk therefore drops ~76% of the
-   rationale, and it drops it *silently* — the command succeeds. So: walk the
-   whole history, detect renames ourselves, and reconstruct the rename chains.
+   Commit ``243fe86d4b`` (2025-03-21) moved ``airflow/`` -> ``airflow-core/src/airflow/``.
+   ``git rev-list --count HEAD -- airflow-core/src/airflow`` reports **4,008**
+   commits, all from that day on; the legacy ``airflow/`` path reports **17,015**
+   (15,844 on the first-parent walk this module does, which is 38,888 commits in
+   all). A walk scoped to today's path therefore drops ~76% of the rationale, and
+   it drops it *silently* — the command succeeds. So: walk the whole history,
+   detect renames ourselves, and reconstruct the rename chains.
    ``git log --follow`` does handle this, but it accepts exactly one pathspec, so
    605 files means 605 full-history walks. That does not scale on 2 cores.
 
@@ -48,7 +50,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 from types import TracebackType
-from typing import Any, Final
+from typing import Any, Final, Protocol
 
 from provenance.config import settings
 from provenance.graph.tables import DEAD_LETTERS, INGEST_RUNS, REPOSITORIES
@@ -59,12 +61,18 @@ __all__ = [
     "CatFileBatch",
     "CheckpointSchemaError",
     "Checkpointer",
-    "ConcurrentRunError",
     "CommitRecord",
+    "CommitRejected",
+    "CommitWriter",
+    "ConcurrentRunError",
     "FileChange",
+    "IngestInvariantError",
+    "MalformedLogRecord",
     "RenameChains",
+    "RowCounts",
     "WalkResult",
     "ensure_repository",
+    "first_parent_count",
     "is_mechanical",
     "load_blame_ignore_revs",
     "main",
@@ -133,15 +141,21 @@ class FileChange:
 class CommitRecord:
     sha: str
     parents: list[str]
+    tree_sha: str
     author_name: str
     author_email: str
     author_time: datetime
+    committer_name: str
     committer_email: str
+    committer_time: datetime
     subject: str
     message: str
     changes: list[FileChange] = field(default_factory=list)
     mechanical: bool = False
     mechanical_reason: str | None = None
+    #: Position on the first-parent chain counted from the root (root = 1). Only
+    #: walk_history can assign it: it is the one place that knows the total.
+    topo_order: int | None = None
 
 
 @dataclass(slots=True)
@@ -168,6 +182,56 @@ class WalkResult:
             f"{self.failures:,} failures (dead-lettered), "
             f"{self.blame_ignore_revs} blame-ignore revs"
         )
+
+
+@dataclass(slots=True)
+class RowCounts:
+    """Rows one write produced. ``skipped`` means "already existed", and nothing else."""
+
+    inserted: int = 0
+    updated: int = 0
+    skipped: int = 0
+
+
+class CommitRejected(Exception):
+    """One commit's rows could not be written. The walk dead-letters it and goes on.
+
+    ``cause`` is the underlying error, and it is what the dead letter records:
+    ``UniqueViolation`` tells a reader something; the name of this wrapper does not.
+    """
+
+    def __init__(self, sha: str, cause: BaseException) -> None:
+        super().__init__(f"{sha}: {type(cause).__name__}: {cause}")
+        self.sha = sha
+        self.cause = cause
+
+
+class IngestInvariantError(RuntimeError):
+    """A property every correct run has did not hold. The run is marked failed."""
+
+
+class MalformedLogRecord(ValueError):
+    """git's output did not have the shape this module asked for.
+
+    Fatal on purpose: ``topo_order`` is assigned by position in the stream, so a
+    record skipped here would silently renumber every commit after it.
+    """
+
+
+class CommitWriter(Protocol):
+    """What :func:`walk_history` hands each commit to.
+
+    ``provenance.ingest.graph_writer.GraphWriter`` implements it. The protocol lives
+    here so that the walker never imports the database layer.
+    """
+
+    def write(
+        self, record: CommitRecord, resolved: Sequence[tuple[FileChange, str]]
+    ) -> RowCounts: ...
+
+    def finish(self, *, walk_complete: bool) -> RowCounts: ...
+
+    def report(self) -> dict[str, Any]: ...
 
 
 # ------------------------------------------------------------------ blame-ignore
@@ -225,6 +289,21 @@ def rev_parse(root: Path, rev: str, *, peel_to_commit: bool = False) -> str | No
         log.warning("could not resolve rev %r in %s", rev, root)
         return None
     return out.stdout.strip() or None
+
+
+def first_parent_count(root: Path, rev: str = "HEAD") -> int:
+    """How many commits the first-parent walk from ``rev`` produces.
+
+    walk_history numbers each commit by subtracting its position from this total,
+    and at the end checks that the stream produced exactly this many.
+    """
+    out = subprocess.run(
+        ["git", "-C", str(root), "rev-list", "--first-parent", "--count", rev],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    return int(out.stdout.strip())
 
 
 def is_mechanical(
@@ -389,7 +468,7 @@ def raw_log_stream(
     """
     root = Path(repo_path or settings.corpus_path)
     sep = "\x1e"  # record separator; safe against any subject text
-    fmt = sep + "%H%x00%P%x00%an%x00%ae%x00%aI%x00%ce%x00%s%x00%B%x00"
+    fmt = sep + "%H%x00%P%x00%T%x00%an%x00%ae%x00%aI%x00%cn%x00%ce%x00%cI%x00%s%x00%B%x00"
     cmd = [
         "git",
         "-C",
@@ -404,6 +483,10 @@ def raw_log_stream(
         "--no-abbrev",
         f"--find-renames={rename_threshold}%",
         "--no-textconv",
+        # A user's color.ui=always or log.showSignature would otherwise put bytes
+        # into the stream that the parser below never asked for.
+        "--no-color",
+        "--no-show-signature",
         "-m",  # show diffs for merge commits' first parent too
         "--first-parent",
         f"--format={fmt}",
@@ -415,76 +498,81 @@ def raw_log_stream(
         for line in proc.stdout:
             if line.startswith(sep):
                 if buffer:
-                    record = _parse_raw_record("".join(buffer))
-                    if record is not None:
-                        yield record
+                    yield _parse_raw_record("".join(buffer))
                 buffer = [line]
             else:
                 buffer.append(line)
         if buffer:
-            record = _parse_raw_record("".join(buffer))
-            if record is not None:
-                yield record
+            yield _parse_raw_record("".join(buffer))
     finally:
         proc.stdout.close()
         proc.wait()
 
 
-_RAW_RE = re.compile(
-    r"^:+(?P<modes>[0-7 ]+)\s(?P<blobs>[0-9a-f ]+)\s(?P<status>[A-Z]\d*)\t(?P<paths>.*)$"
-)
+#: %H %P %T %an %ae %aI %cn %ce %cI %s %B -- raw_log_stream's format, in order.
+_HEADER_FIELDS: Final = 11
 
 
-def _parse_raw_record(block: str) -> CommitRecord | None:
+def _parse_raw_line(line: str) -> FileChange:
+    """Parse one ``--raw`` line into a :class:`FileChange`.
+
+    The line is ``:<old mode> <new mode> <old blob> <new blob> <status>``, a TAB,
+    then one path, or two TAB-separated paths for a rename or copy. It is split on
+    whitespace rather than matched with a regex: modes are octal and blob ids are
+    hex, so a "modes, then blobs" pattern can let the modes swallow a blob made
+    only of octal digits -- and an added file's all-zero old blob is exactly that.
+    """
+    meta, tab, rest = line.lstrip(":").partition("\t")
+    parts = meta.split()
+    if not tab or len(parts) != 5:
+        raise MalformedLogRecord(f"unparseable --raw line: {line[:200]!r}")
+    _old_mode, _new_mode, old_blob, new_blob, status = parts
+    paths = rest.split("\t")
+    letter = status[:1]
+    old_path: str | None
+    new_path: str | None
+    if letter in {"R", "C"} and len(paths) == 2:
+        old_path, new_path = paths
+    elif letter == "D":
+        old_path, new_path = paths[0], None
+    elif letter == "A":
+        old_path, new_path = None, paths[0]
+    else:
+        old_path = new_path = paths[0]
+    digits = status[1:]
+    return FileChange(
+        status=status,
+        old_path=old_path,
+        new_path=new_path,
+        old_blob=old_blob,
+        new_blob=new_blob,
+        similarity=int(digits) if digits.isdigit() else None,
+    )
+
+
+def _parse_raw_record(block: str) -> CommitRecord:
     body = block.lstrip("\x1e")
     fields = body.split("\x00")
-    if len(fields) < 8:
-        return None
-    sha, parents, an, ae, aiso, ce, subject, message = fields[:8]
-    tail = fields[8] if len(fields) > 8 else ""
-
-    changes: list[FileChange] = []
-    for line in tail.splitlines():
-        if not line.startswith(":"):
-            continue
-        m = _RAW_RE.match(line)
-        if not m:
-            continue
-        blobs = m.group("blobs").split()
-        status = m.group("status")
-        paths = m.group("paths").split("\t")
-        old_blob = blobs[-2] if len(blobs) >= 2 else None
-        new_blob = blobs[-1] if blobs else None
-        if status[0] in {"R", "C"} and len(paths) == 2:
-            old_path, new_path = paths
-        elif status[0] == "D":
-            old_path, new_path = paths[0], None
-        elif status[0] == "A":
-            old_path, new_path = None, paths[0]
-        else:
-            old_path = new_path = paths[0]
-        similarity = int(status[1:]) if len(status) > 1 and status[1:].isdigit() else None
-        changes.append(
-            FileChange(
-                status=status,
-                old_path=old_path,
-                new_path=new_path,
-                old_blob=old_blob,
-                new_blob=new_blob,
-                similarity=similarity,
-            )
+    if len(fields) < _HEADER_FIELDS:
+        raise MalformedLogRecord(
+            f"expected {_HEADER_FIELDS} NUL-separated header fields, got {len(fields)}: "
+            f"{body[:200]!r}"
         )
-
+    sha, parents, tree, an, ae, aiso, cn, ce, ciso, subject, message = fields[:_HEADER_FIELDS]
+    tail = fields[_HEADER_FIELDS] if len(fields) > _HEADER_FIELDS else ""
     return CommitRecord(
         sha=sha,
         parents=parents.split() if parents else [],
+        tree_sha=tree,
         author_name=an,
         author_email=ae,
         author_time=_parse_iso(aiso),
+        committer_name=cn,
         committer_email=ce,
+        committer_time=_parse_iso(ciso),
         subject=subject,
         message=message,
-        changes=changes,
+        changes=[_parse_raw_line(line) for line in tail.splitlines() if line.startswith(":")],
     )
 
 
@@ -858,6 +946,10 @@ class Checkpointer:
         self.rows["deleted"] += deleted
         self.rows["skipped"] += skipped
 
+    def note(self, **state: Any) -> None:
+        """Attach detail to the checkpoint jsonb without counting it as progress."""
+        self._state.update(state)
+
     def advance(self, **state: Any) -> None:
         """Record progress for one file/commit; flushes every ``every`` calls."""
         self.files_done += 1
@@ -972,24 +1064,32 @@ def walk_history(
     rev: str = "HEAD",
     scope: Sequence[str] | None = None,
     checkpoint_every: int = 250,
-    on_commit: Any = None,
+    writer: CommitWriter | None = None,
     max_commits: int | None = None,
     repo_id: int | None = None,
     trace_id: str | None = None,
 ) -> tuple[WalkResult, RenameChains]:
-    """Walk the full history newest -> oldest and yield rename-resolved commits.
+    """Walk the full first-parent history newest -> oldest, handing each commit to ``writer``.
 
-    ``scope`` filters which *present-day* paths we care about — applied AFTER the
-    rename chain resolves a historical path to its modern name, which is the whole
-    point: ``airflow/models/dag.py`` in 2016 must still land in the scope entry
-    ``airflow-core/src/airflow/models/dag.py``.
+    ``scope`` filters which *present-day* paths are passed on as changes -- applied
+    AFTER the rename chain resolves a historical path to its modern name, which is
+    the whole point: ``airflow/models/dag.py`` in 2016 must still land in the scope
+    entry ``airflow-core/src/airflow/models/dag.py``.
 
-    ``on_commit(record, resolved_paths)`` is called per commit; any exception it
-    raises is dead-lettered and the walk continues.
+    Every commit reaches ``writer.write(record, resolved)``, in scope or not: the
+    commit graph needs all of them (docs/tasks/ingest/001_commit_graph.md). A
+    :class:`CommitRejected` is dead-lettered and the walk continues; any other
+    exception ends the walk, because it means the program or the database is
+    broken, not one commit.
+
+    Each record gets ``topo_order = total - position`` (root = 1). Unless
+    ``max_commits`` cut the walk short, the stream must produce exactly ``total``
+    commits, or the run fails with :class:`IngestInvariantError`.
     """
     root = Path(repo_path or settings.corpus_path)
     _assert_not_shallow(root)
 
+    total = first_parent_count(root, rev)
     scope_set = set(scope) if scope is not None else None
     blame_ignore = load_blame_ignore_revs(root)
     chains = RenameChains()
@@ -1001,13 +1101,16 @@ def walk_history(
     )
     result = WalkResult(run_id=checkpointer.run_id, blame_ignore_revs=len(blame_ignore))
     last_sha: str | None = None
+    truncated = False
 
     repo = _open_repo(root)
     try:
-        for record in raw_log_stream(root, rev=rev):
+        for position, record in enumerate(raw_log_stream(root, rev=rev)):
             if max_commits is not None and result.commits >= max_commits:
+                truncated = True
                 break
             result.commits += 1
+            record.topo_order = total - position
 
             # Renames must be recorded before resolving this commit's own paths:
             # a rename commit's *old* path is what older commits will ask about.
@@ -1038,16 +1141,33 @@ def walk_history(
             if record.mechanical:
                 result.mechanical += 1
 
-            if on_commit is not None and resolved:
+            if writer is not None:
                 try:
-                    on_commit(record, resolved)
-                except Exception as exc:  # noqa: BLE001 - isolation is the point
+                    counts = writer.write(record, resolved)
+                except CommitRejected as exc:
                     checkpointer.dead_letter(
-                        "git_walk", record.sha, exc, subject=record.subject[:200]
+                        "git_walk", record.sha, exc.cause, subject=record.subject[:200]
+                    )
+                else:
+                    checkpointer.record_rows(
+                        inserted=counts.inserted, updated=counts.updated, skipped=counts.skipped
                     )
 
             last_sha = record.sha
             checkpointer.advance(last_sha=record.sha, last_time=record.author_time)
+
+        if not truncated and result.commits != total:
+            raise IngestInvariantError(
+                f"git rev-list counts {total:,} first-parent commits from {rev}, but the "
+                f"log stream produced {result.commits:,}. A commit was dropped or duplicated, "
+                "so every topo_order after it would be wrong."
+            )
+        if writer is not None:
+            counts = writer.finish(walk_complete=not truncated)
+            checkpointer.record_rows(
+                inserted=counts.inserted, updated=counts.updated, skipped=counts.skipped
+            )
+            checkpointer.note(graph=writer.report())
 
         result.renames = chains.rename_count
         result.failures = checkpointer.failures
@@ -1093,9 +1213,9 @@ def _parser() -> argparse.ArgumentParser:
         epilog=(
             "The walk is never path-scoped and never shallow: the 2025-03-21 commit that "
             "moved airflow/ to airflow-core/src/airflow/ makes `git log -- <path>` report "
-            "4,008 commits where the full walk reports 17,015, and it reports them without "
-            "erroring. --scope filters PRESENT-DAY paths after rename resolution, which is a "
-            "different thing entirely."
+            "4,008 commits where the legacy airflow/ path reports 17,015, and it reports "
+            "them without erroring. --scope filters PRESENT-DAY paths after rename "
+            "resolution, which is a different thing entirely."
         ),
     )
     parser.add_argument("--repo", default=None, help="corpus path (default: settings.corpus_path)")
@@ -1149,7 +1269,12 @@ def main(argv: Sequence[str] | None = None) -> int:
             checkpoint_every=args.checkpoint_every,
             max_commits=args.max_commits,
         )
-    except (CheckpointSchemaError, ConcurrentRunError) as exc:
+    except (
+        CheckpointSchemaError,
+        ConcurrentRunError,
+        IngestInvariantError,
+        MalformedLogRecord,
+    ) as exc:
         print(f"ingest aborted: {exc}")
         return 1
 
