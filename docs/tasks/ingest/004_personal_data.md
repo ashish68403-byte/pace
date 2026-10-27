@@ -1,7 +1,7 @@
 # Task 004: Keep raw email addresses out of the database
 
 **Tracker:** [001_INGEST](../../tracker/001_INGEST.md) · task 7 · fixes checkpoint A, before checkpoint B slice B2
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-10-27)
 **Governing statement:** [DATA-PROTECTION.md](../../DATA-PROTECTION.md) §1–§2
 
 ## User Story
@@ -18,7 +18,7 @@
 - **so that** "the raw address is never written to the database" is a property the schema
   enforces, not only a sentence.
 
-### Background (measured 2026-10-28 on `pace`)
+### Background (measured 2026-10-27 on `pace`)
 
 - `commits.author_email` and `commits.committer_email` hold a raw address on **all 38,888** rows.
 - **4,767** messages contain an email-like token. 760 of them are among the 6,810 commits that

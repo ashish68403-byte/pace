@@ -2,7 +2,7 @@
 
 *Provenance-Aware Code Intelligence. Final-year undergraduate project. Single researcher,
 single machine, no third-party data sharing.*
-Last reviewed: 2026-09-10.
+Last reviewed: 2026-10-27.
 
 ## 1. What personal data is processed
 
@@ -12,6 +12,7 @@ The following categories of personal data are unavoidably present and are retain
 | Data | Where it comes from | Why it is necessary |
 |---|---|---|
 | **Author login** (e.g. `potiuk`) | GitHub API: `user.login` on issues, PRs, comments; `author.login` on commits | It is the citation. The project's central claim is that every answer names the artefact and the person who wrote the rationale. Removing it would remove the thing being evaluated. Logins are self-chosen public pseudonyms already published by the data subject. |
+| **Git author and committer names** | git history: the author and committer recorded in each commit | How the commit itself names the person, and so the citation for commit-sourced rationale, as the login is for GitHub text. They are part of the public, Apache-licensed history the project analyses, and are stored as recorded. |
 | **Comment, issue, PR and commit-message text** | GitHub API | This *is* the research object: the corpus of written rationale the system retrieves over. Such text may incidentally contain personal data the author chose to publish about themselves or others. |
 | **Timestamps** (`created_at`, authored/committed dates) | GitHub API / git | Needed to order provenance and to test whether the system prefers recent rationale over stale rationale. |
 
@@ -19,8 +20,8 @@ The following categories of personal data are unavoidably present and are retain
 
 | Excluded | How |
 |---|---|
-| **Commit author and committer email addresses** | Hashed with SHA-256 at ingestion (`hash_email()` in `scripts/fetch_corpus.py`), truncated to 32 hex chars, and stored only as `author_email_sha256`. The raw address is never written to disk, the database, the manifest, or a log. |
-| **Email addresses appearing in body text** | Regex-scrubbed to `<email:…>` **before** hashing and **before** caching (`scrub_emails()`). The stored sha256 describes the scrubbed bytes, so no unscrubbed copy is ever needed for verification. |
+| **Commit author and committer email addresses** | Hashed with SHA-256 at ingestion (`hash_email()` in `provenance/privacy.py`), truncated to 32 hex chars, on both ingestion paths: the GitHub fetch (`scripts/fetch_corpus.py`, stored as `author_email_sha256`) and the git walk (`provenance/ingest/git_walk.py`, stored as `commits.author_email_sha256` and `commits.committer_email_sha256`). The raw address is never written to disk, the database, the manifest, or a log, and the database refuses one: migration `0008_hashed_emails` adds CHECK constraints. §8 records the one time this did not hold. |
+| **Email addresses appearing in body text** | Regex-scrubbed to `<email:…>` (`scrub_emails()` in `provenance/privacy.py`): **before** hashing and **before** caching on the GitHub path, and before storage on the git path (commit subjects and messages). The stored sha256 describes the scrubbed bytes, so no unscrubbed copy is ever needed for verification. |
 | **Real names, avatars, profile URLs, organisation membership, follower graphs** | Never requested. Only `login` is read from the `user` object. |
 | **Private repository data, private profile data, anything requiring elevated scope** | Read-only public-scope token; no endpoint touched requires more. |
 | **End-user query data** | There are no end users. Queries are the researcher's own and the golden set's. |
@@ -106,3 +107,17 @@ provider, where the payload is corpus text already public on GitHub.
 No human participants, no interventions, no recruitment, no sensitive-category data
 (Art. 9). Public data only, minimised as above. This statement is the artefact submitted
 for institutional ethics self-assessment.
+
+## 8. Incidents
+
+**2026-10-27 — email addresses stored by the git ingest.** Checkpoint A's git walk
+(`provenance/ingest/git_walk.py`; first full run 2026-10-27, `ingest_runs` 87) stored commit
+author and committer email addresses unhashed on all 38,888 commits, and stored subjects and
+messages unscrubbed (4,767 contained an address): `hash_email()` and `scrub_emails()` existed
+only on the GitHub path. The addresses were held only in the local `pace-db` database, bound to
+localhost; no dead letter, ingest-run record, run log or committed file contained one (checked
+2026-10-27). Fixed 2026-10-27: the parser now redacts before anything else sees a record, and
+migration `0008_hashed_emails` rewrote the stored rows in place and added CHECK constraints, so
+the database refuses a raw address. Verified on the real database: 0 raw addresses afterwards,
+and checkpoint A's measurement reproduced byte-identical. Details:
+[tasks/ingest/004](tasks/ingest/004_personal_data.md).
