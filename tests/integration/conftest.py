@@ -125,6 +125,46 @@ def history_repo(tmp_path: Path, hermetic_git: None) -> HistoryRepo:
 
 
 @pytest.fixture
+def reused_path_repo(tmp_path: Path, hermetic_git: None) -> HistoryRepo:
+    """A path that is renamed away, then reused by an unrelated, later file.
+
+        c1  add foo (v1)
+        c2  rename foo to bar
+        c3  add foo (v2, unrelated content)   <- same literal path as c1, new identity
+        c4  edit foo (v2)
+
+    git's naive ``git log -- foo.py`` lists all four commits: it is oblivious to the
+    rename in between, and simply reports every commit that changed the blob at that
+    exact string. Our rename-aware graph correctly treats c3/c4 (foo.py today) and
+    c1/c2 (the file that became bar.py) as two unrelated identities -- this is the
+    real-corpus pattern behind ``stats.py`` -> ``observability/stats.py`` plus a later
+    backcompat shim re-added at ``stats.py``.
+    """
+    root = tmp_path / "reused-path-repo"
+    root.mkdir()
+    _git(root, "init", "-q", "-b", "main")
+    sha: dict[str, str] = {}
+    day = 0
+
+    def commit(name: str, message: str) -> None:
+        nonlocal day
+        day += 1
+        _git(root, "add", "-A")
+        _git(root, "commit", "-q", "-m", message, day=day)
+        sha[name] = _git(root, "rev-parse", "HEAD")
+
+    (root / "foo.py").write_text("v1 = 1\n", encoding="utf-8")
+    commit("c1", "add foo")
+    _git(root, "mv", "foo.py", "bar.py")
+    commit("c2", "rename foo to bar")
+    (root / "foo.py").write_text("v2 = 2\n", encoding="utf-8")
+    commit("c3", "add foo (unrelated, v2)")
+    (root / "foo.py").write_text("v2 = 3\n", encoding="utf-8")
+    commit("c4", "edit foo v2")
+    return HistoryRepo(root=root, sha=sha, scope=["foo.py", "bar.py"])
+
+
+@pytest.fixture
 def test_repo_id(migrated_database: Any) -> Iterator[int]:
     """A throwaway repositories row. Deleting it cascades to everything a test wrote."""
     row = migrated_database.execute(

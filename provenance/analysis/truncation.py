@@ -34,7 +34,7 @@ import statistics
 import subprocess
 import sys
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Final
 
@@ -98,6 +98,9 @@ class FileMeasurement:
     follow_f1: float | None
     current_path_check: bool
     current_path_mismatch: tuple[str, ...]
+    #: Mismatched commits explained as path reuse (see `_explain_path_reuse`), not a
+    #: walker defect. Set by `build_report`; always `()` from `measure_file` alone.
+    current_path_mismatch_explained: tuple[str, ...]
     only_in_graph: tuple[str, ...]
     only_in_follow: tuple[str, ...]
     rename_aware: frozenset[str]
@@ -119,6 +122,7 @@ class FileMeasurement:
             "follow_f1": self.follow_f1,
             "current_path_check": self.current_path_check,
             "current_path_mismatch": list(self.current_path_mismatch),
+            "current_path_mismatch_explained": list(self.current_path_mismatch_explained),
             "only_in_graph": list(self.only_in_graph),
             "only_in_follow": list(self.only_in_follow),
         }
@@ -182,6 +186,7 @@ def measure_file(
         follow_f1=_ratio(2 * len(agree), len(r) + len(f)),
         current_path_check=p == graph_current,
         current_path_mismatch=tuple(sorted(p ^ graph_current)),
+        current_path_mismatch_explained=(),
         only_in_graph=tuple(sorted(r - f, key=lambda sha: -topo[sha])[:EXAMPLES_PER_FILE]),
         only_in_follow=tuple(sorted(f - r)[:EXAMPLES_PER_FILE]),
         rename_aware=frozenset(r),
@@ -238,6 +243,42 @@ def _git_output(root: Path, *args: str) -> str:
     return done.stdout.strip()
 
 
+def _explain_path_reuse(
+    conn: Any, repo_id: int, revisions: Sequence[Revision], mismatch: Sequence[str]
+) -> tuple[str, ...]:
+    """Which ``current_path_mismatch`` commits are path reuse, not a walker defect.
+
+    git's naive pathspec log (P) is oblivious to rename provenance: it lists every
+    commit that ever changed the blob at a literal string, even across unrelated
+    files that happen to share that string at different times (a file renamed away,
+    with something else later added back at the same path -- the real-corpus
+    pattern behind ``stats.py`` -> ``observability/stats.py`` plus a later
+    backcompat shim re-added at ``stats.py``).
+
+    The file's own oldest stored revision (by ``topo_order``) is its genesis. When
+    that genesis is an ``added`` change -- our rename-aware walker asserting this
+    identity has no older lineage -- any mismatched commit OLDER than the genesis
+    is provably a different, earlier file that reused this literal path. When the
+    genesis is instead a ``renamed`` change, our own walker expects continuity
+    further back, so an older mismatch is NOT auto-explained: it stays a failure,
+    because it may be a real missing revision rather than path reuse.
+    """
+    if not revisions or not mismatch:
+        return ()
+    genesis = min(revisions, key=lambda rev: rev.topo_order)
+    if genesis.change_type != "added":
+        return ()
+    rows = conn.execute(
+        f"SELECT commit_sha, topo_order FROM {COMMITS} "
+        "WHERE repo_id = %s AND commit_sha = ANY(%s::text[])",
+        (repo_id, list(mismatch)),
+    ).fetchall()
+    topo_of = {str(sha): int(topo) for sha, topo in rows}
+    return tuple(
+        sorted(sha for sha in mismatch if topo_of.get(sha, genesis.topo_order) < genesis.topo_order)
+    )
+
+
 def build_report(
     conn: Any, repo_id: int, root: Path, scope: Sequence[str], *, progress: bool = False
 ) -> dict[str, Any]:
@@ -252,14 +293,24 @@ def build_report(
             missing.append(path)
             continue
         subjects.update((rev.commit_sha, rev.subject) for rev in revisions)
-        measurements.append(
-            measure_file(
-                path,
-                current=git_commits(root, path, follow=False),
-                revisions=revisions,
-                follow=git_commits(root, path, follow=True),
-            )
+        measurement = measure_file(
+            path,
+            current=git_commits(root, path, follow=False),
+            revisions=revisions,
+            follow=git_commits(root, path, follow=True),
         )
+        if not measurement.current_path_check:
+            explained = _explain_path_reuse(
+                conn, repo_id, revisions, measurement.current_path_mismatch
+            )
+            remaining = tuple(sorted(set(measurement.current_path_mismatch) - set(explained)))
+            measurement = replace(
+                measurement,
+                current_path_check=not remaining,
+                current_path_mismatch=remaining,
+                current_path_mismatch_explained=explained,
+            )
+        measurements.append(measurement)
         if progress and index % PROGRESS_EVERY == 0:
             print(f"measured {index:,} of {len(paths):,} files", file=sys.stderr)
     if not measurements:

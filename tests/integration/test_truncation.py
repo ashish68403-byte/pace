@@ -55,3 +55,37 @@ def test_history_marks_what_a_current_path_view_misses(
     assert len(marked) == 3
     assert "pkg/a.py" in marked[-1]  # the oldest commit, under the name it had then
     assert lines[-1] == "current path: 2 commits | rename-aware: 5 | hidden: 3 (60.0%)"
+
+
+def test_a_path_reused_by_an_unrelated_later_file_is_explained_not_failed(
+    reused_path_repo, test_repo_id, writer_conn, migrated_database
+):
+    from provenance.ingest.git_walk import walk_history
+    from provenance.ingest.graph_writer import GraphWriter
+
+    writer = GraphWriter(writer_conn, repo_id=test_repo_id, scope=reused_path_repo.scope)
+    walk_history(
+        reused_path_repo.root,
+        scope=reused_path_repo.scope,
+        repo_id=test_repo_id,
+        writer=writer,
+    )
+
+    report = build_report(
+        migrated_database, test_repo_id, reused_path_repo.root, reused_path_repo.scope
+    )
+    rows = {row["path"]: row for row in report["files"]}
+    foo, bar = rows["foo.py"], rows["bar.py"]
+
+    sha = reused_path_repo.sha
+    # today's foo.py is ONLY the unrelated, later lineage: c3 (added) and c4 (modified).
+    assert foo["n_rename_aware"] == 2
+    assert foo["current_path_check"] is True
+    assert sorted(foo["current_path_mismatch_explained"]) == sorted([sha["c1"], sha["c2"]])
+    assert foo["current_path_mismatch"] == []
+
+    # bar.py's own current-path check is unaffected and still holds exactly.
+    assert bar["current_path_check"] is True
+    assert bar["current_path_mismatch_explained"] == []
+
+    assert report["current_path_check"] == {"files_checked": 2, "files_failed": []}
