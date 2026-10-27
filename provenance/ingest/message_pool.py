@@ -25,11 +25,13 @@ from __future__ import annotations
 
 import hashlib
 import re
+from collections import Counter
 from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import Final
+from dataclasses import dataclass, field
+from typing import Any, Final
 
 from provenance.graph.ids import chunk_id, normalize_content
+from provenance.graph.tables import CHUNK_EVIDENCE, CHUNKS, COMMITS, FILE_REVISIONS, REPOSITORIES
 from provenance.parse.chunker import lexical_tokens
 
 __all__ = [
@@ -39,15 +41,20 @@ __all__ = [
     "LINKED",
     "MESSAGE_STRATEGY_VERSION",
     "NO_REFERENCE",
+    "NothingToBuild",
     "OUTCOMES",
     "PR_NUMBER_FLOOR",
     "PR_PATTERNS",
     "LinkDecision",
     "MessageDocument",
     "PoolCommit",
+    "PoolInvariantError",
+    "PoolReport",
     "link_decisions",
+    "load_pool",
     "message_document",
     "pr_reference",
+    "write_pool",
 ]
 
 #: The first commit in apache/airflow's PR numbering (airbnb/airflow's, inherited):
@@ -160,3 +167,182 @@ def message_document(sha: str, message: str, *, repo_slug: str) -> MessageDocume
         end_line=content.count("\n") + 1,
         lexical_tokens=tuple(lexical_tokens(content)),
     )
+
+
+# --------------------------------------------------------------------- the database
+
+
+class PoolInvariantError(RuntimeError):
+    """The written pool breaks a rule it must hold. Raised inside the build's
+    transaction, so nothing the build wrote survives."""
+
+
+class NothingToBuild(RuntimeError):
+    """The graph holds no commit that touches an in-scope file: run `pace ingest` first."""
+
+
+@dataclass
+class PoolReport:
+    """What one build wrote, and what it found already there."""
+
+    commits: int = 0
+    documents_inserted: int = 0
+    documents_skipped: int = 0
+    evidence_inserted: int = 0
+    evidence_skipped: int = 0
+    outcomes: Counter[str] = field(default_factory=Counter)
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "commits": self.commits,
+            "documents": {"inserted": self.documents_inserted, "skipped": self.documents_skipped},
+            "evidence": {"inserted": self.evidence_inserted, "skipped": self.evidence_skipped},
+            "links": {outcome: self.outcomes.get(outcome, 0) for outcome in OUTCOMES},
+        }
+
+
+_POOL_SQL: Final = f"""
+    SELECT c.commit_sha, c.topo_order, c.subject, c.message
+    FROM {COMMITS} c
+    WHERE c.repo_id = %s
+      AND EXISTS (SELECT 1 FROM {FILE_REVISIONS} r
+                  WHERE r.repo_id = c.repo_id AND r.commit_sha = c.commit_sha)
+    ORDER BY c.topo_order
+"""
+_TOPO_SQL: Final = f"SELECT topo_order FROM {COMMITS} WHERE repo_id = %s AND commit_sha = %s"
+_SLUG_SQL: Final = f"SELECT owner || '/' || name FROM {REPOSITORIES} WHERE repo_id = %s"
+_INSERT_DOCUMENT: Final = f"""
+    INSERT INTO {CHUNKS} (
+        chunk_id, repo_id, path, qualified_name, kind, language, start_line, end_line,
+        content, content_sha, chunking_strategy_version, lexical_tokens, lexical_blob,
+        first_seen_commit, last_seen_commit
+    ) VALUES (
+        %(chunk_id)s, %(repo_id)s, %(path)s, NULL, 'commit', 'text', 1, %(end_line)s,
+        %(content)s, %(content_sha)s, %(version)s, %(lexical_tokens)s, %(lexical_blob)s,
+        %(sha)s, %(sha)s
+    )
+    ON CONFLICT (chunk_id) DO NOTHING
+"""
+_INSERT_EVIDENCE: Final = f"""
+    INSERT INTO {CHUNK_EVIDENCE} (repo_id, chunk_id, evidence_kind, evidence_key, source)
+    VALUES (%s, %s, %s::artifact_kind, %s, %s)
+    ON CONFLICT (chunk_id, evidence_kind, evidence_key, source) DO NOTHING
+"""
+_COUNT_DOCUMENTS: Final = f"SELECT count(*) FROM {CHUNKS} WHERE repo_id = %s AND kind = 'commit'"
+_COUNT_EVIDENCE: Final = f"""
+    SELECT count(*) FROM {CHUNK_EVIDENCE} e JOIN {CHUNKS} d USING (chunk_id)
+    WHERE e.repo_id = %s AND d.kind = 'commit'
+"""
+_DUPLICATED_DOCUMENTS: Final = f"""
+    SELECT path FROM {CHUNKS} WHERE repo_id = %s AND kind = 'commit'
+    GROUP BY path HAVING count(*) > 1 ORDER BY path
+"""
+_DOCUMENTS_OUTSIDE_POOL: Final = f"""
+    SELECT path FROM {CHUNKS}
+    WHERE repo_id = %s AND kind = 'commit' AND NOT (path = ANY(%s))
+    ORDER BY path
+"""
+
+
+def load_pool(conn: Any, repo_id: int) -> list[PoolCommit]:
+    """Every first-parent commit with a file_revisions row, in walk order (ADR-0003 §1)."""
+    rows = conn.execute(_POOL_SQL, (repo_id,)).fetchall()
+    return [PoolCommit(sha, int(topo), subject, message) for sha, topo, subject, message in rows]
+
+
+def write_pool(
+    conn: Any, repo_id: int, *, numbering_starts: str = APACHE_NUMBERING_STARTS
+) -> PoolReport:
+    """Write one document per pool commit, with its `self` and `linked` evidence.
+
+    One transaction: the invariants are checked before it ends, so a build that breaks
+    one writes nothing. Re-running inserts nothing new, and the report says what it
+    skipped -- run 2 must skip exactly what run 1 inserted.
+    """
+    with conn.transaction():
+        commits = load_pool(conn, repo_id)
+        if not commits:
+            raise NothingToBuild(
+                f"repo {repo_id} has no commit that touches an in-scope file; "
+                "run `pace ingest` first"
+            )
+        boundary = conn.execute(_TOPO_SQL, (repo_id, numbering_starts)).fetchone()
+        if boundary is None:
+            raise PoolInvariantError(
+                f"the numbering boundary {numbering_starts} is not in the graph of repo "
+                f"{repo_id}; without it no PR link can be trusted, so nothing was written"
+            )
+        (slug,) = conn.execute(_SLUG_SQL, (repo_id,)).fetchone()
+        decided = link_decisions(commits, numbering_starts_at=int(boundary[0]))
+        decisions = {decision.sha: decision for decision in decided}
+        documents = [message_document(c.sha, c.message, repo_slug=slug) for c in commits]
+        evidence = _evidence_rows(repo_id, documents, decisions)
+
+        documents_before = _count(conn, _COUNT_DOCUMENTS, repo_id)
+        evidence_before = _count(conn, _COUNT_EVIDENCE, repo_id)
+        with conn.cursor() as cur:
+            cur.executemany(_INSERT_DOCUMENT, [_document_params(repo_id, d) for d in documents])
+            cur.executemany(_INSERT_EVIDENCE, evidence)
+        documents_inserted = _count(conn, _COUNT_DOCUMENTS, repo_id) - documents_before
+        evidence_inserted = _count(conn, _COUNT_EVIDENCE, repo_id) - evidence_before
+        _check_invariants(conn, repo_id, documents)
+
+    return PoolReport(
+        commits=len(commits),
+        documents_inserted=documents_inserted,
+        documents_skipped=len(documents) - documents_inserted,
+        evidence_inserted=evidence_inserted,
+        evidence_skipped=len(evidence) - evidence_inserted,
+        outcomes=Counter(decision.outcome for decision in decided),
+    )
+
+
+def _evidence_rows(
+    repo_id: int, documents: Sequence[MessageDocument], decisions: dict[str, LinkDecision]
+) -> list[tuple[int, str, str, str, str]]:
+    rows: list[tuple[int, str, str, str, str]] = []
+    for doc in documents:
+        rows.append((repo_id, doc.chunk_id, "commit", doc.sha, "self"))
+        decision = decisions[doc.sha]
+        if decision.outcome == LINKED:
+            rows.append((repo_id, doc.chunk_id, "pull_request", str(decision.pr), "linked"))
+    return rows
+
+
+def _document_params(repo_id: int, doc: MessageDocument) -> dict[str, Any]:
+    return {
+        "chunk_id": doc.chunk_id,
+        "repo_id": repo_id,
+        "path": doc.path,
+        "end_line": doc.end_line,
+        "content": doc.content,
+        "content_sha": doc.content_sha,
+        "version": MESSAGE_STRATEGY_VERSION,
+        "lexical_tokens": list(doc.lexical_tokens),
+        "lexical_blob": doc.lexical_blob,
+        "sha": doc.sha,
+    }
+
+
+def _count(conn: Any, sql: str, repo_id: int) -> int:
+    row = conn.execute(sql, (repo_id,)).fetchone()
+    return int(row[0]) if row else 0
+
+
+def _check_invariants(conn: Any, repo_id: int, documents: Sequence[MessageDocument]) -> None:
+    duplicated = [path for (path,) in conn.execute(_DUPLICATED_DOCUMENTS, (repo_id,)).fetchall()]
+    if duplicated:
+        raise PoolInvariantError(
+            f"{len(duplicated):,} commits have more than one message document (first: "
+            f"{', '.join(duplicated[:5])}): a stale document from an earlier build is "
+            "still stored. Nothing was written."
+        )
+    paths = [doc.path for doc in documents]
+    outside = [
+        path for (path,) in conn.execute(_DOCUMENTS_OUTSIDE_POOL, (repo_id, paths)).fetchall()
+    ]
+    if outside:
+        raise PoolInvariantError(
+            f"{len(outside):,} message documents belong to no pool commit (first: "
+            f"{', '.join(outside[:5])}). Nothing was written."
+        )
