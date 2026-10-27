@@ -48,3 +48,16 @@ block it, and one is a schedule risk large enough to eat checkpoint B.
   **38,888** commits (10 s for git to stream them), with 1,031 merges whose second parents are never
   walked. The walker's docstring had "the full walk reports 17,015" — that is the legacy `airflow/`
   path counted over all parents (15,844 first-parent).
+- **2026-10-27 — the first full ingest, measured** (corpus `1e2ad803f7`). Run 1 (`ingest_runs`
+  87, 18 min 07 s): 38,888 commits with `topo_order` 1–38,888; 38,887 first-parent links; 1,031
+  links to unwalked parents — exactly one per merge, its second parent; 303 files; 15,421 file
+  revisions; 0 rejected commits, 0 dead letters; `rows_inserted` 93,499 = 38,888 + 38,887 + 303 +
+  15,421. Run 2 (`ingest_runs` 88, 17 min 55 s): 0 inserted, 0 updated, **93,499 skipped — exactly
+  run 1's inserts**, so its zero is a measurement, not an empty run. `insertions` is NULL on every
+  commit, never 0. `models/dag.py` has 611 revisions — 516 as `airflow/models/dag.py`
+  (2019-04-09 to 2025-03-19) and 95 under today's path — and the move `243fe86d4b` is stored as a
+  `renamed` revision with `old_path = airflow/models/dag.py`. Commands: `uv run pace ingest --json`
+  twice, then `SELECT count(*), min(topo_order), max(topo_order) FROM commits;`,
+  `SELECT count(*) FROM commit_parents;`, `SELECT count(*) FROM files;`,
+  `SELECT count(*) FROM dead_letters;`, and
+  `SELECT run_id, status, rows_inserted, rows_updated, rows_skipped FROM ingest_runs;`.
