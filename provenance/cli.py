@@ -169,7 +169,7 @@ def demo(ctx: typer.Context) -> None:
 
 @app.command(context_settings=PASSTHROUGH)
 def ingest(ctx: typer.Context) -> None:
-    """Walk the git history of the corpus and load commits, chunks and evidence."""
+    """Walk the git history of the corpus into the graph: commits, links, files, revisions."""
     _call(_load("provenance.ingest.git_walk", "main"), ctx.args)
 
 

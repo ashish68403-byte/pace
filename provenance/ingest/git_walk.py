@@ -1227,7 +1227,7 @@ def _parser() -> argparse.ArgumentParser:
         "--checkpoint-every",
         type=int,
         default=250,
-        help="write ingest_runs.checkpoint every N commits",
+        help="write ingest_runs.checkpoint, and commit the writer's batch, every N commits",
     )
     parser.add_argument(
         "--scope",
@@ -1261,14 +1261,26 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"{exc}\nRun `pace scope` first, or pass --no-scope deliberately.")
             return 2
 
+    from provenance.graph.db import connection
+    from provenance.ingest.graph_writer import GraphWriter
+
+    root = Path(args.repo) if args.repo else Path(settings.corpus_path)
     try:
-        result, chains = walk_history(
-            Path(args.repo) if args.repo else None,
-            rev=args.rev,
-            scope=scope,
-            checkpoint_every=args.checkpoint_every,
-            max_commits=args.max_commits,
-        )
+        with connection() as conn:
+            repo_id = ensure_repository(conn, clone_path=root)
+            conn.commit()
+            writer = GraphWriter(
+                conn, repo_id=repo_id, scope=scope, batch_size=args.checkpoint_every
+            )
+            result, chains = walk_history(
+                root,
+                rev=args.rev,
+                scope=scope,
+                checkpoint_every=args.checkpoint_every,
+                max_commits=args.max_commits,
+                repo_id=repo_id,
+                writer=writer,
+            )
     except (
         CheckpointSchemaError,
         ConcurrentRunError,
@@ -1291,6 +1303,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "blame_ignore_revs": result.blame_ignore_revs,
                     "degraded": result.degraded,
                     "scope_files": len(scope) if scope is not None else None,
+                    "graph": writer.report(),
                 },
                 indent=2,
             )
@@ -1298,6 +1311,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     else:
         print(result.summary())
         print(f"rename chains: {len(chains.as_dict()):,} historical paths mapped to a modern name")
+        print(writer.summary())
         if result.degraded:
             print("WARNING: progress was spilled to a local file; ingest_runs was NOT updated")
     return 0
