@@ -1,6 +1,6 @@
 # Tracker: Evaluation harness
 
-**Task(s):** [docs/tasks/eval-harness/](../tasks/eval-harness/) — 001 (checkpoint B, slice B1) written 2026-10-27
+**Task(s):** [docs/tasks/eval-harness/](../tasks/eval-harness/) — 001 (checkpoint B, slice B1) written 2026-10-27; 002 (slice B2, the commit-message pool) written 2026-10-27
 **Decision record:** [ADR-0003](../ADR-0003-rationale-pool-benchmark.md) — the pool is rationale text
 **Priority:** P0
 **Status:** 🚧 In progress
