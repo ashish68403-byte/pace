@@ -165,7 +165,7 @@ def ingest(history_repo: HistoryRepo, test_repo_id: int, writer_conn: Any) -> Ca
         *, rev: str = "HEAD", max_commits: int | None = None, scope: list[str] | None = None
     ) -> Any:
         chosen = history_repo.scope if scope is None else scope
-        writer = GraphWriter(writer_conn, repo_id=test_repo_id, batch_size=3)
+        writer = GraphWriter(writer_conn, repo_id=test_repo_id, scope=chosen, batch_size=3)
         walk_history(
             history_repo.root,
             rev=rev,

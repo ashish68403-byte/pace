@@ -38,16 +38,19 @@ def test_a_second_run_writes_nothing_and_saw_everything(test_repo_id, ingest, qu
     first = ingest().report()
     second = ingest().report()
     assert first["commits"]["inserted"] == 9
-    for table in ("commits", "commit_parents"):
+    assert first["files"]["inserted"] == 2
+    for table in ("commits", "commit_parents", "files", "file_revisions"):
         assert second[table]["inserted"] == 0, table
         assert second[table]["already_present"] == first[table]["inserted"], table
+    assert first["files"]["spans_updated"] == 2
+    assert second["files"]["spans_updated"] == 0
     runs = query(
         "SELECT status::text, rows_inserted, rows_updated, rows_skipped "
         "FROM ingest_runs WHERE repo_id = %s ORDER BY run_id",
         test_repo_id,
     )
     assert [run[0] for run in runs] == ["succeeded", "succeeded"]
-    assert runs[1][1] == 0
+    assert (runs[1][1], runs[1][2]) == (0, 0)
     assert runs[1][3] == runs[0][1] > 0  # "0 inserted" alone is what a no-op writer reports
 
 
@@ -104,3 +107,69 @@ def test_a_stored_commit_with_another_topo_order_fails_the_run(
     assert query("SELECT status::text FROM ingest_runs WHERE repo_id = %s", test_repo_id) == [
         ("failed",)
     ]
+
+
+def _history(query, repo_id, path):
+    return query(
+        "SELECT r.commit_sha, r.change_type::text, r.old_path, r.path_at_commit, r.similarity "
+        "FROM file_revisions AS r JOIN files AS f ON f.file_id = r.file_id "
+        "WHERE f.repo_id = %s AND f.path = %s ORDER BY r.commit_topo_order",
+        repo_id,
+        path,
+    )
+
+
+def test_history_follows_a_file_through_two_renames(history_repo, test_repo_id, ingest, query):
+    ingest()
+    sha = history_repo.sha
+    assert _history(query, test_repo_id, "core/src/pkg/alpha.py") == [
+        (sha["c1"], "added", None, "pkg/a.py", None),
+        (sha["c2"], "modified", None, "pkg/a.py", None),
+        (sha["c3"], "renamed", "pkg/a.py", "pkg/alpha.py", 100),
+        (sha["c6"], "renamed", "pkg/alpha.py", "core/src/pkg/alpha.py", 100),
+        (sha["c7"], "modified", None, "core/src/pkg/alpha.py", None),
+    ]
+
+
+def test_a_deletion_keeps_the_last_content_and_a_re_add_continues_the_file(
+    history_repo, test_repo_id, ingest, query
+):
+    ingest()
+    sha = history_repo.sha
+    rows = _history(query, test_repo_id, "core/src/pkg/b.py")
+    assert [(history_repo.name_of(r[0]), r[1]) for r in rows] == [
+        ("c1", "added"),
+        ("m5", "modified"),  # s1's change, through the merge's first-parent diff
+        ("c6", "renamed"),
+        ("c8", "deleted"),
+        ("c9", "added"),
+    ]
+    assert query(
+        "SELECT blob_sha FROM file_revisions WHERE repo_id = %s AND commit_sha = %s",
+        test_repo_id,
+        sha["c8"],
+    ) == [(history_repo.blob(sha["c7"], "core/src/pkg/b.py"),)]
+
+
+def test_each_file_spans_its_first_and_last_commit(history_repo, test_repo_id, ingest, query):
+    ingest()
+    sha = history_repo.sha
+    spans = query(
+        "SELECT path, first_seen_commit, last_seen_commit FROM files WHERE repo_id = %s",
+        test_repo_id,
+    )
+    assert {path: (first, last) for path, first, last in spans} == {
+        "core/src/pkg/alpha.py": (sha["c1"], sha["c7"]),
+        "core/src/pkg/b.py": (sha["c1"], sha["c9"]),
+    }
+
+
+def test_a_scope_path_with_no_history_fails_a_complete_walk(history_repo, ingest):
+    with pytest.raises(IngestInvariantError, match="no files row"):
+        ingest(scope=[*history_repo.scope, "core/src/pkg/ghost.py"])
+
+
+def test_an_in_scope_file_that_ends_deleted_fails_the_walk(history_repo, ingest):
+    # Walking only up to c8 leaves b.py's newest revision a deletion, which scope rules out.
+    with pytest.raises(IngestInvariantError, match="end in a deletion"):
+        ingest(rev=history_repo.sha["c8"])
