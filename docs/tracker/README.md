@@ -13,8 +13,8 @@ reused — a dropped task keeps its number and gets `Status: ❌ Dropped` with t
 
 ## What this is NOT
 
-**It is not the schedule.** [ROADMAP.md](../ROADMAP.md) §5 is the only place weeks are assigned.
-Trackers mirror the *code*, not the calendar. Duplicating the week table here would create exactly
+**It is not the schedule.** [ROADMAP.md](../ROADMAP.md) §5 is the only place dates are assigned.
+Trackers mirror the *code*, not the calendar. Duplicating the checkpoint table here would create exactly
 the drift the roadmap's own commit message warns about: "a plan that drifts from the code it plans
 is worse than no plan". A tracker says what a subsystem needs and what state it is in; the roadmap
 says when.
@@ -36,7 +36,7 @@ when that distinction slips.
 
 ## Priority
 
-`P0` blocks a ringed gate in ROADMAP §5 · `P1` blocks a week · `P2` wanted before the write-up ·
+`P0` blocks a checkpoint's gate in ROADMAP §5 · `P1` blocks a checkpoint's other work · `P2` wanted before the write-up ·
 `P3` nice to have.
 
 ## Index

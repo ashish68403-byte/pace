@@ -9,7 +9,8 @@
 
 ## Summary
 Identifier-aware BM25 (`pg_search`) + dense (pgvector) + RRF + a small cross-encoder, and the
-ablation table. ROADMAP §5 weeks 9-10.
+ablation table. ROADMAP §5 checkpoint B (BM25, dense, RRF, the first ablation rows) and D (the
+reranker).
 
 ## Problem Statement
 `provenance/retrieve/__init__.py:13-26` states the dependency precisely: `rerank.py` is

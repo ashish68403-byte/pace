@@ -1,7 +1,7 @@
 # Task 001: Make §5 an executable schedule
 
 **Tracker:** [000_REVIEW_REMEDIATION](../../tracker/000_REVIEW_REMEDIATION.md) · finding 1
-**Priority:** P0 · **Severity:** critical · **Status:** ⬜ Not started
+**Priority:** P0 · **Severity:** critical · **Status:** ✅ Done (2026-10-27)
 
 ## User Story
 
@@ -89,3 +89,6 @@ scheduled time at all.
 - The vacuous-gate problem is the most quietly dangerous item in the whole review, because it is a
   *passing* gate. The project's own standard — "a check that cannot fail is not a check" — already
   names the failure mode; this is the same bug one layer up, in prose instead of code.
+- **2026-10-27 — done in the checkpoint re-plan** (tracker note of the same date). Criterion 4,
+  the weeks 6-8 multiplier, is met by cutting scope rather than adding weeks: checkpoint C is §7's
+  minimum viable version, and §6 items 2-3 cut C before anything below the line.

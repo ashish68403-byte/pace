@@ -9,13 +9,15 @@ was never written down, PACE says so and **refuses** rather than inventing a pla
 The refusal is a first-class output, not a failure mode. A code-explanation system that
 always produces an answer is indistinguishable from one that guesses.
 
-Final-year project. Built solo, in 14 weeks.
+Final-year project by one author. The implementation is AI-assisted; every design decision is
+documented with the alternatives it rejected.
 
 ---
 
 ## Honest scope
 
-- **Solo, 14 weeks.** Everything below is sized to fit that, on the hardware listed further down.
+- **One author, four checkpoints to mid-December.** Everything below is sized to fit that, on the
+  hardware listed further down.
 - **A slice of Airflow, not all of Airflow.** The study scope is roughly **60-80k lines**, chosen
   by `pace scope` - not the ~200k-line full tree. The scope selection is committed and versioned,
   so every number in the writeup is attached to a fixed corpus.
@@ -45,7 +47,7 @@ Start with the roadmap; it says what to build next and, more usefully, what not 
 
 | | |
 |---|---|
-| [docs/ROADMAP.md](docs/ROADMAP.md) | The 14-week plan: scope verdict, the nine decisions, six ranked traps, the week-by-week gates, the cut list, the novelty claim, the money model |
+| [docs/ROADMAP.md](docs/ROADMAP.md) | The plan: scope verdict, the nine decisions, six ranked traps, the four checkpoints and their gates, the cut list, the novelty claim, the money model |
 | [docs/tracker/](docs/tracker/README.md) | Where the work is tracked: one file per subsystem, plus the review-remediation backlog. The roadmap says *when*; the trackers say *what state it is in* |
 | [docs/ADR-0001-typed-edges.md](docs/ADR-0001-typed-edges.md) | Why typed edge tables rather than one polymorphic `edges` table |
 | [docs/ADR-0002-golden-set-construction.md](docs/ADR-0002-golden-set-construction.md) | Why the anchor symbol must come from the code and never from the rationale text |

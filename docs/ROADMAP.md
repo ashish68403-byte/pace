@@ -1,11 +1,11 @@
 # Roadmap
 
-**Provenance-Aware Code Intelligence — re-scoped for one person in 14 weeks.**
+**Provenance-Aware Code Intelligence — re-scoped for one person, delivered in four checkpoints.**
 
 The specification budgets 620–700 engineer-hours across two or three people over six months.
 Realistic full scope is closer to 1,150–1,450. This plan assumes ~210–320 hours and one pair of
-hands, and is ordered so that if time runs out after week 10 the submission is still complete,
-measured and defensible.
+hands. Since 2026-10-27 it is ordered as four checkpoints (§5), each one a complete submission,
+so that wherever time runs out the submission is still complete, measured and defensible.
 
 ---
 
@@ -13,18 +13,21 @@ measured and defensible.
 
 | | |
 |---|---|
-| Last updated | 2026-09-11 |
-| Current phase | Week 2 — the graph write path |
-| Last completed | Phase 0 (commit `7951158`) |
+| Last updated | 2026-10-27 |
+| Current checkpoint | **A** — the history graph and the truncation measurement |
+| Last completed | Phase 0 (`7951158`), scope freeze (`81f121b`) |
+| Deadline | final submission mid-to-late December 2026 |
 
-**Done.** Environment (WSL2 ext4, Postgres 18.6 + pgvector 0.8.4 + pg_search 0.25.7, corpus
-cloned). Scope frozen at ~81.6k lines / 303 files. Schema: five Alembic revisions, 28 tables,
-round-trip verified twice. Walking skeleton: `pace demo` produces one 14-span trace in Jaeger.
-98 tests, ruff clean.
+**Done.** Environment (WSL2 ext4, Postgres 18.6 + pgvector 0.8.4 + pg_search 0.25.7), corpus
+cloned at `1e2ad803f7`. Scope frozen and committed: 303 files / 81,619 lines (`scope.txt`).
+Schema: five Alembic revisions, 26 tables and one view (`provenance_edges`); a live `\dt` shows
+28 because the database also holds PostGIS's `spatial_ref_sys` and `alembic_version`. Walking
+skeleton: `pace demo` produces one trace in Jaeger. 117 tests, ruff clean.
 
-**Next.** The graph write path — `pace ingest` currently persists only `repositories`,
-`ingest_runs` and `dead_letters`. Until `commits` / `files` / `chunks` / `chunk_evidence` are
-written, every evaluation number is structurally zero.
+**Next.** Checkpoint A ([tasks/ingest/](tasks/ingest/)): `pace ingest` writes commits, parent
+links, files and file revisions; `pace measure truncation` measures how much history a
+current-path view hides. Until it lands the graph is empty, and every evaluation number is
+structurally zero.
 
 ---
 
@@ -55,7 +58,8 @@ retrieval) are the only well-estimated section. So this plan protects evaluation
 spends its remaining risk budget on exactly one novel thing, and deletes the platform work.
 
 **The single most important reordering:** the spec puts the naive baseline in phase 3 and the
-golden set in month 5. Both move to weeks 2–3. Not for schedule reasons — because until you have
+golden set in month 5. Both move forward, to checkpoint B (§5) — ahead of function identity and
+of every retrieval experiment. Not for schedule reasons — because until you have
 measured what a plain substring search scores on your own benchmark, you do not know whether the
 benchmark measures anything at all.
 
@@ -180,23 +184,23 @@ numbers, and say which one the gate measures.
 
 ---
 
-## 5. Fourteen weeks
+## 5. Four checkpoints
 
-Ringed weeks are the four points to stop and check the number before continuing.
+Re-cut on 2026-10-27 from the real position — Phase 0 done, the graph empty, a mid-December
+deadline, under 8 hours a week of the author's time — after review finding 1 showed that the week
+table could not run in its written order. Each checkpoint is a complete project that could be
+submitted on its own; later ones add to it rather than finish it. Aim for D, submit the furthest
+checkpoint reached, and the rest becomes the future-work chapter with its design already written.
+Every gate states its liveness check, because a gate that passes on an empty input is not a gate.
 
-| Week | Work | Gate |
-|---|---|---|
-| **1** ⃝ | Environment, corpus, schema, identity contract | Gold keys on commit/PR/issue/`(path, qualified_name)` — never `chunk_id`. Strategy version is a *column*. **DONE** |
-| **2** ⃝ | Walking skeleton; the leakage probe | One command through every layer, one trace. Then: grep recall@10 < 0.35 on the retained set, or stop and fix the generator. **skeleton DONE** |
-| **3** | Golden-set generator; naive baseline | A number exists to beat, on a benchmark grep cannot ace |
-| **4–5** | Real ingestion: git walk, GitHub backfill | Second run reports zero net writes and an identical chunk-ID set hash. Do **not** test byte-identity — see below |
-| **6–7** | Chunking, symbols, blame | For 100 stratified functions the precomputed chain matches `git log -L` at ≥0.9 commit-set F1, precompute under 2 h with checkpoint-restart |
-| **8** ⃝ | Function identity, minimum viable version | Two numbers: oracle accuracy vs a path-anchored baseline, and provenance-chain recall with lineage on vs blame-only |
-| **9–10** | Hybrid retrieval and the ablation table | Ablation beats the baseline measurably,each stage attributed |
-| **11–12** | Agent loop: five tools, budgets, state machine | Multi-hop queries answered within budget, every run replayable |
-| **13** ⃝ | Grounding verification and refusal | Report refusal precision **and** recall — precision alone is gameable to 1.0 by refusing everything |
-| **14** | Hardening lite; the demo | Close on the refusal, not the answer |
-| **15–16** | Report, judge validation, buffer | Every number reproduces from one command |
+| Checkpoint | Target | Adds | Gate | Submittable as |
+|---|---|---|---|---|
+| **A** | Sun 8 Nov | Commit graph, file history across renames, the truncation measurement, `pace history` ([tasks/ingest/001-003](tasks/ingest/)) | Run 2 inserts 0 rows **and** skips exactly run 1's inserts; the current-path check agrees with git on 303/303 files; `results/history_truncation.json` reproduces byte for byte | A rename-aware history graph of Airflow, and a census of how much history a current-path view hides |
+| **B** | Sun 22 Nov | Ethics self-assessment dated before the first fetch (finding 11); GitHub backfill under a request budget (finding 10); HEAD chunks and `chunk_evidence`; the dev/test split (finding 2) and the generator's target `n` (finding 7); golden-set generator v0 — diff-anchored, AST-only anchors ([ADR-0002](ADR-0002-golden-set-construction.md)); leakage probe; grep and BM25 baselines, then dense retrieval and RRF — the ablation table's first rows | The leakage verdict is computed on `n_retained ≥ N`, with `N` fixed from finding 7's MDE before the generator runs, **and** grep recall@10 < 0.35. An empty retained set is INCONCLUSIVE, never a pass | A + a benchmark grep cannot ace, with honest baselines |
+| **C** | Sun 6 Dec | Blame with `--ignore-revs-file`; function identity, minimum viable (§7: two hash tiers, same-file, one cross-file rule); `docs/PREREGISTRATION.md`; the three-arm lineage-vs-blame comparison (finding 3) | `PREREGISTRATION.md`'s commit precedes the first comparison run in `git log`; the volume-matched arm is reported beside the unbudgeted one | B + the novelty measurement: provenance-chain recall, lineage vs blame |
+| **D** | Sun 13 Dec | The warm-resident reranker, so the evaluated and the served system are one process (finding 17); agent loop (five tools, enforced budgets); grounding verification and refusal; per-query score logging from the first agent run (finding 15); the demo | Refusal precision **and** recall with Wilson intervals; the risk-coverage curve against two trivial abstainers | The full system |
+| **Report** | weekly from Mon 2 Nov | One chapter per checkpoint as it lands, methods first | A complete draft by Sun 13 Dec | — |
+| **Buffer** | 14–20 Dec | The report, viva preparation | — | — |
 
 **On "byte-identical index":** unachievable and should not be an automated test. HNSW build order,
 Postgres physical state and float reductions all defeat it. Use instead: zero net writes on run 2,
@@ -207,7 +211,25 @@ Saying in the report that you *rejected* byte-identity and why is the stronger v
 
 ## 6. What to cut, in cut order
 
-Delete from the top as time runs out. Everything below the line is the grade.
+When a checkpoint's date slips, cut from the top. Every item here is scheduled in §5, so cutting it
+really does give time back. (The previous version of this list named thirteen things that had
+never been scheduled, so it could not rescue anything — review finding 1. They are kept below as
+what they always were: deliberate exclusions.)
+
+1. **D's agent and refusal.** Their design (tracker 007) becomes the future-work chapter.
+2. **C's cross-file identity rule.** Same-file identity still yields the comparison, on fewer events.
+3. **C entirely.** B's benchmark becomes the evaluation; the lineage claim becomes future work,
+   with its pre-registration already written.
+4. **B's dense retrieval.** grep and BM25 are the baselines the leakage argument needs.
+5. **B's GitHub backfill.** The benchmark falls back to commit messages as its rationale documents —
+   weaker, still a measurement, and reported as such.
+
+> **STOP — below here is the grade.** Checkpoint A, the report, and whichever benchmark exists
+> together with its leakage guard. These are never cut.
+
+### Out of scope from the start
+
+Not schedule recovery — none of these was ever scheduled. Each is an exclusion with its reason.
 
 1. **k3s** — the spec says it only pays for multi-node indexing. ~3 weeks.
 2. **Qdrant** — one store. Name its filterable HNSW as the true pre-filter you didn't take.
@@ -222,14 +244,6 @@ Delete from the top as time runs out. Everything below the line is the grade.
 11. **Agent tools 6–9** — fold or drop.
 12. **Historical chunk indexing** — never index every historical version: 70× corpus multiplication for 99% near-duplicate content. Index HEAD plus the tombstoned final version of each deleted chunk.
 13. **`blame -C -C -C`** — measured on this corpus: plain 952 ms, `-M` 948 ms (free), `-M -C` 3,233 ms. `-M -C` alone already recovers a function extracted into an existing file.
-
-> **STOP — below here is the grade.**
-
-Postgres and pgvector. Tree-sitter AST chunking. The git provenance graph. Identifier-aware BM25 +
-dense + RRF + a small cross-encoder. **The naive baseline, alive and evaluated all fourteen weeks.**
-The golden set with its leakage guard. A hand-written agent loop with five tools and enforced
-budgets. Grounding verification and the refusal path. The Unanswerable class. OTel tracing. The
-ablation table. The demo.
 
 ---
 

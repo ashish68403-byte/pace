@@ -9,7 +9,7 @@
 
 ## Summary
 Symbol extraction (tree-sitter + Jedi behind an interface), blame with mechanical-commit filtering,
-and the `symbol_versions` layer. ROADMAP §5 weeks 6-7, traps 3 and 4.
+and the `symbol_versions` layer. ROADMAP §5 checkpoint C, traps 3 and 4.
 
 ## Problem Statement
 Trap 3 is measured and sound — 29% of blamed lines land on a mechanical commit while only 0.65% of
@@ -29,12 +29,12 @@ work, and currently reads as invented here.
 ## Dependencies
 - Task 1 gates [004_FUNCTION_IDENTITY](004_FUNCTION_IDENTITY.md): the lineage-vs-blame comparison is
   meaningless if the blame arm is the unfiltered one.
-- `symbol_versions` is a week-7 deliverable that ADR-0002 currently assumes exists in week 3 — see
-  [000_REVIEW_REMEDIATION](000_REVIEW_REMEDIATION.md) finding 1.
+- `symbol_versions` arrives at checkpoint C. ADR-0002 now says checkpoint B's generator uses
+  AST-only anchors instead ([000_REVIEW_REMEDIATION](000_REVIEW_REMEDIATION.md) finding 1, closed).
 
 ## Verification Steps
 1. For 100 stratified functions the precomputed chain matches `git log -L` at ≥0.9 commit-set F1
-   (ROADMAP §5 weeks 6-7 gate).
+   (a checkpoint C gate; the word is *agreement*, since `git log -L` is a heuristic too).
 2. Precompute completes under 2 h with checkpoint-restart.
 
 ## Notes

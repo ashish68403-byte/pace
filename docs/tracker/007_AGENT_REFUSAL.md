@@ -9,7 +9,7 @@
 
 ## Summary
 A hand-written agent loop with five tools and enforced budgets, grounding verification, and the
-refusal path. ROADMAP §5 weeks 11-12 and 13 (ringed).
+refusal path. ROADMAP §5 checkpoint D.
 
 ## Problem Statement
 Refusal is currently scored only against its own `UNANSWERABLE` label. That establishes agreement
@@ -21,21 +21,21 @@ grounding verification is dead weight in the thesis rather than a contribution.
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 1 | **Hard deadline — week 11, first agent run.** Log per query, including refused ones: fused top-1 and top-10 scores, verifier score, citation-precision/correctness outcome (finding 15) | ⬜ | `provenance/eval/runner.py` `PER_QUERY_COLUMNS` |
+| 1 | **Hard deadline — D's first agent run.** Log per query, including refused ones: fused top-1 and top-10 scores, verifier score, citation-precision/correctness outcome (finding 15) | ⬜ | `provenance/eval/runner.py` `PER_QUERY_COLUMNS` |
 | 2 | Risk-coverage curve over answerables, plus the same curve for two trivial abstainers (fused-score threshold; empty-evidence rule); quote the coverage level at which headline citation precision is stated | ⬜ | `provenance/eval/metrics.py` |
 | 3 | Oversample unanswerables; report refusal recall and false-refusal rate (prevalence-free), derive precision analytically at the 20% base rate (finding 14) | ⬜ | golden-set generator |
 | 4 | Publish counts per `UnanswerableStrategy` — with ~40 negatives across five strategies, no per-strategy claim is possible | ⬜ | `provenance/eval/runner.py` |
 | 5 | Five tools, enforced budgets, replayable runs; `budget_exceeded` recorded as a trajectory outcome | ⬜ | agent loop |
 
 ## Dependencies
-- **Task 1 cannot be done retrospectively.** If week 11's runs do not log it, finding 15 is
+- **Task 1 cannot be done retrospectively.** If D's first agent runs do not log it, finding 15 is
   unanswerable for the rest of the project. This is the single most time-sensitive item outside
-  week 8.
+  checkpoint C.
 - Task 3 feeds [006_EVAL_HARNESS](006_EVAL_HARNESS.md) task 7.
 
 ## Verification Steps
 1. Multi-hop queries answered within budget, every run replayable from cassettes.
-2. Refusal precision **and** recall reported with intervals (ROADMAP §5 week 13 gate).
+2. Refusal precision **and** recall reported with intervals (ROADMAP §5 checkpoint D gate).
 3. Risk-coverage curve shows the verifier beating both trivial abstainers, or the thesis says it
    does not — which is also a result.
 
