@@ -51,7 +51,7 @@ from types import TracebackType
 from typing import Any, Final
 
 from provenance.config import settings
-from provenance.graph.tables import REPOSITORIES
+from provenance.graph.tables import DEAD_LETTERS, INGEST_RUNS, REPOSITORIES
 
 log = logging.getLogger(__name__)
 
@@ -525,13 +525,9 @@ def _whitespace_only(repo: Any, commit: Any) -> bool:
 
 # ------------------------------------------------------------------- checkpointing
 
-# Physical names. provenance.graph.tables is the single source of truth for the
-# query layer; it does not (yet) carry the ingest-bookkeeping tables, so they are
-# defined here exactly once and should move there the moment a second subtree
-# needs them. Both are PLURAL and neither has the columns the first draft of this
-# class invented (`kind`, `files_done`, `failures`, `updated_at`, `ref`).
-INGEST_RUNS: Final = "ingest_runs"
-DEAD_LETTERS: Final = "dead_letters"
+# INGEST_RUNS and DEAD_LETTERS live in provenance.graph.tables with every other
+# physical name. Both are PLURAL, and neither has the columns the first draft of
+# this class invented (`kind`, `files_done`, `failures`, `updated_at`, `ref`).
 
 # ingest_status enum (0001_core): pending | running | succeeded | failed |
 # cancelled. 'ok' and 'completed' are NOT members -- passing either is

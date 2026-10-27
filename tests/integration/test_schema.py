@@ -55,7 +55,7 @@ from provenance.graph.tables import (
 
 pytestmark = pytest.mark.db
 
-HEAD_REVISION = "0005_chunk_evidence"
+HEAD_REVISION = "0006_history_columns"
 
 CORE_TABLES = (
     REPOSITORIES,
@@ -83,6 +83,18 @@ VECTOR_TABLES = ("embedding_models", INDEX_ALIASES, *EMBED_CODE_TABLES, *EMBED_P
 def _scalar(conn: Any, sql: str, params: tuple[Any, ...] = ()) -> Any:
     row = conn.execute(sql, params).fetchone()
     return None if row is None else row[0]
+
+
+def _nullability_and_default(conn: Any, table: str, column: str) -> tuple[str, str | None] | None:
+    row = conn.execute(
+        """
+        SELECT is_nullable, column_default
+        FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = %s AND column_name = %s
+        """,
+        (table, column),
+    ).fetchone()
+    return None if row is None else (row[0], row[1])
 
 
 def _column_types(conn: Any, table: str) -> dict[str, str]:
@@ -305,3 +317,25 @@ def test_required_extensions_are_installed(migrated_database: Any) -> None:
         name for (name,) in migrated_database.execute("SELECT extname FROM pg_extension").fetchall()
     }
     assert set(REQUIRED_EXTENSIONS) <= installed
+
+
+@pytest.mark.parametrize(
+    ("table", "column"),
+    [
+        ("commits", "insertions"),
+        ("commits", "deletions"),
+        ("file_revisions", "insertions"),
+        ("file_revisions", "deletions"),
+    ],
+)
+def test_unmeasured_line_counts_are_null_not_zero(
+    migrated_database: Any, table: str, column: str
+) -> None:
+    """Migration 0006. Nothing computes these; a stored 0 would read as 'no lines changed'."""
+    assert _nullability_and_default(migrated_database, table, column) == ("YES", None)
+
+
+def test_a_revision_records_the_path_it_had_at_its_commit(migrated_database: Any) -> None:
+    """Migration 0006. old_path is only a rename's source; this is every revision's name."""
+    got = _nullability_and_default(migrated_database, "file_revisions", "path_at_commit")
+    assert got == ("NO", None)
