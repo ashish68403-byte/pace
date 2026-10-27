@@ -1,6 +1,6 @@
 # Tracker: Ingest
 
-**Task(s):** [docs/tasks/ingest/](../tasks/ingest/) — 001-003 written 2026-10-27 for checkpoint A
+**Task(s):** [docs/tasks/ingest/](../tasks/ingest/) — 001-003 written 2026-10-27 for checkpoint A; 004 written 2026-10-28 (personal-data fix)
 **Priority:** P0
 **Status:** 🚧 In progress
 **Date:** 2026-10-06
@@ -26,6 +26,7 @@ block it, and one is a schedule risk large enough to eat checkpoint B.
 | 4 | Commit `artifacts/corpus_facts.json` with the corpus SHA and the command behind each §4 number (finding 18) | ⬜ | `artifacts/corpus_facts.json` |
 | 5 | The graph write path. Checkpoint A: [commits and parent links](../tasks/ingest/001_commit_graph.md), then [files and revisions across renames](../tasks/ingest/002_file_history.md). `chunks` / `chunk_evidence` move to checkpoint B | ✅ | `provenance/ingest/graph_writer.py` |
 | 6 | [Measure how much history a current-path view loses](../tasks/ingest/003_history_truncation.md) — checkpoint A's headline number, and `pace history` as its demo | ✅ | `provenance/analysis/`, `results/` |
+| 7 | [Keep raw email addresses out of the database](../tasks/ingest/004_personal_data.md): checkpoint A's git ingest stored them, contrary to DATA-PROTECTION.md §2 | ⬜ | `provenance/privacy.py`, `git_walk.py`, migration 0008 |
 
 ## Dependencies
 - Task 1 blocks everything downstream: the scope file list is the recall denominator.
