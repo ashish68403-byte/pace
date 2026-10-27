@@ -1,6 +1,7 @@
 # Tracker: Evaluation harness
 
-**Task(s):** `docs/tasks/eval-harness/` — created as tasks are written
+**Task(s):** [docs/tasks/eval-harness/](../tasks/eval-harness/) — 001 (checkpoint B, slice B1) written 2026-10-27
+**Decision record:** [ADR-0003](../ADR-0003-rationale-pool-benchmark.md) — the pool is rationale text
 **Priority:** P0
 **Status:** 🚧 In progress
 **Date:** 2026-10-06
@@ -21,10 +22,10 @@ honouring the identity contract its own reasoning establishes.
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 1 | [Dev/test split](../tasks/review-remediation/002_dev_test_split.md) (finding 2) | ⬜ | `provenance/eval/schema.py`, `runner.py` |
-| 2 | Print `D` (discordant queries) and `1.96·√D/n` beside the paired delta; decide target `n` vs threshold (finding 7) | ⬜ | `provenance/eval/runner.py:89`, `metrics.py` |
-| 3 | Set-valued relevance: `required_units: list[set[str]]`, recall as fraction of units with a member in top k; persist `n_units`, `max_parts_per_unit` (finding 7) | ⬜ | `anchors.py:113-159`, `metrics.py` |
-| 4 | `_verdict` takes the **strongest** cheap baseline, not grep alone; gate `retention_rate` too (finding 8) | ⬜ | `scripts/leakage_probe.py:657-660` |
+| 1 | [Dev/test split](../tasks/review-remediation/002_dev_test_split.md) (finding 2) — field and `assign_splits` in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md) | ⬜ | `provenance/eval/schema.py`, `runner.py` |
+| 2 | Print `D` (discordant queries) and `1.96·√D/n` beside the paired delta; decide target `n` vs threshold (finding 7) — `mde()` and the sizes in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); printing D in B5 | ⬜ | `provenance/eval/runner.py:89`, `metrics.py` |
+| 3 | Set-valued relevance: `required_units: list[set[str]]`, recall as fraction of units with a member in top k; persist `n_units`, `max_parts_per_unit` (finding 7) — units are evidence keys, in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md) | ⬜ | `anchors.py:113-159`, `metrics.py` |
+| 4 | `_verdict` takes the **strongest** cheap baseline, not grep alone; gate `retention_rate` too (finding 8) — pre-registered in ADR-0003 §6, implemented in B3 | ⬜ | `scripts/leakage_probe.py:657-660` |
 | 5 | Add `baseline_grep_r10`, `gold_symbol_df` to `PER_QUERY_COLUMNS`; second `per_class` breakdown on `gold_symbol_df == 0` vs `> 0` (finding 8) | ⬜ | `runner.py:266-285` |
 | 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) | ⬜ | new ADR + committed JSONL |
 | 7 | Bootstrap the refusal pair; report `None` not 0.0 when `ci.n == 0` (finding 14) | ⬜ | `runner.py:396-399, 413-416` |
@@ -50,3 +51,11 @@ honouring the identity contract its own reasoning establishes.
 - **2026-10-06.** Do **not** swap the branches at `MIN_QUERIES_FOR_PAIRED_GATE` — failing on the
   point estimate below 100 shared queries is the fail-safe choice and the code documents it. Reword
   `eval/README.md:122-125` and add the missing test instead.
+- **2026-10-27 — checkpoint B re-founded on a rationale pool.** Planning B found that ADR-0002's
+  measured grep recall (0.175) was taken over a commit-message pool, while the harness searches code
+  chunks, on which a symbol-naming question is answered by grep at rank 1. ADR-0003 makes the pool
+  rationale text (commit messages first, PR text after the GitHub backfill), scores one relevance unit
+  per evidence key, and pre-registers the gate (≥ 100 retained dev records; Wilson 95% upper bound on
+  the strongest lexical baseline's recall@10 < 0.35; retention ≥ 25%) and the sizes (≥ 360 dev,
+  ≥ 240 test, from MDE ≈ 1.96·√(f/n)). Slice plan B1–B5 is in
+  [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md).
