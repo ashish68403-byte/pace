@@ -54,6 +54,9 @@ SUPPORTING_GAIN = 1.0
 
 DEFAULT_K = 10
 
+#: Two-sided 95% normal quantile, written out so the gate's arithmetic can be redone by hand.
+Z_95 = 1.959963984540054
+
 
 # --------------------------------------------------------------------------- #
 # Per-query metrics
@@ -73,6 +76,24 @@ def recall_at_k(retrieved: Sequence[str], required: Collection[str], k: int = DE
         return float("nan")
     top = set(retrieved[:k])
     return len(top & required) / len(required)
+
+
+def unit_recall_at_k(
+    retrieved: Sequence[str], units: Sequence[Collection[str]], k: int = DEFAULT_K
+) -> float:
+    """Fraction of required relevance UNITS with at least one member in the top k.
+
+    ADR-0003 §4: a unit is one required evidence key -- a commit, a PR -- and its members
+    are every document that is evidence for it. Counting documents instead
+    (``recall_at_k``) lets a PR with thirty review comments score 1/30 for a perfect
+    retrieval. When every unit has exactly one member the two functions agree.
+
+    NaN when there are no units (unanswerables): undefined, not zero.
+    """
+    if not units:
+        return float("nan")
+    top = set(retrieved[:k])
+    return sum(1 for unit in units if not top.isdisjoint(unit)) / len(units)
 
 
 def mrr(retrieved: Sequence[str], relevant: Collection[str], k: int | None = None) -> float:
@@ -147,6 +168,42 @@ def refusal_recall(predicted_refusal: Sequence[bool], is_unanswerable: Sequence[
     if not truths:
         return float("nan")
     return sum(1 for p in truths if p) / len(truths)
+
+
+# --------------------------------------------------------------------------- #
+# Sizes and the gate (ADR-0003 §6, §8)
+# --------------------------------------------------------------------------- #
+def mde(n: int, discordance: float, *, z: float = Z_95) -> float:
+    """Minimum detectable effect for a paired 0/1 comparison over ``n`` queries.
+
+    Two systems scored on the same queries differ only on the queries where they
+    disagree -- the discordant ones, a share ``discordance`` of n. The net difference is
+    significant when it exceeds z * sqrt(discordant queries), so the smallest detectable
+    difference, as a fraction of n, is z * sqrt(discordance / n). Concordant queries add
+    nothing to either side: that is why doubling n only shrinks the MDE by sqrt(2).
+    """
+    if n <= 0:
+        raise ValueError(f"n must be positive, got {n}")
+    if not 0.0 < discordance <= 1.0:
+        raise ValueError(f"discordance must be in (0, 1], got {discordance}")
+    return z * math.sqrt(discordance / n)
+
+
+def wilson_interval(successes: int, n: int, *, z: float = Z_95) -> tuple[float, float]:
+    """Wilson score interval for a binomial proportion (Brown, Cai & DasGupta, 2001).
+
+    The leakage gate uses it instead of the bootstrap: at small n and p near 0 or 1 the
+    percentile bootstrap under-covers, and a gate must not pass by luck.
+    """
+    if n <= 0:
+        raise ValueError(f"n must be positive, got {n}")
+    if not 0 <= successes <= n:
+        raise ValueError(f"successes must be in [0, n], got {successes} of {n}")
+    p = successes / n
+    denominator = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / denominator
+    half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denominator
+    return max(0.0, centre - half), min(1.0, centre + half)
 
 
 # --------------------------------------------------------------------------- #

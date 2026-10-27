@@ -29,6 +29,7 @@ from provenance.eval.metrics import (
     bootstrap_ci,
     citation_precision,
     format_metric,
+    mde,
     mrr,
     ndcg_at_k,
     paired_bootstrap,
@@ -37,6 +38,8 @@ from provenance.eval.metrics import (
     refusal_precision,
     refusal_recall,
     resample_indices,
+    unit_recall_at_k,
+    wilson_interval,
 )
 
 # --------------------------------------------------------------------------- recall
@@ -262,3 +265,69 @@ def test_format_metric_always_carries_the_interval_and_the_n() -> None:
 def test_percentile_ignores_undefined_values() -> None:
     assert percentile([10.0, float("nan"), 20.0], 50) == pytest.approx(15.0)
     assert math.isnan(percentile([], 95))
+
+
+# --------------------------------------------------------------------- relevance units
+
+
+def test_unit_recall_counts_answers_not_documents() -> None:
+    """ADR-0003 §4: one PR with thirty documents is one answer, not thirty."""
+    pr_documents = {f"pr-doc-{i}" for i in range(30)}
+    retrieved = ["noise-1", "pr-doc-7", "noise-2"]
+    assert recall_at_k(retrieved, pr_documents, k=10) == pytest.approx(1 / 30)
+    assert unit_recall_at_k(retrieved, [pr_documents], k=10) == 1.0
+
+
+def test_unit_recall_is_the_fraction_of_units_hit() -> None:
+    assert unit_recall_at_k(["c1"], [{"c1"}, {"p1", "p2"}], k=10) == 0.5
+
+
+def test_unit_recall_respects_the_cut_off() -> None:
+    assert unit_recall_at_k(["x", "y", "c1"], [{"c1"}], k=2) == 0.0
+
+
+def test_unit_recall_equals_recall_when_every_unit_has_one_member() -> None:
+    retrieved = ["c1", "c2", "c3", "c4"]
+    required = {"c1", "zzz", "c4"}
+    units = [{member} for member in sorted(required)]
+    assert unit_recall_at_k(retrieved, units, k=4) == recall_at_k(retrieved, required, k=4)
+
+
+def test_unit_recall_is_undefined_without_units() -> None:
+    assert math.isnan(unit_recall_at_k(["c1"], [], k=10))
+
+
+# ------------------------------------------------------------------- sizes and the gate
+
+
+def test_mde_matches_the_adr() -> None:
+    """ADR-0003 §8: MDE = 1.96 * sqrt(f / n)."""
+    assert round(mde(200, 0.10), 3) == 0.044
+    assert round(mde(240, 0.10), 3) == 0.040
+    assert round(mde(360, 0.10), 3) == 0.033
+    assert round(mde(960, 0.10), 3) == 0.020
+
+
+def test_mde_rejects_nonsense() -> None:
+    with pytest.raises(ValueError):
+        mde(0, 0.10)
+    with pytest.raises(ValueError):
+        mde(100, 0.0)
+
+
+def test_wilson_interval_matches_the_adr() -> None:
+    """ADR-0003 §6: 18 of 100 has a 95% upper bound of about 0.267, under the 0.35 ceiling."""
+    lo, hi = wilson_interval(18, 100)
+    assert (round(lo, 3), round(hi, 3)) == (0.117, 0.267)
+
+
+def test_wilson_interval_stays_inside_zero_and_one() -> None:
+    assert wilson_interval(0, 10)[0] == pytest.approx(0.0, abs=1e-12)
+    assert wilson_interval(10, 10)[1] == pytest.approx(1.0, abs=1e-12)
+
+
+def test_wilson_interval_rejects_impossible_counts() -> None:
+    with pytest.raises(ValueError):
+        wilson_interval(11, 10)
+    with pytest.raises(ValueError):
+        wilson_interval(1, 0)
