@@ -948,9 +948,12 @@ def run(
     records = load_golden_set(golden)
     typer.echo(f"[eval] run_id={rid} model={model_id} golden={golden} n={len(records)}")
 
-    # --- empty golden set: clean zeros, exit 0. Week 1 must be green. ---------
+    # --- empty golden set: clean zeros, exit 0. The CI subset, until B5. ------
     if not records:
-        typer.echo("[eval] golden set is EMPTY -> reporting zeros (this is expected in week 1).")
+        typer.echo(
+            "[eval] golden set is EMPTY -> reporting zeros. Expected for the CI subset until "
+            "checkpoint B slice B5 (ADR-0003); for any other file, nothing was loaded."
+        )
         agg = aggregate([])
         path = write_per_query([], out_dir)
         _finish(out_dir, rid, agg, [], model_id, index_version, path, [])
