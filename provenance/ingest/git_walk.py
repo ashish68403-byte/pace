@@ -54,6 +54,7 @@ from typing import Any, Final, Protocol
 
 from provenance.config import settings
 from provenance.graph.tables import DEAD_LETTERS, INGEST_RUNS, REPOSITORIES
+from provenance.privacy import hash_email, scrub_emails
 
 log = logging.getLogger(__name__)
 
@@ -73,6 +74,7 @@ __all__ = [
     "WalkResult",
     "ensure_repository",
     "first_parent_count",
+    "is_bot_author",
     "is_mechanical",
     "load_blame_ignore_revs",
     "main",
@@ -118,6 +120,16 @@ BOT_AUTHOR_RE = re.compile(
     r"^apache-?airflow-?bot|noreply@github\.com$)"
 )
 
+
+def is_bot_author(name: str, email: str) -> bool:
+    """True for automation accounts.
+
+    Needs the RAW address (``noreply@github.com`` decides on its own), so the parser
+    calls it before hashing -- the only place an address still exists.
+    """
+    return bool(BOT_AUTHOR_RE.search(email) or BOT_AUTHOR_RE.search(name))
+
+
 BLAME_IGNORE_FILE = ".git-blame-ignore-revs"
 
 
@@ -143,13 +155,18 @@ class CommitRecord:
     parents: list[str]
     tree_sha: str
     author_name: str
-    author_email: str
+    #: hash_email() of the author's address, or None when git recorded none. The raw
+    #: address never leaves _parse_raw_record (DATA-PROTECTION.md §2).
+    author_email_sha256: str | None
     author_time: datetime
     committer_name: str
-    committer_email: str
+    committer_email_sha256: str | None
     committer_time: datetime
+    #: Stored with every address scrubbed to <email:...>.
     subject: str
     message: str
+    #: is_bot_author() on the raw name and address, decided before hashing.
+    bot_author: bool = False
     changes: list[FileChange] = field(default_factory=list)
     mechanical: bool = False
     mechanical_reason: str | None = None
@@ -308,9 +325,8 @@ def first_parent_count(root: Path, rev: str = "HEAD") -> int:
 
 def is_mechanical(
     subject: str,
-    author_name: str,
-    author_email: str,
     *,
+    bot_author: bool,
     sha: str = "",
     blame_ignore: Sequence[str] | set[str] = (),
     whitespace_only: bool | None = None,
@@ -319,11 +335,12 @@ def is_mechanical(
 
     Four independent signals; any one is sufficient. They are checked cheapest
     first — the whitespace-only diff is the expensive one and is passed in
-    pre-computed by the caller.
+    pre-computed by the caller. ``bot_author`` is ``is_bot_author`` evaluated by the
+    parser on the raw name and address, before the address is hashed.
     """
     if sha and sha in blame_ignore:
         return True, "blame-ignore-revs"
-    if BOT_AUTHOR_RE.search(author_email) or BOT_AUTHOR_RE.search(author_name):
+    if bot_author:
         return True, "bot-author"
     if MECHANICAL_SUBJECT_RE.search(subject):
         return True, "subject-regex"
@@ -560,18 +577,22 @@ def _parse_raw_record(block: str) -> CommitRecord:
         )
     sha, parents, tree, an, ae, aiso, cn, ce, ciso, subject, message = fields[:_HEADER_FIELDS]
     tail = fields[_HEADER_FIELDS] if len(fields) > _HEADER_FIELDS else ""
+    # The ONLY place a raw address exists (DATA-PROTECTION.md §2): the bot check reads
+    # it, then it is hashed, and subject and message are scrubbed, before any consumer
+    # -- the classifier, the writer, a dead letter -- can see the record.
     return CommitRecord(
         sha=sha,
         parents=parents.split() if parents else [],
         tree_sha=tree,
         author_name=an,
-        author_email=ae,
+        author_email_sha256=hash_email(ae) if ae.strip() else None,
         author_time=_parse_iso(aiso),
         committer_name=cn,
-        committer_email=ce,
+        committer_email_sha256=hash_email(ce) if ce.strip() else None,
         committer_time=_parse_iso(ciso),
-        subject=subject,
-        message=message,
+        subject=scrub_emails(subject),
+        message=scrub_emails(message),
+        bot_author=is_bot_author(an, ae),
         changes=[_parse_raw_line(line) for line in tail.splitlines() if line.startswith(":")],
     )
 
@@ -1127,8 +1148,7 @@ def walk_history(
             # Cheap signals first; only pay for the double diff when they all miss.
             record.mechanical, record.mechanical_reason = is_mechanical(
                 record.subject,
-                record.author_name,
-                record.author_email,
+                bot_author=record.bot_author,
                 sha=record.sha,
                 blame_ignore=blame_ignore,
             )
