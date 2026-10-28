@@ -1,0 +1,607 @@
+{
+  "corpus_commit": "1e2ad803f74eadb5fb28d4504ca06b008c48b63e",
+  "evidence": {
+    "distinct_prs": 5963,
+    "linked": 5963,
+    "prs_with_two_or_more_documents": 0,
+    "self": 6810
+  },
+  "links": {
+    "candidates": 6102,
+    "dropped": {
+      "dropped_before_numbering": [
+        {
+          "commit": "cc94aa007d40d380f823f26b6851fad582674f00",
+          "pr": 3
+        },
+        {
+          "commit": "fc8f28a261fe060afe9d51d83afe45bfd4f19d80",
+          "pr": 4
+        },
+        {
+          "commit": "01597a5cbda68db769f85c887b0b0dc2952be607",
+          "pr": 7
+        },
+        {
+          "commit": "7701cab249799b743133be2ef49e963f63d73570",
+          "pr": 8
+        },
+        {
+          "commit": "8e4c3762c3a32843421e7bbe19cebf8d66602b9e",
+          "pr": 10
+        },
+        {
+          "commit": "9ef4fbdaf650a430721d56c5681adacdf82a11d9",
+          "pr": 11
+        },
+        {
+          "commit": "13fb79cf7ba92683a21115b6fa254e979fcbd9aa",
+          "pr": 13
+        },
+        {
+          "commit": "7c9566150996147634ecc9c77b4102e8f1e482db",
+          "pr": 15
+        },
+        {
+          "commit": "fd706f92eadeddae6f5f21b8fd524c5977374d78",
+          "pr": 17
+        },
+        {
+          "commit": "4562c210bca03c18bc6c8ad11bef7a855d6a2e73",
+          "pr": 16
+        },
+        {
+          "commit": "41ea65ffa305394d38604e0b69a64a07d9044cd5",
+          "pr": 18
+        },
+        {
+          "commit": "832fe352b6a8946e95dc8aeaccd0067fb968c212",
+          "pr": 20
+        },
+        {
+          "commit": "a67a1b7255dd4489416cb4edc3295ec44d783a41",
+          "pr": 22
+        },
+        {
+          "commit": "cd481050495c304d3c35f6024121826b631bb031",
+          "pr": 23
+        },
+        {
+          "commit": "169a6866768b0e2d8210cabf01e10deed1ecf23c",
+          "pr": 24
+        },
+        {
+          "commit": "dd44a81aa112017d5a1769a154a6421d2e5ffe47",
+          "pr": 25
+        },
+        {
+          "commit": "938408ec6a4b7f0d96bd5006aa59c72663b43636",
+          "pr": 26
+        },
+        {
+          "commit": "d093c705ea797d7edce83a7cf6600acfa250f321",
+          "pr": 19
+        },
+        {
+          "commit": "e470304ed862a6fd98d65c7bc469b0c96fcd9877",
+          "pr": 28
+        },
+        {
+          "commit": "e60a007ff806cfdd0299b2fcd63e553d1b1ca299",
+          "pr": 29
+        },
+        {
+          "commit": "7cc448c9ad822d050b1c6e09d9fc4c912e5bd418",
+          "pr": 32
+        },
+        {
+          "commit": "338b67ded3d83fd648e1330118d13831e25ab410",
+          "pr": 30
+        },
+        {
+          "commit": "713f5c6850aa9deda21b5af5eda3c41df797b3ec",
+          "pr": 34
+        },
+        {
+          "commit": "d8f049928c3e405d78bf6e00984506938b9a2cac",
+          "pr": 35
+        },
+        {
+          "commit": "affa5470cd8b2bacf16261cd749de7382afc2c6d",
+          "pr": 37
+        },
+        {
+          "commit": "2f98a3d10250274aeb281637e6b9cea97fd94b10",
+          "pr": 38
+        },
+        {
+          "commit": "1fcb7576634cd9d4fb995724d66a50f64f0a23bf",
+          "pr": 40
+        },
+        {
+          "commit": "df8b4b06298be82d0c15a03b215fdd9c6b7627c2",
+          "pr": 41
+        },
+        {
+          "commit": "c2fd72067d7705e76cb149d7f5fab741b3bc1b8f",
+          "pr": 42
+        },
+        {
+          "commit": "7404d8e505f99af2418cd775d8d56adef0eb9f5a",
+          "pr": 44
+        },
+        {
+          "commit": "c47012521c231c8bdb82631f90c1c6efd3ac7811",
+          "pr": 48
+        },
+        {
+          "commit": "7c60c4c90195dc8fe8c0e64e7dde9ae9f2870d8c",
+          "pr": 50
+        },
+        {
+          "commit": "37fd1177203f499b1e6115f48efa956203370dc3",
+          "pr": 51
+        },
+        {
+          "commit": "3f109ccbdfb640cceed63441c0c1973ee62dc36a",
+          "pr": 45
+        },
+        {
+          "commit": "08165dff07bf6f65e64ad0b1c0e4845f979724c0",
+          "pr": 53
+        },
+        {
+          "commit": "725e1b5ff1f9d682d142cd6ba07f622959bf337e",
+          "pr": 57
+        },
+        {
+          "commit": "6e50d198c7f4efad71764eb32f15235cb712dbb7",
+          "pr": 56
+        },
+        {
+          "commit": "9e9ab9470fc42a8bf754bf40d93294467cd4a47e",
+          "pr": 59
+        },
+        {
+          "commit": "224a9a0563b782b05257009d794e4519f1423b86",
+          "pr": 60
+        },
+        {
+          "commit": "ae92cde2e7db9f5a4aca2ca60ba4e33cab851334",
+          "pr": 61
+        },
+        {
+          "commit": "4631b8e5c08ba54b10802d0a02cd6a4c64f3c620",
+          "pr": 62
+        },
+        {
+          "commit": "76fc9f173421b423284b720f29549e64f5e5cf89",
+          "pr": 64
+        },
+        {
+          "commit": "6934d955ffff5e7a5bec360089536b5178d3c855",
+          "pr": 66
+        },
+        {
+          "commit": "241896e03f28748140fc53814168cedc8f42b764",
+          "pr": 65
+        },
+        {
+          "commit": "9fda01c5d23220b57d70ce46451549a9901e437f",
+          "pr": 68
+        },
+        {
+          "commit": "e582ba83b9ae842950e7cf1bf40ca944e1fee647",
+          "pr": 69
+        },
+        {
+          "commit": "a9cef56cb8479442d3313f6c32493e3bb8f665c5",
+          "pr": 70
+        },
+        {
+          "commit": "1789dd088c19cd92d4f14d69efb686d12206cf3e",
+          "pr": 73
+        },
+        {
+          "commit": "8f087ff98b4b85e5b573c2473da56db9aac7f6df",
+          "pr": 75
+        },
+        {
+          "commit": "dd1931eb477fedbb27047ca0814ea6eabd2cfeb5",
+          "pr": 76
+        },
+        {
+          "commit": "19cf0414f248273ccc69cc239a34a3587c2e60dc",
+          "pr": 79
+        },
+        {
+          "commit": "cfcc10863de902b56bd710296f5ed38e7d4b7038",
+          "pr": 82
+        },
+        {
+          "commit": "da7e6891dd0589976de1d3a5e16a40fc79329c15",
+          "pr": 84
+        },
+        {
+          "commit": "710ea3ee67126522bc4094c2e52c0cf299b7e398",
+          "pr": 86
+        },
+        {
+          "commit": "5455fbc3937724a9f5ceeb97309628cc009fa798",
+          "pr": 88
+        },
+        {
+          "commit": "b8243cf14219b312790b9f179088dd514fe94f74",
+          "pr": 89
+        },
+        {
+          "commit": "0ce97feb41b9d3a14684c0a4f38ba1218910ee17",
+          "pr": 90
+        },
+        {
+          "commit": "6af313cdacbae5db68dbe8def5c2c15977cb0b98",
+          "pr": 94
+        },
+        {
+          "commit": "6f386e43f6d0821668d3375f11afcc72cb3209fe",
+          "pr": 95
+        },
+        {
+          "commit": "3517af440e9def9de56df52883fa2e87d89e23c7",
+          "pr": 85
+        },
+        {
+          "commit": "689853a7973f2bd21eacec5d0a74eb19225c1048",
+          "pr": 96
+        },
+        {
+          "commit": "62f06fc8ba62ebc97d2dc68eb9cd1b4f5153c17f",
+          "pr": 97
+        },
+        {
+          "commit": "7eee0892e9fe82bc896115f3f0f1beb05d7f6b15",
+          "pr": 100
+        },
+        {
+          "commit": "e8f9d50c0e07584980395ad6fa55b91ec07c0364",
+          "pr": 101
+        },
+        {
+          "commit": "9917da8be13a1b78c82e2ece64a851df5206534b",
+          "pr": 102
+        },
+        {
+          "commit": "dc86ce268ef558e5291a948d224b667cc29bc3bd",
+          "pr": 103
+        },
+        {
+          "commit": "178b31e7b39597f40eb80997e6ec324dcc5345c7",
+          "pr": 105
+        },
+        {
+          "commit": "0bfcd1a19daa1290bc58d6700a0f586fd166d0c0",
+          "pr": 106
+        },
+        {
+          "commit": "e504c765b3d6daf51f719c8d1a8dfd2cedaa7190",
+          "pr": 108
+        },
+        {
+          "commit": "e8818ee02685192c3645d722ba51504147bc846f",
+          "pr": 109
+        },
+        {
+          "commit": "7dbcdb5555745c4fd3446770c44936ff5bd793a4",
+          "pr": 107
+        },
+        {
+          "commit": "ca7fc9a849928effd56fdf4d93058273c2b0b4c0",
+          "pr": 110
+        },
+        {
+          "commit": "8af7ed4c4a29e4f976c6c6b98283051e3193d016",
+          "pr": 112
+        },
+        {
+          "commit": "04f951d319835d224075a53a53ede3d6f8386b20",
+          "pr": 113
+        },
+        {
+          "commit": "1e5a5d5f3873ed2a567edf0bddd8b0612843e941",
+          "pr": 114
+        },
+        {
+          "commit": "1d3d060c9fe96bbcf67927ae200b81925356181e",
+          "pr": 116
+        },
+        {
+          "commit": "ea5073ad5e329260108cd0d70b757106cbd4d65d",
+          "pr": 119
+        },
+        {
+          "commit": "98e05e9beff55ba9f96e03d0e636a9e248d16739",
+          "pr": 122
+        },
+        {
+          "commit": "1390625d35f2524116afe319b9a9d274e1602f38",
+          "pr": 123
+        },
+        {
+          "commit": "fdaad83a33d2827ae3ff4f02972afd9cbd214602",
+          "pr": 125
+        },
+        {
+          "commit": "cd64b3578d293b1cdddbec167384868881f78190",
+          "pr": 126
+        },
+        {
+          "commit": "c26ef29f13b374995636992492e112a87f054bcf",
+          "pr": 127
+        },
+        {
+          "commit": "ad6081b2573dc4b2a11fa6d9e79be8f1387f61a8",
+          "pr": 128
+        },
+        {
+          "commit": "fdb814946cfcce4ca8125a4cdaf6913091e91737",
+          "pr": 129
+        },
+        {
+          "commit": "3121a2ad76f1721159dd8b2ce2a5b12fbbf2ad19",
+          "pr": 131
+        },
+        {
+          "commit": "226f25634d6fdac36589c4d04e04434188584558",
+          "pr": 136
+        },
+        {
+          "commit": "837d3d84bbd944ee61078b1aab3743033dc0d2e8",
+          "pr": 134
+        },
+        {
+          "commit": "614ccc53c0f4aa975549b69ea59fab1822eb40c8",
+          "pr": 138
+        },
+        {
+          "commit": "d7e12c41ce8dea6c5b7e662d202cd23e1e40dca5",
+          "pr": 139
+        },
+        {
+          "commit": "9274c8b0243203ac1967ac3c5864e957b3defaac",
+          "pr": 140
+        },
+        {
+          "commit": "dbab7b3740078bcacb4067872de380df6f49d2b1",
+          "pr": 141
+        },
+        {
+          "commit": "ac1989b34ea476fd122a598eaa41147d004baf07",
+          "pr": 142
+        },
+        {
+          "commit": "f42461709c8fd93ea7bf9332c66f60cdce23337d",
+          "pr": 143
+        },
+        {
+          "commit": "d29207fb550ab8cc7571185e74f7571bb97fd6a4",
+          "pr": 145
+        },
+        {
+          "commit": "1e09a0ee1b6a1de9b8daf3f1a3a79ed260882220",
+          "pr": 147
+        },
+        {
+          "commit": "3415d0a651c4b63455117efd9ec7b565024fe79f",
+          "pr": 148
+        },
+        {
+          "commit": "67fe0c29e32fcf267080703b1fd2151800671ce4",
+          "pr": 149
+        },
+        {
+          "commit": "46ae9482f2e2c9a494ea8adc7914cc16cd54bce4",
+          "pr": 151
+        },
+        {
+          "commit": "1ce6fe57c7d043e8ea4b90131e1db6d56431861a",
+          "pr": 152
+        },
+        {
+          "commit": "3464ffc0d4194db2d6c3a3c52a1642eee0e0fd70",
+          "pr": 153
+        },
+        {
+          "commit": "ed6d18c31335a20b9a60e2a618b4a8319e4cff40",
+          "pr": 154
+        },
+        {
+          "commit": "0905d35194066449609ad73057570bd0080e0c1c",
+          "pr": 155
+        },
+        {
+          "commit": "ecc20e0033dddf1a5968c2712270a7c3c3c89771",
+          "pr": 160
+        },
+        {
+          "commit": "d314b7a671cb9d1c6d4312c9b7ab230132d84ada",
+          "pr": 161
+        },
+        {
+          "commit": "d041b725ddcb9803a6551489bee1fcf98510ffb2",
+          "pr": 163
+        },
+        {
+          "commit": "7e55905857946e7f41ed5dae7d0bdf77aae77670",
+          "pr": 165
+        },
+        {
+          "commit": "cdf0c47f5c2fe5e4dacf93424241d152d5d89b6a",
+          "pr": 170
+        },
+        {
+          "commit": "3503daeedd052bf1ebd33c82287a57c355945aa2",
+          "pr": 178
+        },
+        {
+          "commit": "6f4483b182538cf64eac96f077cc1ca2c7a1ef03",
+          "pr": 180
+        },
+        {
+          "commit": "bda5f5548600df82c88d825a64e7b935b9f72c02",
+          "pr": 181
+        },
+        {
+          "commit": "38c045c1617d0416b3d04e132c5131b4814d3332",
+          "pr": 182
+        },
+        {
+          "commit": "3873bed37f56e0f813d751b81c0c38457d9c3afe",
+          "pr": 184
+        },
+        {
+          "commit": "782d2d309d097892ffec875ce835861b67d4a0ec",
+          "pr": 185
+        },
+        {
+          "commit": "9dd6529497b90c8658be92d8a8ce1ea3c417001f",
+          "pr": 188
+        },
+        {
+          "commit": "906adff0d3a9701745ccc76ffa5cb81c715d9a8e",
+          "pr": 190
+        },
+        {
+          "commit": "c2e643f3feabd3a73f7ac27e73aa5b70e1bdaca6",
+          "pr": 193
+        },
+        {
+          "commit": "b543a6aacd6ca12714046c0b94adc9f78c5bb98d",
+          "pr": 196
+        },
+        {
+          "commit": "d7eb41b5ef9dfdcd56d9b2189b4798b78a651ad5",
+          "pr": 200
+        },
+        {
+          "commit": "449c2b3aedb9c8340176bd4fd40d36e7e5bdda20",
+          "pr": 202
+        },
+        {
+          "commit": "e5e21718e8c45f0b8237aa161683ad5ebc317af5",
+          "pr": 203
+        },
+        {
+          "commit": "6500af8f1b05c27c00d8be6da1f9aae1274f56ac",
+          "pr": 210
+        },
+        {
+          "commit": "77bcb1b8ea1f23c807f175992e18e317e0aa395b",
+          "pr": 209
+        },
+        {
+          "commit": "6fc5c86a795cd695cf2e396edbc4924ca1dfb77a",
+          "pr": 211
+        },
+        {
+          "commit": "9ae7e6c847f7c4b3505958b64961d4adac1aaf83",
+          "pr": 207
+        },
+        {
+          "commit": "154065454115f4c5b07bb453a7478711acf2a7ec",
+          "pr": 214
+        },
+        {
+          "commit": "e5b379f21856fdeaa094f2900d15e30b66435936",
+          "pr": 218
+        },
+        {
+          "commit": "e974c7328767821bf459162adbebddd05613d475",
+          "pr": 222
+        },
+        {
+          "commit": "b80522a54ab23a6177554f4415dd5a530eb76607",
+          "pr": 226
+        },
+        {
+          "commit": "8e3539db29c4c20d5c2a04c62ca09b307957006a",
+          "pr": 225
+        },
+        {
+          "commit": "f8f218b8ce4e67c25aa108497994ba90c665c263",
+          "pr": 216
+        },
+        {
+          "commit": "bffb403077364a13ee0240f45ba88369d4162bb8",
+          "pr": 230
+        },
+        {
+          "commit": "25967eb3b3a521da0053bdd5504de4b127ca7b25",
+          "pr": 232
+        },
+        {
+          "commit": "26706001145617445e2535abad8a86335a9879ac",
+          "pr": 238
+        },
+        {
+          "commit": "88e1951675803bbb5aba602a7b828db8aa8527fe",
+          "pr": 239
+        },
+        {
+          "commit": "d1e1f3b508d39cd1ae278c4a8576cd112dc36964",
+          "pr": 240
+        },
+        {
+          "commit": "794f30a666e936eefd0ea9a2ee6c86628e18aafd",
+          "pr": 241
+        },
+        {
+          "commit": "1fe604fb58bf86348e04b0f0ff2fdf289f0cfbf2",
+          "pr": 242
+        },
+        {
+          "commit": "3cd0ff8e7d3a3ef571f0f688a81589e5bf487b53",
+          "pr": 244
+        }
+      ],
+      "dropped_implausible": [
+        {
+          "commit": "309f764aa393a78303bd97b9fc2b985e93aac332",
+          "pr": 24
+        }
+      ]
+    },
+    "dropped_before_numbering": 138,
+    "dropped_implausible": 1,
+    "linked": 5963,
+    "no_reference": 708
+  },
+  "message_length": {
+    "lines": {
+      "max": 227,
+      "p50": 3,
+      "p90": 17,
+      "p99": 66
+    },
+    "over_300_words": 103,
+    "words": {
+      "max": 1335,
+      "p50": 15,
+      "p90": 100,
+      "p99": 359
+    }
+  },
+  "pool": {
+    "documents": 6810,
+    "mechanical": 217,
+    "merges": 501
+  },
+  "rule": {
+    "numbering_starts": "1f63537c9b1105d0c61335cafc49305e534969d8",
+    "patterns": [
+      "^Merge pull request #(\\d+)",
+      "\\(#(\\d+)\\)\\s*$"
+    ],
+    "pr_number_floor": 0.1
+  },
+  "schema": "pace.pool_census/v1"
+}
