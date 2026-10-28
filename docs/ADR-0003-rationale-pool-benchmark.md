@@ -178,3 +178,16 @@ PR-referencing commits, before "added" candidates are counted.
   retention rate a census figure and only adds power.
 - **Unanswerable questions now.** Deferred to checkpoint D. They test refusal, which does not
   exist until D, and `UnanswerableStrategy` already supports them.
+
+## Errata
+
+- **2026-10-28 — the PR count in Context, and what the pool links (slice B2).** Context §3's
+  "6,440 distinct PR numbers" cannot be reproduced by any rule tried. Measured under B2's rule
+  ([tasks/eval-harness/002](tasks/eval-harness/002_commit_message_pool.md),
+  [results/pool_census.json](../results/pool_census.json)): of the 6,810 pool commits, 5,963
+  link to 5,963 distinct apache/airflow PRs and 708 carry no reference. 138 `Merge pull request
+  #N` subjects from before commit `1f63537c9b` (2015-06-07) number PRs in an earlier repository,
+  and one 2018 subject names a PR in a contributor's fork; none of the 139 is linked. No PR has
+  two documents, so §4's 0.5 case does not arise in the commit-message pool. Commit messages
+  are chunks, so they will embed through `embeddings_code_*`; migration 0004's
+  `commit_message:` prose prefix stays unused. The decisions above are unchanged.

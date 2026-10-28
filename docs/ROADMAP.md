@@ -30,12 +30,12 @@ full first-parent history (38,888 commits, 303 in-scope files) idempotently and 
 the demo. 168 tests, ruff clean.
 
 **Next.** Checkpoint B (§5), re-founded by [ADR-0003](ADR-0003-rationale-pool-benchmark.md) on
-a pool of rationale text — commit messages first, PR text after the GitHub backfill. Slice B1,
-the definition (relevance units, the dev/test split, sizes from the MDE; findings 2, 7), is
-done. Then: commit messages as the pool (B2); the diff-anchored golden-set generator v0 and its
-leakage verdict (B3); the ethics self-assessment and the backfill under a request budget (B4;
-findings 11, 10); grep/BM25/dense baselines (B5). Until B3 lands, no benchmark exists and every
-retrieval number is structurally zero.
+a pool of rationale text — commit messages first, PR text after the GitHub backfill. Slices B1
+(the definition: relevance units, the dev/test split, sizes from the MDE; findings 2, 7) and B2
+(commit messages as the pool: 6,810 documents, 5,963 PR links) are done. Then: the
+diff-anchored golden-set generator v0 and its leakage verdict (B3); the ethics self-assessment
+and the backfill under a request budget (B4; findings 11, 10); grep/BM25/dense baselines (B5).
+Until B3 lands, no benchmark exists and every retrieval number is structurally zero.
 
 ---
 

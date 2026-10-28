@@ -1,7 +1,7 @@
 # Task 002: Commit messages become the benchmark's first pool
 
 **Tracker:** [006_EVAL_HARNESS](../../tracker/006_EVAL_HARNESS.md) · **checkpoint B**, slice B2 of 5
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-10-28)
 **Decision record:** [ADR-0003](../../ADR-0003-rationale-pool-benchmark.md) §1–§2, §4
 **Depends on:** [001](001_benchmark_definition.md) (migration 0007, relevance units) and
 [ingest 004](../ingest/004_personal_data.md) (messages are scrubbed at the source)
@@ -54,7 +54,7 @@
 
   | | Median | p90 | p99 | Max |
   |---|---|---|---|---|
-  | Words | 15 | 101 | 359 | 1,335 |
+  | Words | 15 | 100 | 359 | 1,335 |
   | Lines | 3 | 17 | 66 | 227 |
 
   103 messages exceed 300 words.

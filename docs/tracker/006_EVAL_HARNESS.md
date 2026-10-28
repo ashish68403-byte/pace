@@ -70,3 +70,11 @@ honouring the identity contract its own reasoning establishes.
     become unit-aware, or be reported with that caveat, before PR text joins the pool. Owner: B5.
   - **A PR that landed in more than one commit** lets a record score 0.5 (ADR-0003 §4). Owner: B2,
     which counts such PRs in the commit-message pool.
+- **2026-10-28 — slice B2 closed.** `pace pool build` writes the message of each of the 6,810
+  pool commits as a `kind='commit'` document, with 6,810 `self` and 5,963 `linked` evidence
+  rows; a second run inserts nothing. A PR number is linked only from commit `1f63537c9b` on
+  (apache/airflow's numbering) and only at ≥ 10% of the highest PR linked before it: 138
+  earlier-repository references and 1 fork-internal reference are dropped, each listed in
+  `results/pool_census.json`. The leakage probe now pools `RATIONALE_KINDS` only. B1's open
+  item **"a PR that landed in more than one commit"** is closed: no PR has two documents, and
+  the 31 apparent doubles were numbering collisions.
