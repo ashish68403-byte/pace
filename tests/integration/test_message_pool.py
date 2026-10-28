@@ -173,3 +173,43 @@ def test_the_probe_pools_rationale_text_only(history_repo, test_repo_id, ingest,
     pool = _leakage_probe().load_pool_from_db(migrated_database, test_repo_id)
     assert len(pool) == 8
     assert all(document.path.startswith("commit/") for document in pool)
+
+
+def test_the_census_counts_what_was_written(
+    history_repo, test_repo_id, ingest, migrated_database, query
+):
+    from provenance.analysis.pool_census import build_census
+
+    ingest()
+    sha = history_repo.sha
+    write_pool(migrated_database, test_repo_id, numbering_starts=sha["c1"])
+    census = build_census(
+        migrated_database, test_repo_id, history_repo.root, numbering_starts=sha["c1"]
+    )
+    [(mechanical,)] = query(
+        "SELECT count(*) FROM commits WHERE repo_id = %s AND is_mechanical "
+        "AND commit_sha = ANY(%s)",
+        test_repo_id,
+        [sha[name] for name in POOL],
+    )
+    assert census["pool"] == {"documents": 8, "merges": 1, "mechanical": mechanical}
+    assert (census["links"]["linked"], census["links"]["no_reference"]) == (4, 4)
+    assert census["evidence"] == {
+        "self": 8,
+        "linked": 4,
+        "distinct_prs": 4,
+        "prs_with_two_or_more_documents": 0,
+    }
+    assert census["corpus_commit"] == sha["c9"]
+
+
+def test_the_census_refuses_when_stored_links_disagree_with_the_rule(
+    history_repo, test_repo_id, ingest, migrated_database
+):
+    from provenance.analysis.pool_census import CensusCheckFailed, build_census
+
+    ingest()
+    sha = history_repo.sha
+    write_pool(migrated_database, test_repo_id, numbering_starts=sha["c1"])
+    with pytest.raises(CensusCheckFailed, match="0 missing, 2 unexpected"):
+        build_census(migrated_database, test_repo_id, history_repo.root, numbering_starts=sha["c6"])

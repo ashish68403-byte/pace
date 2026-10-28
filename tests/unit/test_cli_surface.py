@@ -23,3 +23,9 @@ def test_pace_pool_lists_build():
     result = CliRunner().invoke(app, ["pool", "--help"])
     assert result.exit_code == 0
     assert "build" in result.output
+
+
+def test_pace_measure_lists_pool():
+    result = CliRunner().invoke(app, ["measure", "--help"])
+    assert result.exit_code == 0
+    assert "pool" in result.output

@@ -202,6 +202,12 @@ def truncation(ctx: typer.Context) -> None:
     _call(_load("provenance.analysis.truncation", "main"), ctx.args)
 
 
+@measure_app.command(name="pool", context_settings=PASSTHROUGH)
+def pool_census(ctx: typer.Context) -> None:
+    """The benchmark pool, counted: documents, PR links and why some are dropped."""
+    _call(_load("provenance.analysis.pool_census", "main"), ctx.args)
+
+
 app.add_typer(measure_app, name="measure")
 
 
