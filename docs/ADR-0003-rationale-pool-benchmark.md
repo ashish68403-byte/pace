@@ -191,3 +191,20 @@ PR-referencing commits, before "added" candidates are counted.
   two documents, so §4's 0.5 case does not arise in the commit-message pool. Commit messages
   are chunks, so they will embed through `embeddings_code_*`; migration 0004's
   `commit_message:` prose prefix stays unused. The decisions above are unchanged.
+
+## Addenda
+
+- **2026-10-29 — two more ambiguity rules for §3, committed before any generated record.** A
+  design-time census ([tasks/eval-harness/003](tasks/eval-harness/003_golden_set_generator.md))
+  found two kinds of question §3's rules let through, and both have two possible answers:
+  - **Added more than once.** A symbol deleted and later re-added in the same file has two
+    "added" commits. An "added" candidate is kept only if its symbol was added exactly once in
+    that file's rename-aware history (115 of 2,493 candidates).
+  - **One name, several files.** The "changed" template does not name the file, so a qualified
+    name that exists in two or more files at HEAD makes the question ambiguous. A "changed"
+    candidate is kept only if its qualified name exists in exactly one file at HEAD (27 names,
+    187 of 6,059 candidates).
+
+  Both follow §3's own rule that every question be answerable and unambiguous. Neither touches
+  §5's leakage filters, §6's gate or §8's sizes, and the census measured candidate supply only:
+  the baselines' recall, which is the gate, was not measured before this addendum.
