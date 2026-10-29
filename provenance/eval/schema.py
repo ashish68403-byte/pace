@@ -56,8 +56,8 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 GOLDEN_SCHEMA_VERSION = "v1"
 
-#: A retained record must score at or below this with plain substring search.
-#: Above it, the question is answerable by ``grep`` and measures nothing.
+#: ADR-0003 §6: the leakage gate fails when the strongest lexical baseline's Wilson 95%
+#: upper bound on recall@10 reaches this. Above it, the benchmark measures nothing.
 RETAINED_GREP_R10_MAX = 0.35
 
 #: ADR-0003 §7. A record's split is decided by its group -- the PR when the change has
@@ -186,13 +186,15 @@ class GoldEvidence(BaseModel):
 
 
 class LeakageProbe(BaseModel):
-    """Baseline scores measured against this record at generation time.
+    """Leakage facts measured against this record at generation time (ADR-0003 §5).
 
-    ``gold_symbol_df`` is the corpus document frequency of the rarest identifier
-    the question mentions. A very high df means the question names something so
-    common (``self``, ``session``, ``dag``) that lexical retrieval cannot be
-    blamed for missing it; a df of 1 usually means the question quotes a unique
-    identifier and grep will win -- which is exactly the leak the filter removes.
+    ``baseline_grep_r10`` / ``baseline_bm25_r10``: did grep / identifier-aware BM25 put a
+    gold document in the top 10 (0.0 or 1.0 for a generated record)?
+    ``gold_symbol_df``: pool documents containing the symbol's short name. 0 means the
+    name appears in no rationale at all -- ADR-0002's thesis stratum.
+    ``grep_answers_at_rank_1`` / ``rare_tokens_shared_with_gold``: the two retention
+    facts. ``None`` on a record probed before slice B3, which `passes_leakage_filter`
+    therefore never retains.
     """
 
     model_config = ConfigDict(extra="forbid")
@@ -200,6 +202,8 @@ class LeakageProbe(BaseModel):
     baseline_grep_r10: float = Field(ge=0.0, le=1.0)
     baseline_bm25_r10: float = Field(ge=0.0, le=1.0)
     gold_symbol_df: int = Field(ge=0)
+    grep_answers_at_rank_1: bool | None = None
+    rare_tokens_shared_with_gold: list[str] | None = None
     probed_at: datetime | None = None
     probe_index_version: str | None = None
     probe_corpus_commit: str | None = None
@@ -282,21 +286,25 @@ class GoldenRecord(BaseModel):
         return self.required_evidence.keys() + self.supporting_evidence.keys()
 
 
-def passes_leakage_filter(
-    record: GoldenRecord, *, max_grep_r10: float = RETAINED_GREP_R10_MAX
-) -> bool:
-    """Retention rule for generated records.
+def passes_leakage_filter(record: GoldenRecord) -> bool:
+    """ADR-0003 §5's retention rule, read from the facts stored on the record.
 
-    Unanswerables and hand-written seeds are always retained; there is nothing for
-    grep to leak in an unanswerable, and hand-written seeds are individually
-    inspected. Generated answerables are retained only when plain substring search
-    cannot already find the gold evidence.
+    Unanswerables and hand-written records are always retained: there is nothing for
+    grep to leak in an unanswerable, and a hand-written record is inspected one by one.
+    A generated record is retained only when grep does not rank a gold document first
+    and the question shares no rare token with one. Missing facts fail closed: an
+    unmeasured record cannot be shown to be clean.
     """
     if record.expected_refusal or record.is_handwritten:
         return True
-    if record.leakage is None:  # unreachable via the validator, kept as a hard floor
+    probe = record.leakage
+    if (
+        probe is None
+        or probe.grep_answers_at_rank_1 is None
+        or probe.rare_tokens_shared_with_gold is None
+    ):
         return False
-    return record.leakage.baseline_grep_r10 <= max_grep_r10
+    return not probe.grep_answers_at_rank_1 and not probe.rare_tokens_shared_with_gold
 
 
 def group_key(commit_sha: str, pr_number: int | None) -> str:

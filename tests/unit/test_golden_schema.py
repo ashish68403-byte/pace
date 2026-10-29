@@ -11,6 +11,7 @@ from provenance.eval.schema import (
     assign_splits,
     dev_share_by_class,
     group_key,
+    passes_leakage_filter,
 )
 
 SHA = "ab" * 20
@@ -81,3 +82,40 @@ def test_the_dev_share_is_reported_per_class() -> None:
         GoldenRecord.model_validate(payload(qid="a-1", query_class="archaeology", split="test"))
     )
     assert dev_share_by_class(records) == {"provenance": 0.75, "archaeology": 0.0}
+
+
+def generated(**leakage: object) -> GoldenRecord:
+    """A generated record whose leakage facts are clean unless overridden."""
+    facts: dict[str, object] = {
+        "baseline_grep_r10": 0.0,
+        "baseline_bm25_r10": 0.0,
+        "gold_symbol_df": 0,
+        "grep_answers_at_rank_1": False,
+        "rare_tokens_shared_with_gold": [],
+    }
+    facts.update(leakage)
+    return GoldenRecord.model_validate(payload(generation_strategy="ast_diff_v0", leakage=facts))
+
+
+def test_a_clean_generated_record_is_retained() -> None:
+    assert passes_leakage_filter(generated())
+
+
+def test_a_rank_1_grep_answer_or_a_shared_rare_token_drops_a_record() -> None:
+    assert not passes_leakage_filter(generated(grep_answers_at_rank_1=True))
+    assert not passes_leakage_filter(generated(rare_tokens_shared_with_gold=["zombies"]))
+
+
+def test_missing_facts_fail_closed() -> None:
+    assert not passes_leakage_filter(generated(grep_answers_at_rank_1=None))
+    assert not passes_leakage_filter(generated(rare_tokens_shared_with_gold=None))
+
+
+def test_grep_recall_alone_no_longer_decides() -> None:
+    # The pre-ADR-0003 rule kept a record at or below 0.35 grep recall. A record grep
+    # finds in its top 10 but not at rank 1, sharing no rare token, is now retained.
+    assert passes_leakage_filter(generated(baseline_grep_r10=1.0))
+
+
+def test_hand_written_records_are_always_retained() -> None:
+    assert passes_leakage_filter(GoldenRecord.model_validate(payload()))

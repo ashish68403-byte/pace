@@ -537,12 +537,13 @@ class DenseBaseline:
 
 
 def rank(scores: np.ndarray, k: int) -> list[int]:
-    """Indices of the top-k documents, descending. Ties break on lower index (stable)."""
-    k = min(k, scores.shape[0])
-    if k == 0:
-        return []
-    top = np.argpartition(-scores, k - 1)[:k]
-    return [int(i) for i in top[np.argsort(-scores[top], kind="stable")]]
+    """Indices of the top-k documents, descending. Ties break on lower index (stable).
+
+    A full stable sort, not `argpartition`: partitioning keeps no order among tied
+    documents, so `rank([0, 0, 1, 1], 1)` returned `[3]` and rank 1 could depend on k.
+    At pool sizes in the thousands the sort costs well under a millisecond.
+    """
+    return [int(i) for i in np.argsort(-scores, kind="stable")[:k]]
 
 
 # --------------------------------------------------------------- retention filters
@@ -600,6 +601,80 @@ def gold_symbol_literals(record: GoldenRecord) -> list[str]:
         elif anchor.path:
             literals.append(Path(anchor.path).name)
     return literals
+
+
+# --------------------------------------------------------------- one record's facts
+
+
+@dataclass(frozen=True)
+class LeakageFacts:
+    """One question's leakage against one pool (ADR-0003 §5).
+
+    Generation stores these on the record (`schema.LeakageProbe`); the verdict measures
+    them again with this same code and refuses to pass when the two disagree.
+    """
+
+    grep_answers_at_rank_1: bool
+    rare_tokens_shared_with_gold: list[str]
+    grep_hit_at_k: bool
+    bm25_hit_at_k: bool
+    gold_symbol_df: int | None
+
+    def retained(self) -> bool:
+        return not self.grep_answers_at_rank_1 and not self.rare_tokens_shared_with_gold
+
+    def differs_from(self, stored: golden_schema.LeakageProbe) -> bool:
+        """True when the retention facts stored at generation are not these."""
+        return (stored.grep_answers_at_rank_1, stored.rare_tokens_shared_with_gold) != (
+            self.grep_answers_at_rank_1,
+            self.rare_tokens_shared_with_gold,
+        )
+
+
+class PoolIndex:
+    """The probe's three lexical scorers over one pool, built once for every question."""
+
+    def __init__(self, pool: Sequence[Document]) -> None:
+        self.pool = list(pool)
+        self.chunk_ids = [d.chunk_id for d in self.pool]
+        self.by_chunk = {d.chunk_id: d for d in self.pool}
+        self.grep = GrepIndex(self.pool)
+        self.bm25_default = BM25([tokenize_default(d.content) for d in self.pool])
+        self.bm25_ident = BM25([tokenize_identifier_aware(d.content) for d in self.pool])
+        self.corpus_df = dict(self.bm25_ident.df)
+
+    def matched(self, scores: np.ndarray, k: int) -> list[str]:
+        """Chunk ids of the top-k documents that matched at all, best first.
+
+        `rank` orders every document, so with fewer than k matches it fills the top k
+        with documents that share nothing with the query, and with no match at all its
+        first index would read as "rank 1". A lexical system returns only what matched:
+        grep prints matching lines, a BM25 index returns matching rows.
+        """
+        return [self.chunk_ids[i] for i in rank(scores, k) if scores[i] > 0]
+
+    def measure(
+        self, question: str, gold: set[str], symbol: str | None = None, *, k: int = DEFAULT_K
+    ) -> LeakageFacts:
+        """`question`'s leakage against this pool, given its gold chunk ids.
+
+        RETENTION FILTER 1 is grep ranking a gold document first: the query is then a
+        lookup, not a question about rationale. RETENTION FILTER 2 is a token of pool
+        df <= 5 shared with a gold document: the answer's primary key is printed on the
+        question's face. `symbol` is the short name whose document frequency is reported.
+        """
+        grep_top = self.matched(self.grep.score(question), k)
+        bm25_top = self.matched(self.bm25_ident.score(tokenize_identifier_aware(question)), k)
+        gold_documents = [self.by_chunk[c] for c in sorted(gold) if c in self.by_chunk]
+        return LeakageFacts(
+            grep_answers_at_rank_1=bool(grep_top) and grep_top[0] in gold,
+            rare_tokens_shared_with_gold=rare_tokens_shared_with_gold(
+                question, gold_documents, self.corpus_df
+            ),
+            grep_hit_at_k=any(c in gold for c in grep_top),
+            bm25_hit_at_k=any(c in gold for c in bm25_top),
+            gold_symbol_df=None if symbol is None else self.grep.substring_df(symbol),
+        )
 
 
 # ------------------------------------------------------------------------ metrics
