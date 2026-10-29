@@ -25,7 +25,7 @@ honouring the identity contract its own reasoning establishes.
 | 1 | [Dev/test split](../tasks/review-remediation/002_dev_test_split.md) (finding 2) — field and `assign_splits` done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); the runner's `--split` filter and its refusal to update a baseline from test come in B5 | 🚧 | `provenance/eval/schema.py`, `runner.py` |
 | 2 | Print `D` (discordant queries) and `1.96·√D/n` beside the paired delta; decide target `n` vs threshold (finding 7) — `mde()` and the sizes done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); printing D in B5 | 🚧 | `provenance/eval/runner.py:89`, `metrics.py` |
 | 3 | Set-valued relevance: `required_units: list[set[str]]`, recall as fraction of units with a member in top k; persist `n_units`, `max_parts_per_unit` (finding 7) — units are evidence keys, done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md) | ✅ | `anchors.py:113-159`, `metrics.py` |
-| 4 | `_verdict` takes the **strongest** cheap baseline, not grep alone; gate `retention_rate` too (finding 8) — pre-registered in ADR-0003 §6, implemented in B3 | ⬜ | `scripts/leakage_probe.py:657-660` |
+| 4 | `_verdict` takes the **strongest** cheap baseline, not grep alone; gate `retention_rate` too (finding 8) — ADR-0003 §6's verdict, implemented in [eval-harness/003](../tasks/eval-harness/003_golden_set_generator.md): dev only, Wilson upper bound, retention, stale facts refuse to pass | ✅ | `provenance/eval/leakage.py` (`verdict`) |
 | 5 | Add `baseline_grep_r10`, `gold_symbol_df` to `PER_QUERY_COLUMNS`; second `per_class` breakdown on `gold_symbol_df == 0` vs `> 0` (finding 8) | ⬜ | `runner.py:266-285` |
 | 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) | ⬜ | new ADR + committed JSONL |
 | 7 | Bootstrap the refusal pair; report `None` not 0.0 when `ci.n == 0` (finding 14) | ⬜ | `runner.py:396-399, 413-416` |
@@ -78,3 +78,12 @@ honouring the identity contract its own reasoning establishes.
   `results/pool_census.json`. The leakage probe now pools `RATIONALE_KINDS` only. B1's open
   item **"a PR that landed in more than one commit"** is closed: no PR has two documents, and
   the 31 apparent doubles were numbering collisions.
+- **2026-10-29 — slice B3 closed.** `pace golden generate` turns the in-scope history's AST diff
+  into 8,250 questions (2,378 "added", 5,872 "changed"; every rule's count is in
+  `results/golden_census.json`), each carrying its leakage facts measured against the pool. 7,426
+  (90.0%) pass ADR-0003 §5's filter, 4,324 of them dev. The verdict reads dev only and measures
+  every fact again: **PASS**. The strongest lexical baseline, bm25_ident, has recall@10 0.110 and
+  a Wilson 95% upper bound of 0.120 (`results/leakage_verdict.json`). 45% of retained dev
+  questions name a symbol that no pool document contains. Found while planning and fixed before
+  any number existed: `rank()` broke ties by partition order, and counted documents that matched
+  nothing as retrieved.

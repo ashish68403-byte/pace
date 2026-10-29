@@ -91,8 +91,8 @@ eval-fixtures: ## Which golden questions have no committed frozen vector (report
 eval-invariants: ## Non-metric invariant checks against the live database
 	$(UV) pace eval invariants
 
-leakage-probe: ## Four cheap baselines over the golden set. grep must read < 0.35 recall@10.
-	$(UV) pace leakage --from-db
+leakage-probe: ## Checkpoint B's leakage verdict on the generated golden set (ADR-0003 §6).
+	$(UV) pace leakage --from-db --no-dense --golden provenance/eval/golden/auto_full.jsonl
 
 ## --- quality ----------------------------------------------------------------
 

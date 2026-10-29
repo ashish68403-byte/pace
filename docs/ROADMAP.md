@@ -29,13 +29,14 @@ full first-parent history (38,888 commits, 303 in-scope files) idempotently and 
 [results/history_truncation.json](../results/history_truncation.json); `pace history <path>` is
 the demo. 168 tests, ruff clean.
 
-**Next.** Checkpoint B (§5), re-founded by [ADR-0003](ADR-0003-rationale-pool-benchmark.md) on
-a pool of rationale text — commit messages first, PR text after the GitHub backfill. Slices B1
-(the definition: relevance units, the dev/test split, sizes from the MDE; findings 2, 7) and B2
-(commit messages as the pool: 6,810 documents, 5,963 PR links) are done. Then: the
-diff-anchored golden-set generator v0 and its leakage verdict (B3); the ethics self-assessment
-and the backfill under a request budget (B4; findings 11, 10); grep/BM25/dense baselines (B5).
-Until B3 lands, no benchmark exists and every retrieval number is structurally zero.
+**Next.** Checkpoint B (§5), re-founded by [ADR-0003](ADR-0003-rationale-pool-benchmark.md) on a
+pool of rationale text — commit messages first, PR text after the GitHub backfill. Slices B1 (the
+definition: relevance units, the dev/test split, sizes from the MDE; findings 2, 7), B2 (commit
+messages as the pool: 6,810 documents, 5,963 PR links) and B3 (the golden set: 8,250 questions
+generated from the code diff, 7,426 retained, 4,324 of them dev; leakage verdict **PASS**,
+[results/leakage_verdict.json](../results/leakage_verdict.json)) are done. Then: the ethics
+self-assessment and the backfill under a request budget (B4; findings 11, 10); grep/BM25/dense
+baselines and the ablation table's first rows (B5).
 
 ---
 

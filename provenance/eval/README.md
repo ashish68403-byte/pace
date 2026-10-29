@@ -10,7 +10,11 @@ provenance/eval/
   anchors.py                 resolve_anchors(): stable anchors -> current chunk_ids
   metrics.py                 recall/mrr/nDCG/citation/refusal + stratified bootstrap
   runner.py                  the CLI gate: score, write, recompute, compare, exit code
-  golden/ci_subset.jsonl     3 hand-written week-1 seeds (not a benchmark)
+  leakage.py                 the leakage probe and checkpoint B's verdict (`pace leakage`)
+  candidates.py              the AST-diff walk and ADR-0003 §3's question rules
+  generator.py               candidates -> golden records + census (`pace golden generate`)
+  golden/auto_full.jsonl     the generated golden set: every candidate, with its leakage facts
+  golden/ci_subset.jsonl     empty until slice B5 commits a generated dev subset
   baselines/retrieval.json   committed baseline the gate compares against
 eval/                        (repo root, git-ignored except fixtures)
   fixtures/qvecs_<model>.npz frozen query vectors -- this is what makes CI free
@@ -189,13 +193,28 @@ zeros and exit 0 — the corpus is not in `repositories` yet, or `chunks` is emp
 
 ## Leakage probe
 
-`LeakageProbe` (`baseline_grep_r10`, `baseline_bm25_r10`, `gold_symbol_df`) is
-persisted **at generation time**, and generated records that lack it fail
-validation. A naively generated golden set scores grep recall@10 = 0.986 — the
-question quotes the answer's identifiers, so plain substring search wins and the
-benchmark measures nothing. Retained records must sit at or below
-`RETAINED_GREP_R10_MAX = 0.35`. Storing the probe next to the record makes the
-retention decision auditable from the committed JSONL, months later.
+`LeakageProbe` is persisted **at generation time**, and generated records that lack
+it fail validation. A naively generated golden set scores grep recall@10 = 0.986 —
+the question quotes the answer's identifiers, so plain substring search wins and the
+benchmark measures nothing. `pace golden generate` measures every candidate against
+the pool with `leakage.py`'s own `PoolIndex.measure`: hit@10 for grep and BM25, the
+symbol's document frequency, and the two retention facts. A record is retained only
+when grep does not rank a gold document first and the question shares no token of
+pool document frequency ≤ 5 with one (ADR-0003 §5, `passes_leakage_filter`), so the
+retention decision is auditable from the committed JSONL, months later.
+
+`pace leakage` gives checkpoint B's verdict (ADR-0003 §6). It reads the **dev** split
+only and measures every fact again: INCONCLUSIVE when a stored fact differs (the pool
+changed: regenerate) or fewer than 100 dev records are retained; FAIL when retention
+is below 25% or the strongest lexical baseline's Wilson 95% upper bound on recall@10
+reaches 0.35 (`RETAINED_GREP_R10_MAX`); PASS otherwise. Dense is reported, never
+gated. A document that matched no query term is never counted as retrieved.
+
+```bash
+pace golden generate     # golden/auto_full.jsonl + results/golden_census.json
+pace leakage --from-db --no-dense --golden provenance/eval/golden/auto_full.jsonl \
+    --json-out results/leakage_verdict.json
+```
 
 ## Baselines
 

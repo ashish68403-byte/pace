@@ -1,7 +1,7 @@
 # Task 003: Generate the golden set from the code diff, and give the first leakage verdict
 
 **Tracker:** [006_EVAL_HARNESS](../../tracker/006_EVAL_HARNESS.md) · **checkpoint B**, slice B3 of 5
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-10-29)
 **Decision records:** [ADR-0002](../../ADR-0002-golden-set-construction.md) (the anchor comes from the
 code); [ADR-0003](../../ADR-0003-rationale-pool-benchmark.md) §3–§8 and its 2026-10-29 addendum
 **Depends on:** [001](001_benchmark_definition.md) (split, units, `wilson_interval`) and

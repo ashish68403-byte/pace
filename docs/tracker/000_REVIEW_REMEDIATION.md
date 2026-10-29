@@ -49,7 +49,7 @@ Severity is the audited severity. "Before checkpoint B" means it gates B's work 
 | 5 | No writing scheduled before week 15; the graded artifact is on no week and no cut list | critical | ✅ | `docs/ROADMAP.md` §5, §6 |
 | 6 | The load-bearing premise ("a merged PR that closed an issue IS the rationale") has no measurement | critical | ⬜ | gold-validity audit, new ADR |
 | 7 | CI gate cannot detect 2 points; its denominator moves with the chunker | major | ⬜ | `provenance/eval/runner.py`, `metrics.py`, `anchors.py` |
-| 8 | Leakage gate has three ways to pass green; the thesis stratum is dropped before aggregation | major | ⬜ | `scripts/leakage_probe.py`, `runner.py` |
+| 8 | Leakage gate has three ways to pass green; the thesis stratum is dropped before aggregation | major | 🚧 | `provenance/eval/leakage.py` (closed in B3: [006](006_EVAL_HARNESS.md) row 4), `runner.py` (B5: 006 row 5) |
 | 9 | The week-8 oracle may not exist; the most-quoted number is n=40 with no interval | critical | ⬜ | `docs/ROADMAP.md` §7, new ADR |
 | 10 | Weeks 4-5 spend ~29 h of rate-limited fetching for ~25 min of work; no request budget | major | ⬜ | `scripts/fetch_corpus.py`, `docs/ROADMAP.md` §5 |
 | 11 | Ethics self-assessment has no date; weeks 4-5 are first processing of human text | major | ⬜ | `docs/DATA-PROTECTION.md` §7, `docs/ROADMAP.md` §5 |
