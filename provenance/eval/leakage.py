@@ -26,8 +26,11 @@ measured over the STRONGEST cheap baseline, never the most convenient weak one:
     4. dense         -- cosine similarity over FROZEN vectors, read through the ONE
                         canonical frozen-embedding API (provenance.retrieve.embedder)
 
-It also applies the two retention filters that make a record admissible, reports
-gold_symbol_df, and FAILS if mean grep recall@10 on the retained set is >= 0.35.
+It also applies the two retention filters that make a record admissible (ADR-0003 §5),
+reports gold_symbol_df, and gives checkpoint B's verdict on the dev split (ADR-0003 §6):
+INCONCLUSIVE below 100 retained records or when a stored fact is stale; FAIL when
+retention is below 25% or the strongest lexical baseline's Wilson 95% upper bound on
+recall@10 reaches 0.35; PASS otherwise.
 
 THREE DEFECTS THIS FILE IS THE FIX FOR. Every one of them is a regression waiting to
 happen, so each is named here and again at its site:
@@ -39,7 +42,7 @@ happen, so each is named here and again at its site:
   gold -> recall 0.0 -> **verdict PASS**, a silent false-green on the one invariant
   that validates every other number in the project. There is now exactly ONE loader,
   `provenance.eval.schema.load_golden_set`, and a zero-gold run can no longer print
-  PASS: it prints INCONCLUSIVE and exits non-zero (see `_verdict`).
+  PASS: it prints INCONCLUSIVE and exits non-zero (see `verdict`).
 
 * (audit #11) It called `provenance.eval.anchors.resolve_anchors(anchors, pool)`. The
   real signature is `(record, conn, *, repo_id, ...)`, and the try/except guarded only
@@ -89,14 +92,16 @@ import numpy as np
 
 from provenance.config import settings
 from provenance.eval import schema as golden_schema
+from provenance.eval.metrics import wilson_interval
 from provenance.eval.schema import EvidenceKey, GoldenRecord, load_golden_set
 from provenance.parse.chunker import split_identifier
 from provenance.retrieve.embedder import FrozenEmbedder, FrozenEmbeddingMiss, fixture_path
 
-# The threshold that defines "this benchmark measures something". Chosen, not tuned:
-# grep@10 of 0.35 means roughly two thirds of retained queries cannot be answered by
-# substring matching at all. Above that, lift over a neural system is unmeasurable.
-# Same constant the schema retention rule uses; imported so they cannot drift apart.
+# The threshold that defines "this benchmark measures something" (ADR-0003 §6): the
+# strongest lexical baseline's Wilson 95% upper bound on recall@10 must stay below it.
+# Chosen, not tuned: at 0.35 roughly two thirds of retained queries are beyond every
+# cheap lexical system, and above it lift over a neural system is unmeasurable.
+# Defined once, in the schema; imported so the two cannot drift apart.
 GREP_RECALL_AT_10_CEILING = golden_schema.RETAINED_GREP_R10_MAX
 
 # A token appearing in <= this many documents is "rare enough to be a giveaway".
@@ -311,7 +316,10 @@ def resolve_gold_from_pool(
     `GoldEvidence.keys()`, so a record resolves to the same evidence in both modes.
     """
     resolved = ResolvedGold(qid=record.qid)
-    for key in record.required_evidence:
+    # .keys() is required, not redundant: `required_evidence` is a pydantic model, not a
+    # dict, and its default __iter__ yields (field_name, field_value) pairs -- iterating
+    # it directly here once raised TypeError: unhashable type: 'list'.
+    for key in record.required_evidence.keys():  # noqa: SIM118
         hits = index.get(key)
         if hits:
             resolved.chunk_ids |= hits
@@ -549,24 +557,6 @@ def rank(scores: np.ndarray, k: int) -> list[int]:
 # --------------------------------------------------------------- retention filters
 
 
-def grep_answers_at_rank_1(
-    question: str,
-    grep: GrepIndex,
-    pool: Sequence[Document],
-    gold_chunk_ids: set[str],
-) -> bool:
-    """RETENTION FILTER 1: discard any query that literal grep answers at rank 1.
-
-    If `grep` puts a gold document first, the query is a lookup, not a question about
-    rationale. Keeping it inflates every system's score by the same amount and destroys
-    discrimination between systems.
-    """
-    order = rank(grep.score(question), 1)
-    if not order:
-        return False
-    return pool[order[0]].chunk_id in gold_chunk_ids
-
-
 def rare_tokens_shared_with_gold(
     question: str,
     gold_documents: Sequence[Document],
@@ -585,22 +575,6 @@ def rare_tokens_shared_with_gold(
         gold_tokens.update(tokenize_identifier_aware(doc.content))
     shared = q_tokens & gold_tokens
     return sorted(t for t in shared if corpus_df.get(t, 0) <= max_df)
-
-
-def gold_symbol_literals(record: GoldenRecord) -> list[str]:
-    """The literal strings a grep user would type for this record's gold symbols.
-
-    A qualified name like ``SchedulerJobRunner._executable_task_instances_to_queued``
-    never appears verbatim in source; its segments do. df is therefore measured on the
-    RAREST segment, which is the one that makes the query a lookup.
-    """
-    literals: list[str] = []
-    for anchor in record.required_evidence.symbol_anchors:
-        if anchor.qualified_name:
-            literals.extend(part for part in anchor.qualified_name.split(".") if part)
-        elif anchor.path:
-            literals.append(Path(anchor.path).name)
-    return literals
 
 
 # --------------------------------------------------------------- one record's facts
@@ -688,6 +662,9 @@ class BaselineResult:
     mrr_at_10: float = 0.0
     measured: bool = True
     note: str = ""
+    #: The numbers behind recall_at_10, for its Wilson interval: hits in the top k, of n.
+    hits_at_k: int = 0
+    n: int = 0
 
 
 def evaluate(
@@ -715,30 +692,95 @@ def evaluate(
                 recip = 1.0 / pos
                 break
         rr.append(recip)
-    n = max(len(r1), 1)
+    n = len(r10)
     return BaselineResult(
         name=name,
-        recall_at_1=sum(r1) / n,
-        recall_at_10=sum(r10) / n,
-        mrr_at_10=sum(rr) / n,
+        recall_at_1=sum(r1) / max(n, 1),
+        recall_at_10=sum(r10) / max(n, 1),
+        mrr_at_10=sum(rr) / max(n, 1),
+        hits_at_k=sum(r10),
+        n=n,
     )
 
 
 # --------------------------------------------------------------------------- probe
 
 #: Verdicts. INCONCLUSIVE exists because of audit #12: a run with zero resolved gold
-#: used to compute recall 0.0 and print PASS. Zero gold does not mean "grep cannot
-#: answer this benchmark", it means THERE WAS NO BENCHMARK, and the two must never
+#: used to compute recall 0.0 and print PASS. Too little measured, or a measurement of
+#: the wrong pool, is not "grep cannot answer this benchmark", and the two must never
 #: again render as the same word.
 PASS = "PASS"
 FAIL = "FAIL"
 INCONCLUSIVE = "INCONCLUSIVE"
 
+#: ADR-0003 §6, fixed on 2026-10-27, before any generated record existed. The gate reads
+#: dev only; test is opened at most twice in the project (§7).
+GATE_SPLIT = "dev"
+MIN_RETAINED_DEV = 100
+MIN_RETENTION = 0.25
+#: The rows the gate reads. Dense is reported beside them and never enters the verdict:
+#: a strong learned retriever is a result, not a leak.
+LEXICAL_BASELINES = ("grep", "bm25_default", "bm25_ident")
 
-def _verdict(n_retained: int, grep_recall_at_10: float) -> str:
-    if n_retained == 0:
-        return INCONCLUSIVE
-    return FAIL if grep_recall_at_10 >= GREP_RECALL_AT_10_CEILING else PASS
+
+@dataclass(frozen=True)
+class Gate:
+    """The numbers ADR-0003 §6's verdict reads, and nothing else."""
+
+    n_candidates: int  # answerable dev records, before the filters
+    n_retained: int
+    stale: int  # records whose stored leakage facts differ from the current pool
+    strongest: str  # the lexical baseline with the most hits in the top k
+    strongest_upper: float  # its Wilson 95% upper bound on recall@k
+
+    @property
+    def retention(self) -> float:
+        return self.n_retained / self.n_candidates if self.n_candidates else 0.0
+
+
+def verdict(gate: Gate) -> tuple[str, list[str]]:
+    """ADR-0003 §6: the verdict, and the reasons for anything but PASS.
+
+    INCONCLUSIVE is decided first. A stale set was measured against a pool its records
+    were not generated against, and fewer than 100 retained records cannot support a
+    bound tight enough to mean anything: neither is evidence either way, and neither
+    is a pass.
+    """
+    reasons: list[str] = []
+    if gate.stale:
+        reasons.append(
+            f"{gate.stale:,} record(s) carry leakage facts that differ from this pool; "
+            "regenerate with `pace golden generate`"
+        )
+    if gate.n_retained < MIN_RETAINED_DEV:
+        reasons.append(
+            f"{gate.n_retained:,} retained {GATE_SPLIT} records, fewer than {MIN_RETAINED_DEV}"
+        )
+    if reasons:
+        return INCONCLUSIVE, reasons
+    if gate.retention < MIN_RETENTION:
+        reasons.append(f"retention {gate.retention:.1%} is below {MIN_RETENTION:.0%}")
+    if gate.strongest_upper >= GREP_RECALL_AT_10_CEILING:
+        reasons.append(
+            f"{gate.strongest}'s Wilson 95% upper bound on recall@10, "
+            f"{gate.strongest_upper:.3f}, is not below {GREP_RECALL_AT_10_CEILING:.2f}"
+        )
+    return (FAIL, reasons) if reasons else (PASS, [])
+
+
+def symbol_short_name(record: GoldenRecord) -> str | None:
+    """The short name of the record's symbol anchor (`grow` for `B.grow`), or None.
+
+    A generated record carries its symbol as supporting evidence (ADR-0003 §4); a
+    hand-written one may carry it as required evidence, which is read first.
+    """
+    for anchor in (
+        *record.required_evidence.symbol_anchors,
+        *record.supporting_evidence.symbol_anchors,
+    ):
+        if anchor.qualified_name:
+            return anchor.qualified_name.rsplit(".", 1)[-1]
+    return None
 
 
 def run_probe(
@@ -750,126 +792,199 @@ def run_probe(
     dense_note: str = "",
     k: int = DEFAULT_K,
 ) -> dict[str, Any]:
-    grep = GrepIndex(pool)
-    bm25_default = BM25([tokenize_default(d.content) for d in pool])
-    bm25_ident = BM25([tokenize_identifier_aware(d.content) for d in pool])
+    """Score the dev split's answerable records and give ADR-0003 §6's verdict.
 
-    corpus_df = dict(bm25_ident.df)
-    chunk_ids = [d.chunk_id for d in pool]
-    by_chunk = {d.chunk_id: d for d in pool}
+    Every record's leakage facts are measured again with `PoolIndex.measure`, the code
+    generation used; a generated record whose stored facts differ is stale. Retention
+    is decided by the facts measured now, so the filter and the verdict cannot disagree
+    about which records were scored.
+    """
+    index = PoolIndex(pool)
+    in_split = [rec for rec in golden if rec.split == GATE_SPLIT]
+    # Unanswerables carry no required evidence BY CONSTRUCTION (schema validator). They
+    # are scored by refusal precision/recall, not by retrieval, so they are counted and
+    # never become candidates.
+    candidates = [rec for rec in in_split if not rec.expected_refusal]
 
+    scored: list[GoldenRecord] = []
     retained: list[GoldenRecord] = []
     dropped: list[dict[str, str]] = []
     gold_map: dict[str, set[str]] = {}
-    gold_symbol_dfs: list[int] = []
+    symbol_df: dict[str, int] = {}
+    stale: list[str] = []
     unresolved_keys: dict[str, list[str]] = {}
 
-    for rec in golden:
-        # Unanswerables carry no required evidence BY CONSTRUCTION (schema validator).
-        # They are scored by refusal precision/recall, not by retrieval, and counting
-        # them as "anchors resolved to nothing" would hide real resolution failures in
-        # a pile of expected ones.
-        if rec.expected_refusal:
-            dropped.append({"qid": rec.qid, "reason": "unanswerable_scored_by_refusal"})
-            continue
-
+    for rec in candidates:
         resolved = resolver(rec)
         if resolved.unresolved:
             unresolved_keys[rec.qid] = [f"{kind}:{value}" for kind, value in resolved.unresolved]
         if not resolved.chunk_ids:
             dropped.append({"qid": rec.qid, "reason": "anchors_resolve_to_nothing"})
             continue
+        facts = index.measure(rec.question, resolved.chunk_ids, symbol_short_name(rec), k=k)
+        if rec.leakage is not None and not rec.is_handwritten and facts.differs_from(rec.leakage):
+            stale.append(rec.qid)
         gold_map[rec.qid] = resolved.chunk_ids
-
-        for literal in gold_symbol_literals(rec):
-            gold_symbol_dfs.append(grep.substring_df(literal))
-
-        if grep_answers_at_rank_1(rec.question, grep, pool, resolved.chunk_ids):
+        if facts.gold_symbol_df is not None:
+            symbol_df[rec.qid] = facts.gold_symbol_df
+        scored.append(rec)
+        if facts.grep_answers_at_rank_1:
             dropped.append({"qid": rec.qid, "reason": "grep_answers_at_rank_1"})
-            continue
+        elif facts.rare_tokens_shared_with_gold:
+            shared = ", ".join(facts.rare_tokens_shared_with_gold[:5])
+            dropped.append({"qid": rec.qid, "reason": f"rare_token_overlap: {shared}"})
+        else:
+            retained.append(rec)
 
-        gold_docs = [by_chunk[c] for c in resolved.chunk_ids if c in by_chunk]
-        shared = rare_tokens_shared_with_gold(rec.question, gold_docs, corpus_df)
-        if shared:
-            dropped.append(
-                {"qid": rec.qid, "reason": f"rare_token_overlap: {', '.join(shared[:5])}"}
-            )
-            continue
+    rankings = _rankings(index, scored, dense, k)
+    retained_ids = [rec.qid for rec in retained]
+    filtered = _baselines(rankings, gold_map, retained_ids, k, dense_note)
+    unfiltered = _baselines(rankings, gold_map, [rec.qid for rec in scored], k, dense_note)
 
-        retained.append(rec)
+    lexical = [b for b in filtered if b.name in LEXICAL_BASELINES]
+    strongest = max(lexical, key=lambda b: b.hits_at_k)
+    # Wilson needs n >= 1. With nothing retained the bound is vacuous, and the verdict is
+    # INCONCLUSIVE on the count alone.
+    upper = wilson_interval(strongest.hits_at_k, strongest.n)[1] if strongest.n else 1.0
+    gate = Gate(
+        n_candidates=len(candidates),
+        n_retained=len(retained),
+        stale=len(stale),
+        strongest=strongest.name,
+        strongest_upper=upper,
+    )
+    outcome, reasons = verdict(gate)
 
-    def rankings_for(scorer: Callable[[GoldenRecord], np.ndarray]) -> dict[str, list[str]]:
-        out: dict[str, list[str]] = {}
-        for rec in retained:
-            out[rec.qid] = [chunk_ids[i] for i in rank(scorer(rec), k)]
-        return out
-
-    results: list[BaselineResult] = [
-        evaluate("grep", rankings_for(lambda r: grep.score(r.question)), gold_map, k),
-        evaluate(
-            "bm25_default",
-            rankings_for(lambda r: bm25_default.score(tokenize_default(r.question))),
-            gold_map,
-            k,
-        ),
-        evaluate(
-            "bm25_ident",
-            rankings_for(lambda r: bm25_ident.score(tokenize_identifier_aware(r.question))),
-            gold_map,
-            k,
-        ),
-    ]
-    if dense is not None:
-        dense_rankings = rankings_for(lambda r: dense.score(r.question))
-        results.append(evaluate("dense", dense_rankings, gold_map, k))
-    else:
-        results.append(
-            BaselineResult(name="dense", measured=False, note=dense_note or "no frozen vectors")
-        )
-
-    grep_result = results[0]
-    cheap = [r for r in results if r.name != "dense" and r.measured]
-    strongest_cheap = max(cheap, key=lambda r: r.recall_at_10)
-    verdict = _verdict(len(retained), grep_result.recall_at_10)
-
+    zero = [qid for qid in retained_ids if symbol_df.get(qid) == 0]
+    positive = [qid for qid in retained_ids if symbol_df.get(qid, 0) > 0]
+    dfs = [symbol_df[rec.qid] for rec in scored if rec.qid in symbol_df]
     return {
         "k": k,
+        "split": GATE_SPLIT,
         "n_golden": len(golden),
+        "n_unanswerable": len(in_split) - len(candidates),
+        "n_candidates": len(candidates),
         "n_retained": len(retained),
         "n_dropped": len(dropped),
-        "retention_rate": len(retained) / max(len(golden), 1),
+        "n_stale": len(stale),
+        "stale": stale[:20],
+        "retention_rate": gate.retention,
+        "min_retained": MIN_RETAINED_DEV,
+        "min_retention": MIN_RETENTION,
         "pool_size": len(pool),
-        "gold_symbol_df": {
-            "n": len(gold_symbol_dfs),
-            "median": statistics.median(gold_symbol_dfs) if gold_symbol_dfs else None,
-            "mean": statistics.fmean(gold_symbol_dfs) if gold_symbol_dfs else None,
-            "min": min(gold_symbol_dfs) if gold_symbol_dfs else None,
-            "max": max(gold_symbol_dfs) if gold_symbol_dfs else None,
-            "frac_df_le_1": (
-                sum(1 for d in gold_symbol_dfs if d <= 1) / len(gold_symbol_dfs)
-                if gold_symbol_dfs
-                else None
-            ),
+        "gold_symbol_df": _df_summary(dfs),
+        "symbol_df_strata": {
+            "df_zero_share": len(zero) / len(retained) if retained else None,
+            "df_zero": _stratum(rankings, gold_map, zero, k),
+            "df_positive": _stratum(rankings, gold_map, positive, k),
         },
-        "baselines": [
-            {
-                "name": r.name,
-                "measured": r.measured,
-                "note": r.note,
-                "recall_at_1": r.recall_at_1,
-                "recall_at_10": r.recall_at_10,
-                "mrr_at_10": r.mrr_at_10,
-            }
-            for r in results
-        ],
-        "strongest_cheap_baseline": strongest_cheap.name,
-        "strongest_cheap_recall_at_10": strongest_cheap.recall_at_10,
-        "grep_recall_at_10": grep_result.recall_at_10,
+        "baselines": [_baseline_row(b) for b in filtered],
+        "baselines_unfiltered": [_baseline_row(b) for b in unfiltered],
+        "strongest_cheap_baseline": strongest.name,
+        "strongest_cheap_recall_at_10": strongest.recall_at_10,
+        "strongest_cheap_upper_95": upper,
+        "grep_recall_at_10": next(b.recall_at_10 for b in filtered if b.name == "grep"),
         "ceiling": GREP_RECALL_AT_10_CEILING,
-        "verdict": verdict,
+        "verdict": outcome,
+        "verdict_reasons": reasons,
         "unresolved_anchors": unresolved_keys,
         "dropped": dropped[:200],
         "drop_reason_counts": dict(Counter(d["reason"].split(":", 1)[0] for d in dropped)),
+    }
+
+
+def _rankings(
+    index: PoolIndex, records: Sequence[GoldenRecord], dense: DenseBaseline | None, k: int
+) -> dict[str, dict[str, list[str]]]:
+    """Each baseline's top k for every scored record.
+
+    Lexical rows keep only documents that matched (`PoolIndex.matched`). Dense keeps its
+    k nearest whatever their score: cosine similarity has no "no match".
+    """
+    lexical: dict[str, Callable[[str], np.ndarray]] = {
+        "grep": index.grep.score,
+        "bm25_default": lambda q: index.bm25_default.score(tokenize_default(q)),
+        "bm25_ident": lambda q: index.bm25_ident.score(tokenize_identifier_aware(q)),
+    }
+    out = {
+        name: {rec.qid: index.matched(score(rec.question), k) for rec in records}
+        for name, score in lexical.items()
+    }
+    if dense is not None:
+        out["dense"] = {
+            rec.qid: [index.chunk_ids[i] for i in rank(dense.score(rec.question), k)]
+            for rec in records
+        }
+    return out
+
+
+def _baselines(
+    rankings: dict[str, dict[str, list[str]]],
+    gold: dict[str, set[str]],
+    qids: Sequence[str],
+    k: int,
+    dense_note: str,
+) -> list[BaselineResult]:
+    rows = [
+        evaluate(name, {qid: rankings[name][qid] for qid in qids}, gold, k)
+        for name in (*LEXICAL_BASELINES, "dense")
+        if name in rankings
+    ]
+    if "dense" not in rankings:
+        note = dense_note or "no frozen vectors"
+        rows.append(BaselineResult(name="dense", measured=False, note=note))
+    return rows
+
+
+def _stratum(
+    rankings: dict[str, dict[str, list[str]]],
+    gold: dict[str, set[str]],
+    qids: Sequence[str],
+    k: int,
+) -> dict[str, Any]:
+    """ADR-0002's thesis statistic: each baseline's recall@k on one df stratum."""
+    if not qids:
+        return {"n": 0, "recall_at_10": {}}
+    recalls = {
+        name: evaluate(name, {qid: ranked[qid] for qid in qids}, gold, k).recall_at_10
+        for name, ranked in sorted(rankings.items())
+    }
+    return {"n": len(qids), "recall_at_10": recalls}
+
+
+def _baseline_row(b: BaselineResult) -> dict[str, Any]:
+    interval = list(wilson_interval(b.hits_at_k, b.n)) if b.measured and b.n else [None, None]
+    return {
+        "name": b.name,
+        "measured": b.measured,
+        "note": b.note,
+        "recall_at_1": b.recall_at_1,
+        "recall_at_10": b.recall_at_10,
+        "mrr_at_10": b.mrr_at_10,
+        "hits_at_10": b.hits_at_k,
+        "n": b.n,
+        "recall_at_10_wilson_95": interval,
+    }
+
+
+def _df_summary(dfs: Sequence[int]) -> dict[str, Any]:
+    """How unique is the answer's primary key? Over every scored record's symbol."""
+    if not dfs:
+        return {
+            "n": 0,
+            "median": None,
+            "mean": None,
+            "min": None,
+            "max": None,
+            "frac_df_le_1": None,
+        }
+    return {
+        "n": len(dfs),
+        "median": statistics.median(dfs),
+        "mean": statistics.fmean(dfs),
+        "min": min(dfs),
+        "max": max(dfs),
+        "frac_df_le_1": sum(1 for d in dfs if d <= 1) / len(dfs),
     }
 
 
@@ -879,16 +994,24 @@ def run_probe(
 def render_report(report: dict[str, Any]) -> str:
     lines: list[str] = []
     add = lines.append
+    split = report["split"]
+
+    def row(label: str, value: int, note: str = "") -> None:
+        add(f"  {label:<23}{value:>8,}{note}")
+
     add("=" * 78)
-    add("PACE LEAKAGE PROBE -- can substring search ace this benchmark?")
+    add("PACE LEAKAGE PROBE -- can a cheap baseline ace this benchmark?")
     add("=" * 78)
     add("")
-    add(f"  document pool          {report['pool_size']:>8,} chunks")
-    add(f"  golden records loaded  {report['n_golden']:>8,}")
-    add(f"  retained after filters {report['n_retained']:>8,}   ({report['retention_rate']:.1%})")
-    add(f"  dropped                {report['n_dropped']:>8,}")
-    for reason, count in sorted(report["drop_reason_counts"].items(), key=lambda x: -x[1]):
+    row("document pool", report["pool_size"], " documents")
+    row("golden records loaded", report["n_golden"], f"   (the verdict reads {split} only)")
+    row(f"{split} candidates", report["n_candidates"])
+    row("retained after filters", report["n_retained"], f"   ({report['retention_rate']:.1%})")
+    row("dropped", report["n_dropped"])
+    for reason, count in sorted(report["drop_reason_counts"].items(), key=lambda x: (-x[1], x[0])):
         add(f"      - {reason:<38} {count:>6,}")
+    if report["n_stale"]:
+        row("STALE", report["n_stale"], "   stored leakage facts differ from this pool")
     if report["unresolved_anchors"]:
         add("")
         add(f"  UNRESOLVED ANCHORS on {len(report['unresolved_anchors'])} record(s) -- an ingest")
@@ -898,58 +1021,89 @@ def render_report(report: dict[str, Any]) -> str:
     add("")
 
     gsd = report["gold_symbol_df"]
-    add("  gold_symbol document frequency (how unique is the answer's primary key?)")
+    add("  gold symbol document frequency (how unique is the answer's primary key?)")
     if gsd["n"]:
         add(
             f"      median {gsd['median']}   mean {gsd['mean']:.2f}   "
-            f"min {gsd['min']}   max {gsd['max']}   (n={gsd['n']} symbols)"
+            f"min {gsd['min']}   max {gsd['max']}   (n={gsd['n']:,} records)"
         )
         add(
             f"      fraction with df <= 1: {gsd['frac_df_le_1']:.1%}"
             "   (df==1 means the symbol IS the answer)"
         )
     else:
-        add("      no resolvable gold symbol on any record")
+        add("      no scored record names a symbol")
+    strata = report["symbol_df_strata"]
+    if strata["df_zero_share"] is not None:
+        add(
+            "      retained records whose symbol is in no pool document: "
+            f"{strata['df_zero_share']:.1%}"
+        )
+        for label in ("df_zero", "df_positive"):
+            stratum = strata[label]
+            recalls = ", ".join(f"{n} {r:.3f}" for n, r in stratum["recall_at_10"].items())
+            add(f"        {label:<12} n={stratum['n']:<7,} recall@{report['k']}: {recalls or '-'}")
     add("")
 
-    add("  BASELINES (lift must be measured over the STRONGEST row, not the weakest)")
-    add(f"      {'baseline':<16}{'recall@1':>10}{'recall@10':>12}{'MRR@10':>10}")
-    add(f"      {'-' * 48}")
+    add(f"  BASELINES on the retained {split} set (the gate reads the strongest lexical row)")
+    add(f"      {'baseline':<16}{'recall@1':>10}{'recall@10':>12}{'MRR@10':>10}   Wilson 95%")
+    add(f"      {'-' * 70}")
     for b in report["baselines"]:
         if not b["measured"]:
             add(f"      {b['name']:<16}{'NOT MEASURED':>32}   {b['note']}")
             continue
-        marker = "  <-- strongest cheap" if b["name"] == report["strongest_cheap_baseline"] else ""
+        low, high = b["recall_at_10_wilson_95"]
+        interval = "-" if low is None else f"[{low:.3f}, {high:.3f}]"
+        strongest = b["name"] == report["strongest_cheap_baseline"]
+        marker = "  <-- strongest lexical" if strongest else ""
         add(
-            f"      {b['name']:<16}{b['recall_at_1']:>10.3f}"
-            f"{b['recall_at_10']:>12.3f}{b['mrr_at_10']:>10.3f}{marker}"
+            f"      {b['name']:<16}{b['recall_at_1']:>10.3f}{b['recall_at_10']:>12.3f}"
+            f"{b['mrr_at_10']:>10.3f}   {interval}{marker}"
         )
-    add("")
-    add(f"  grep recall@10 = {report['grep_recall_at_10']:.3f}   ceiling = {report['ceiling']:.2f}")
+    before = ", ".join(
+        f"{b['name']} {b['recall_at_10']:.3f}"
+        for b in report["baselines_unfiltered"]
+        if b["measured"]
+    )
+    add(f"      recall@{report['k']} before the filters: {before or '-'}")
     add("")
 
-    verdict = report["verdict"]
-    if verdict == PASS:
+    add("  GATE (ADR-0003 §6, fixed before any record existed)")
+    add(
+        f"      retained {split} records  {report['n_retained']:>8,}   "
+        f"needs >= {report['min_retained']}"
+    )
+    add(
+        f"      retention             {report['retention_rate']:>8.1%}   "
+        f"needs >= {report['min_retention']:.0%}"
+    )
+    add(
+        f"      upper bound           {report['strongest_cheap_upper_95']:>8.3f}   "
+        f"needs <  {report['ceiling']:.2f}   ({report['strongest_cheap_baseline']})"
+    )
+    add("")
+
+    outcome = report["verdict"]
+    if outcome == PASS:
         add("  VERDICT: PASS")
-        add("      Literal substring search cannot answer the retained set. Retrieval")
-        add("      numbers measured on it are meaningful, and lift must be quoted")
+        add("      No cheap lexical baseline can answer the retained dev set. Retrieval")
+        add("      numbers measured on it mean something, and lift is quoted against")
         add(
-            f"      against '{report['strongest_cheap_baseline']}' "
+            f"      '{report['strongest_cheap_baseline']}' "
             f"(recall@10 {report['strongest_cheap_recall_at_10']:.3f})."
         )
-    elif verdict == FAIL:
+    elif outcome == FAIL:
         add("  VERDICT: FAIL  ***  THE BENCHMARK MEASURES NOTHING  ***")
-        add("      grep answers the retained set. Every downstream number -- ablations,")
-        add("      reranker lift, refusal precision -- is invalid until this is fixed.")
-        add("      Fix by rewriting questions so they describe the RATIONALE sought")
-        add("      rather than naming the symbol, and re-running the retention filters.")
+        for reason in report["verdict_reasons"]:
+            add(f"      - {reason}")
+        add("      Every downstream number -- ablations, reranker lift, refusal precision --")
+        add("      is invalid until this is fixed.")
     else:
         add("  VERDICT: INCONCLUSIVE  ***  NOT A PASS  ***")
-        add("      Zero records survived to be scored, so nothing was measured. This is")
-        add("      the expected state before the first ingest and the expected state")
-        add("      when the golden set is empty -- but it is NOT evidence that the")
-        add("      benchmark is sound. A run that resolved no gold once printed PASS")
-        add("      (recall 0.0 < 0.35); that false green is what this verdict replaces.")
+        for reason in report["verdict_reasons"]:
+            add(f"      - {reason}")
+        add("      Nothing here is evidence that the benchmark is sound. A run that resolved")
+        add("      no gold once printed PASS; that false green is what this verdict replaces.")
     add("")
     add(_meeting_summary(report))
     add("=" * 78)
@@ -958,50 +1112,38 @@ def render_report(report: dict[str, Any]) -> str:
 
 def _meeting_summary(report: dict[str, Any]) -> str:
     """One paragraph, pasteable into a supervisor meeting or a progress report."""
-    gsd = report["gold_symbol_df"]
-    df_clause = (
-        f"median gold-symbol document frequency {gsd['median']} "
-        f"({gsd['frac_df_le_1']:.0%} of gold symbols appear in <= 1 document)"
-        if gsd["n"]
-        else "no gold symbol was resolvable, so document frequency is unmeasured"
-    )
-    if report["verdict"] == INCONCLUSIVE:
+    split, outcome = report["split"], report["verdict"]
+    if outcome == INCONCLUSIVE:
         body = (
-            f"Nothing was scored: {report['n_golden']} golden record(s) were loaded against a "
-            f"pool of {report['pool_size']:,} chunks and none survived anchor resolution and "
-            "the retention filters. No claim about benchmark quality can be made from this "
-            "run, and no retrieval number measured today should be quoted."
+            f"No verdict on the {split} split: {'; '.join(report['verdict_reasons'])}. No "
+            "claim about benchmark quality can be made from this run, and no retrieval "
+            "number measured on it should be quoted."
         )
     else:
         rows = {b["name"]: b for b in report["baselines"]}
-        cheap_bits = ", ".join(
-            f"{name} {rows[name]['recall_at_10']:.3f}"
-            for name in ("grep", "bm25_default", "bm25_ident")
-            if rows[name]["measured"]
+        lexical = ", ".join(f"{n} {rows[n]['recall_at_10']:.3f}" for n in LEXICAL_BASELINES)
+        share = report["symbol_df_strata"]["df_zero_share"]
+        df_clause = (
+            f" {share:.0%} of retained questions name a symbol no pool document contains."
+            if share is not None
+            else ""
         )
-        dense_bit = (
-            f"dense-only {rows['dense']['recall_at_10']:.3f}"
-            if rows["dense"]["measured"]
-            else "dense-only not measured (no frozen vectors committed yet)"
-        )
+        why = f": {'; '.join(report['verdict_reasons'])}" if report["verdict_reasons"] else ""
         body = (
-            f"On {report['n_retained']} retained queries "
-            f"({report['retention_rate']:.0%} of {report['n_golden']}) over a pool of "
-            f"{report['pool_size']:,} chunks, cheap-baseline recall@{report['k']} is "
-            f"{cheap_bits}; {dense_bit}. The strongest cheap baseline is "
-            f"'{report['strongest_cheap_baseline']}' at "
-            f"{report['strongest_cheap_recall_at_10']:.3f}, and all reported lift is quoted "
-            f"against it. {df_clause.capitalize()}. Substring search scores "
-            f"{report['grep_recall_at_10']:.3f} against a ceiling of {report['ceiling']:.2f}, so "
-            f"the verdict is {report['verdict']}."
+            f"On {report['n_retained']:,} retained {split} queries "
+            f"({report['retention_rate']:.0%} of {report['n_candidates']:,}) over a pool of "
+            f"{report['pool_size']:,} documents, lexical recall@{report['k']} is {lexical}. "
+            f"The strongest, '{report['strongest_cheap_baseline']}', has a Wilson 95% upper "
+            f"bound of {report['strongest_cheap_upper_95']:.3f} against a ceiling of "
+            f"{report['ceiling']:.2f}, so the verdict is {outcome}{why}.{df_clause}"
         )
     wrapped: list[str] = ["  SUMMARY (pasteable)", "  " + "-" * 48]
     line = "  "
-    for word in body.split():
-        if len(line) + len(word) + 1 > 78:
+    for token in body.split():
+        if len(line) + len(token) + 1 > 78:
             wrapped.append(line)
             line = "  "
-        line += ("" if line.strip() == "" else " ") + word
+        line += ("" if line.strip() == "" else " ") + token
     wrapped.append(line)
     return "\n".join(wrapped)
 
@@ -1025,6 +1167,16 @@ def _build_dense(
         if require:
             raise SystemExit(f"--require-dense: {exc}") from exc
         return None, note
+
+
+def _shown(path: Path) -> str:
+    """A path as a committed report shows it: relative to the working directory when it
+    is inside it, so the same run on another machine writes the same bytes."""
+    resolved = Path(path).resolve()
+    try:
+        return str(resolved.relative_to(Path.cwd().resolve()))
+    except ValueError:
+        return str(path)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -1126,13 +1278,14 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
         report = run_probe(golden, pool, pool_resolver, dense=dense, dense_note=note, k=args.k)
 
-    report["golden_path"] = str(args.golden)
-    report["frozen_embeddings_path"] = str(args.embeddings or fixture_path(args.model))
+    report["golden_path"] = _shown(args.golden)
+    report["frozen_embeddings_path"] = _shown(args.embeddings or fixture_path(args.model))
     print(render_report(report))
 
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
-        args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True), encoding="utf-8")
+        rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
+        args.json_out.write_text(rendered, encoding="utf-8")
         print(f"\nwrote {args.json_out}")
 
     if report["verdict"] == PASS:

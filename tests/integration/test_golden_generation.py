@@ -20,6 +20,12 @@ from provenance.eval.generator import (
     generate,
     write_outputs,
 )
+from provenance.eval.leakage import (
+    INCONCLUSIVE,
+    load_pool_from_db,
+    resolve_gold_from_db,
+    run_probe,
+)
 from provenance.eval.schema import assign_splits, group_key, load_golden_set, passes_leakage_filter
 from provenance.ingest.message_pool import write_pool
 
@@ -155,3 +161,30 @@ def test_without_a_pool_there_is_nothing_to_generate(
     ingest()
     with pytest.raises(NothingToGenerate, match="pace pool build"):
         generate(migrated_database, test_repo_id, history_repo.root)
+
+
+def _verdict(records, conn, repo_id):
+    pool = load_pool_from_db(conn, repo_id)
+    return run_probe(records, pool, lambda record: resolve_gold_from_db(record, conn, repo_id))
+
+
+def test_the_verdict_recomputes_every_fact_and_agrees_with_generation(
+    history_repo, test_repo_id, ingest, migrated_database
+):
+    generation = _generated(history_repo, test_repo_id, ingest, migrated_database)
+    # All three into dev, whatever their hash says: a split that left none in dev would
+    # make "no stale fact" true by reading nothing. The split changes no leakage fact.
+    records = [record.model_copy(update={"split": "dev"}) for record in generation.records]
+    report = _verdict(records, migrated_database, test_repo_id)
+    assert (report["n_candidates"], report["n_stale"]) == (3, 0)
+    assert report["verdict"] == INCONCLUSIVE  # three records, far fewer than 100
+
+
+def test_a_tampered_stored_fact_is_caught(history_repo, test_repo_id, ingest, migrated_database):
+    generation = _generated(history_repo, test_repo_id, ingest, migrated_database)
+    first, *rest = generation.records
+    assert first.leakage is not None
+    wrong = first.leakage.model_copy(update={"grep_answers_at_rank_1": True})
+    tampered = first.model_copy(update={"split": "dev", "leakage": wrong})
+    report = _verdict([tampered, *rest], migrated_database, test_repo_id)
+    assert (report["n_stale"], report["stale"]) == (1, [first.qid])
