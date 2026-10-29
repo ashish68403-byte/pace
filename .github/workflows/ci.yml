@@ -152,9 +152,9 @@ jobs:
         # health -- which is exactly why "zero gold resolved" now prints INCONCLUSIVE
         # rather than PASS (audit #12).
         #
-        # Invoked as the script rather than `pace leakage` only to keep the log clean:
-        # the CLI tries `provenance.eval.leakage` first and prints a red not-found line
-        # before falling back to this file. Same entry point, same flags.
+        # The script is a shim over provenance.eval.leakage, the module `pace leakage`
+        # runs; the path is kept so this step and the nightly job never change.
+        # Same entry point, same flags.
         run: |
           mkdir -p artifacts
           uv run python scripts/leakage_probe.py \

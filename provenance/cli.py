@@ -9,7 +9,7 @@ Canonical commands, and nothing else claims to exist:
     pace measure      truncation | pool: the measurements the write-up quotes
     pace pool         build: the benchmark's document pool (ADR-0003)
     pace eval         run | fixtures | invariants
-    pace leakage      substring-search baseline over the golden set
+    pace leakage      cheap baselines over the golden set; checkpoint B's leakage verdict
     pace health       database + extension healthcheck
     pace version      versions in effect
 
@@ -33,9 +33,7 @@ from __future__ import annotations
 
 import importlib
 import inspect
-import sys
 from collections.abc import Callable, Sequence
-from pathlib import Path
 from typing import Any
 
 import typer
@@ -72,44 +70,6 @@ def _load(module_path: str, attr: str) -> Callable[..., Any]:
     entry = getattr(module, attr, None)
     if entry is None:
         typer.secho(f"{module_path} has no entry point '{attr}'.", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=2)
-    return entry  # type: ignore[no-any-return]
-
-
-def _load_script(relative: str, attr: str) -> Callable[..., Any]:
-    """Load an entry point from a standalone script that is not on sys.path.
-
-    Only resolvable in a source checkout: `scripts/` is not inside the wheel
-    (`[tool.hatch.build.targets.wheel] packages = ["provenance"]`), so under a
-    non-editable install this path does not exist, and the message has to say
-    that rather than report a mysterious missing file.
-    """
-    import importlib.util
-
-    path = Path(__file__).resolve().parent.parent / relative
-    if not path.is_file():
-        typer.secho(
-            f"{path} not found. `pace leakage` runs from a source checkout; "
-            "scripts/ is not packaged into the wheel.",
-            fg=typer.colors.RED,
-            err=True,
-        )
-        raise typer.Exit(code=2)
-
-    spec = importlib.util.spec_from_file_location(path.stem, path)
-    if spec is None or spec.loader is None:
-        typer.secho(f"cannot load {path}", fg=typer.colors.RED, err=True)
-        raise typer.Exit(code=2)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[spec.name] = module
-    spec.loader.exec_module(module)
-    return _load_attr(module, attr, str(path))
-
-
-def _load_attr(module: Any, attr: str, where: str) -> Callable[..., Any]:
-    entry = getattr(module, attr, None)
-    if entry is None:
-        typer.secho(f"{where} has no entry point '{attr}'.", fg=typer.colors.RED, err=True)
         raise typer.Exit(code=2)
     return entry  # type: ignore[no-any-return]
 
@@ -264,12 +224,8 @@ else:
 
 @app.command(context_settings=PASSTHROUGH)
 def leakage(ctx: typer.Context) -> None:
-    """Substring-search baseline over the golden set; must score below 0.35 recall@10."""
-    try:
-        entry = _load("provenance.eval.leakage", "main")
-    except typer.Exit:
-        entry = _load_script("scripts/leakage_probe.py", "main")
-    _call(entry, ctx.args)
+    """Cheap baselines over the golden set, and checkpoint B's leakage verdict (ADR-0003)."""
+    _call(_load("provenance.eval.leakage", "main"), ctx.args)
 
 
 @app.command()
