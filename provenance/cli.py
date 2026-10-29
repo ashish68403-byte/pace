@@ -8,6 +8,7 @@ Canonical commands, and nothing else claims to exist:
     pace history      one file's history vs a current-path view
     pace measure      truncation | pool: the measurements the write-up quotes
     pace pool         build: the benchmark's document pool (ADR-0003)
+    pace golden       generate: the benchmark's questions, from the code diff (ADR-0003)
     pace eval         run | fixtures | invariants
     pace leakage      cheap baselines over the golden set; checkpoint B's leakage verdict
     pace health       database + extension healthcheck
@@ -186,6 +187,23 @@ def build(ctx: typer.Context) -> None:
 
 
 app.add_typer(pool_app, name="pool")
+
+
+golden_app = typer.Typer(no_args_is_help=True, add_completion=False)
+
+
+@golden_app.callback()
+def _golden() -> None:
+    """The benchmark's questions: generated from the code diff, measured for leakage."""
+
+
+@golden_app.command(context_settings=PASSTHROUGH)
+def generate(ctx: typer.Context) -> None:
+    """Every question ADR-0003 §3 allows, with its leakage facts, and the census."""
+    _call(_load("provenance.eval.generator", "main"), ctx.args)
+
+
+app.add_typer(golden_app, name="golden")
 
 
 # --- eval: mounted as a real Typer sub-app ---------------------------------- #

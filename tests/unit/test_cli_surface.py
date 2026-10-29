@@ -61,3 +61,9 @@ def test_the_ci_script_path_still_runs_the_probe(tmp_path):
     )
     assert done.returncode == 0, done.stderr
     assert "VERDICT: INCONCLUSIVE" in done.stdout
+
+
+def test_pace_golden_lists_generate():
+    result = CliRunner().invoke(app, ["golden", "--help"])
+    assert result.exit_code == 0
+    assert "generate" in result.output
