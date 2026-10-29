@@ -208,3 +208,20 @@ PR-referencing commits, before "added" candidates are counted.
   Both follow §3's own rule that every question be answerable and unambiguous. Neither touches
   §5's leakage filters, §6's gate or §8's sizes, and the census measured candidate supply only:
   the baselines' recall, which is the gate, was not measured before this addendum.
+- **2026-10-29 — what PR text joins §1's pool, committed before the first fetch.** Slice B4
+  ([tasks/eval-harness/004](tasks/eval-harness/004_github_backfill.md)) fetches the 5,963 PRs
+  that B2 linked. Three rules extend §1–§2:
+  - **Conversation comments are documents.** A PR's conversation comments — GitHub serves them as
+    issue comments — become `issue_comment` documents at `pull/<n>/comment/<id>`, beside the
+    description (`pull/<n>`) and the inline review comments (`pull/<n>/review/<id>`). Much of a
+    PR's *why* is argued there.
+  - **Bot-written text is never a document.** A description or comment whose author GitHub
+    marks as a bot account is stored but not pooled: a welcome or stale-bot message would
+    otherwise count as gold for every PR it appears on.
+  - **A description's HTML comments are removed.** They hold the PR template's instructions,
+    which GitHub never displays.
+
+  Every document is evidence for its own artifact, for its PR and for the commit B2 linked to
+  that PR, as §2 requires. Issues stay outside B's pool. None of this touches §5's filters, §6's
+  gate or §8's sizes: the golden set is regenerated against the grown pool, and the verdict is
+  re-run and reported whatever it says.

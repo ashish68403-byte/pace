@@ -2,7 +2,7 @@
 
 *Provenance-Aware Code Intelligence. Final-year undergraduate project. Single researcher,
 single machine, no third-party data sharing.*
-Last reviewed: 2026-10-27.
+Last reviewed: 2026-10-29.
 
 ## 1. What personal data is processed
 
@@ -11,19 +11,23 @@ The following categories of personal data are unavoidably present and are retain
 
 | Data | Where it comes from | Why it is necessary |
 |---|---|---|
-| **Author login** (e.g. `potiuk`) | GitHub API: `user.login` on issues, PRs, comments; `author.login` on commits | It is the citation. The project's central claim is that every answer names the artefact and the person who wrote the rationale. Removing it would remove the thing being evaluated. Logins are self-chosen public pseudonyms already published by the data subject. |
+| **Author login** (e.g. `potiuk`) | GitHub API: `user.login` on the PRs fetched and on their comments | It is the citation. The project's central claim is that every answer names the artefact and the person who wrote the rationale. Removing it would remove the thing being evaluated. Logins are self-chosen public pseudonyms already published by the data subject. |
 | **Git author and committer names** | git history: the author and committer recorded in each commit | How the commit itself names the person, and so the citation for commit-sourced rationale, as the login is for GitHub text. They are part of the public, Apache-licensed history the project analyses, and are stored as recorded. |
-| **Comment, issue, PR and commit-message text** | GitHub API | This *is* the research object: the corpus of written rationale the system retrieves over. Such text may incidentally contain personal data the author chose to publish about themselves or others. |
+| **PR, comment and commit-message text** | GitHub API (PRs and their comments); git history (commit messages) | This *is* the research object: the corpus of written rationale the system retrieves over. Such text may incidentally contain personal data the author chose to publish about themselves or others. |
 | **Timestamps** (`created_at`, authored/committed dates) | GitHub API / git | Needed to order provenance and to test whether the system prefers recent rationale over stale rationale. |
+
+**Scope of the GitHub fetch** (checkpoint B, slice B4): the 5,963 apache/airflow PRs that
+in-scope commits reference — each PR's title and description, its inline review comments and its
+conversation comments. No issues and no other PRs are fetched.
 
 ## 2. What is explicitly excluded
 
 | Excluded | How |
 |---|---|
-| **Commit author and committer email addresses** | Hashed with SHA-256 at ingestion (`hash_email()` in `provenance/privacy.py`), truncated to 32 hex chars, on both ingestion paths: the GitHub fetch (`scripts/fetch_corpus.py`, stored as `author_email_sha256`) and the git walk (`provenance/ingest/git_walk.py`, stored as `commits.author_email_sha256` and `commits.committer_email_sha256`). The raw address is never written to disk, the database, the manifest, or a log, and the database refuses one: migration `0008_hashed_emails` adds CHECK constraints. §8 records the one time this did not hold. |
-| **Email addresses appearing in body text** | Regex-scrubbed to `<email:…>` (`scrub_emails()` in `provenance/privacy.py`): **before** hashing and **before** caching on the GitHub path, and before storage on the git path (commit subjects and messages). The stored sha256 describes the scrubbed bytes, so no unscrubbed copy is ever needed for verification. |
-| **Real names, avatars, profile URLs, organisation membership, follower graphs** | Never requested. Only `login` is read from the `user` object. |
-| **Private repository data, private profile data, anything requiring elevated scope** | Read-only public-scope token; no endpoint touched requires more. |
+| **Commit author and committer email addresses** | Hashed with SHA-256 at ingestion (`hash_email()` in `provenance/privacy.py`), truncated to 32 hex chars, by the git walk (`provenance/ingest/git_walk.py`, stored as `commits.author_email_sha256` and `commits.committer_email_sha256`). The GitHub fetch (`provenance/ingest/github_backfill.py`) requests no commit data, so it never receives an author address. The raw address is never written to disk, the database, the manifest, or a log, and the database refuses one: migration `0008_hashed_emails` adds CHECK constraints. §8 records the one time this did not hold. |
+| **Email addresses appearing in body text** | Regex-scrubbed to `<email:…>` (`scrub_emails()` in `provenance/privacy.py`): **before** storage and **before** hashing on the GitHub path, in every text field it keeps (titles, descriptions, comments, diff hunks), and before storage on the git path (commit subjects and messages). The manifest's SHA-256 describes the scrubbed text, so no unscrubbed copy is ever needed for verification. |
+| **Real names, avatars, profile URLs, organisation membership, follower graphs** | Never stored. GitHub's responses carry avatars and profile URLs; from the `user` object only `login` and whether the account type is `Bot` are kept. The raw response is discarded, and neither `author_association` (it reveals organisation membership) nor a PR's `head_ref` (a fork's branch name can carry a person's name) is stored. |
+| **Private repository data, private profile data, anything requiring elevated scope** | A fine-grained token with read-only access to public repositories; no endpoint touched requires more. |
 | **End-user query data** | There are no end users. Queries are the researcher's own and the golden set's. |
 
 There is no attempt to re-identify hashed emails, and no rainbow-table defence is
@@ -42,20 +46,22 @@ writing without a licence to do so.
 Therefore the repository commits **identifiers only**:
 
 ```
-(repo, pr_number, issue_number, comment_id, commit_sha, sha256_of_body, url)
+(kind, pr_number, comment_id, sha256 of the stored text)
 ```
 
-Bodies are fetched at run time from the GitHub API into a gitignored local cache
-(`~/corpus/airflow/bodies`). The committed `sha256_of_body` makes the corpus
-*reproducible* — anyone re-running `fetch_corpus.py hydrate` can prove they obtained the
-same bytes — without the repository being a *copy*.
+Text is fetched from the GitHub API into the local database (`pace-db`, bound to localhost),
+never into the repository. The committed manifest, `results/github_manifest.jsonl`, holds one
+line per stored artifact, with no text and no login. It makes the corpus *reproducible* —
+anyone re-running `pace github backfill` can prove they obtained the same bytes, or count how
+many were edited since — without the repository being a *copy*.
 
 GitHub's Acceptable Use Policies permit collecting information via the API for research
 purposes **on the condition that any resulting publications are open access**. This
 project is submitted as an open-access dissertation, and the code and manifest are
 published openly, which is what satisfies that condition. The API is accessed with an
 authenticated read-only token, respecting documented rate limits (primary limits are
-waited out, secondary limits backed off) — no scraping of the web UI.
+waited out, secondary limits backed off), under a request budget of one request per PR plus
+one per page of each kind of its comments — no scraping of the web UI.
 
 ## 4. Lawful basis
 
@@ -80,33 +86,48 @@ waited out, secondary limits backed off) — no scraping of the web UI.
 
 | Item | Retention |
 |---|---|
-| ID manifest (`corpus/manifest.jsonl`) | Life of the project + the examination period, then retained as part of the open-access publication because it contains no body text. |
-| Hydrated body cache (local, gitignored) | Deleted at project completion, or on request. Rebuildable at any time from the manifest. |
+| ID manifest (`results/github_manifest.jsonl`) | Retained as part of the open-access publication: it contains no text and no login. |
+| Fetched text (the `pace-db` tables `pull_requests`, `review_comments` and `issue_comments`, and the pool documents in `chunks`) | Deleted with the database at project completion, or on request. Re-fetchable at any time with `pace github backfill`. |
 | Database (`pace-db` volume) | Deleted at project completion (`docker volume rm pace-pgdata`). |
 | Evaluation reports (`eval/reports/*.json`) | Retained — they contain metrics and query ids, no personal data. |
 | Golden set | Questions are researcher-authored; gold evidence is anchors only (`commit_sha`, `pr_number`, `issue_number`, `review_comment_id`, `(path, qualified_name)`). No body text, no personal data beyond what an anchor implies. |
 
-**Erasure requests.** Because bodies are never committed and are re-derived from GitHub
-at run time, deletion upstream propagates automatically: a comment deleted on GitHub
-cannot be re-hydrated and its cached copy is removed by the next
-`fetch_corpus.py verify` run. A request from an individual to exclude their contributions
-is honoured by filtering their login out of the manifest and re-running ingestion; the
-contact address is on the dissertation cover page.
+**Erasure requests.** Text is never committed, so nothing needs withdrawing from the
+repository. A request from an individual to exclude their contributions is honoured by
+deleting the rows that carry their login from the local database and rebuilding the pool
+(`pace pool build`); the contact address is on the dissertation cover page. Text later deleted
+on GitHub remains only in the local database, which is itself deleted at project completion.
 
 ## 6. Security
 
 Single-machine processing. The database is bound to `localhost` only and is not exposed
-to the network. The GitHub token is read-only and supplied via environment variable, never
-committed. No personal data leaves the machine: retrieval and the eval pipeline run
-locally, and the only outbound calls are to the GitHub API (fetching data, not sending it)
-and — in the generation half only, never in the deterministic retrieval gate — to an LLM
-provider, where the payload is corpus text already public on GitHub.
+to the network. The GitHub token is a fine-grained token with read-only access to public
+repositories and a 30-day expiry. It is kept in the gitignored `.env` as `PACE_GITHUB_TOKEN`,
+read as a secret value, and never logged, printed or stored. No personal data leaves the
+machine: retrieval and the eval pipeline run locally, and the only outbound calls are to the
+GitHub API (fetching data, not sending it) and — in the generation half only, never in the
+deterministic retrieval gate — to an LLM provider, where the payload is corpus text already
+public on GitHub.
 
-## 7. Ethics review
+## 7. Ethics self-assessment
 
-No human participants, no interventions, no recruitment, no sensitive-category data
-(Art. 9). Public data only, minimised as above. This statement is the artefact submitted
-for institutional ethics self-assessment.
+**Self-assessment completed:** 2026-10-29, by the researcher, before the first fetch of GitHub
+discussion text (checkpoint B, slice B4). `pace github backfill` refuses to run until this line
+carries a date.
+
+| Question | Answer |
+|---|---|
+| Human participants, interventions or recruitment? | None. |
+| Source | Public text on github.com/apache/airflow, published by its authors to be read and cited. |
+| Volume | The 5,963 PRs that in-scope commits reference: descriptions, inline review comments, conversation comments. No issues, no other repository. |
+| Special-category data (Art. 9)? | None is sought; any present is incidental to public development discussion. |
+| Minimisation | Logins and account type only; email addresses scrubbed from all text; avatars, profile URLs, organisation membership and raw API responses discarded (§2). |
+| Profiling, or decisions about individuals? | None. PACE evaluates its own retrieval, not the people whose comments it indexes. |
+| Storage | A local database bound to localhost, never committed, deleted at project completion (§5, §6). |
+| Redistribution | None: the repository commits identifiers and hashes only (§3). |
+| GitHub's terms | API access only, with a read-only token and its rate limits respected. The dissertation is open access, the condition GitHub's Acceptable Use Policies set for research use (§3). |
+
+This statement is the artefact submitted for institutional ethics self-assessment.
 
 ## 8. Incidents
 
