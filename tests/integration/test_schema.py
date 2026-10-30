@@ -57,7 +57,7 @@ from provenance.graph.tables import (
 
 pytestmark = pytest.mark.db
 
-HEAD_REVISION = "0008_hashed_emails"
+HEAD_REVISION = "0009_github_bots"
 
 CORE_TABLES = (
     REPOSITORIES,
@@ -414,3 +414,10 @@ def test_a_revision_records_the_path_it_had_at_its_commit(migrated_database: Any
     """Migration 0006. old_path is only a rename's source; this is every revision's name."""
     got = _nullability_and_default(migrated_database, "file_revisions", "path_at_commit")
     assert got == ("NO", None)
+
+
+@pytest.mark.parametrize("table", ["pull_requests", "review_comments", "issue_comments"])
+def test_github_authors_say_whether_they_are_bots(migrated_database: Any, table: str) -> None:
+    """Migration 0009. Bot-written text never enters the pool; GitHub's own flag decides."""
+    got = _nullability_and_default(migrated_database, table, "author_is_bot")
+    assert got == ("NO", "false")

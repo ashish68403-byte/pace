@@ -22,7 +22,7 @@ declare it here.
 
 from pathlib import Path
 
-from pydantic import field_validator
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -44,6 +44,11 @@ class Settings(BaseSettings):
 
     repo_owner: str = "apache"
     repo_name: str = "airflow"
+
+    # GitHub REST token for `pace github backfill` (checkpoint B, slice B4): a fine-grained
+    # token with read-only access to public repositories, kept in the gitignored .env as
+    # PACE_GITHUB_TOKEN. SecretStr, so printing the settings never shows it.
+    github_token: SecretStr | None = None
 
     # Walking skeleton uses a small local model; 384 dims keeps the index small
     # enough to build on 2 cores with no CUDA.
