@@ -22,7 +22,24 @@ from pathlib import Path
 from typing import Any, Final
 
 from provenance.config import settings
-from provenance.graph.tables import CHUNK_EVIDENCE, CHUNKS, COMMITS
+from provenance.graph.tables import (
+    CHUNK_EVIDENCE,
+    CHUNKS,
+    COMMITS,
+    DEAD_LETTERS,
+    INGEST_RUNS,
+    ISSUE_COMMENTS,
+    ISSUES,
+    PULL_REQUESTS,
+    REVIEW_COMMENTS,
+)
+from provenance.ingest.github_backfill import (
+    DATA_PROTECTION,
+    DRIVER,
+    NOT_FOUND_ERROR,
+    STAGE,
+    self_assessment_date,
+)
 from provenance.ingest.message_pool import (
     APACHE_NUMBERING_STARTS,
     DROPPED_BEFORE_NUMBERING,
@@ -35,6 +52,7 @@ from provenance.ingest.message_pool import (
     PoolCommit,
     link_decisions,
 )
+from provenance.ingest.pr_pool import PR_KINDS
 
 SCHEMA: Final = "pace.pool_census/v1"
 DEFAULT_OUT: Final = Path("results") / "pool_census.json"
@@ -54,6 +72,62 @@ _EVIDENCE_SQL: Final = f"""
     WHERE e.repo_id = %s AND d.kind = 'commit'
 """
 _TOPO_SQL: Final = f"SELECT topo_order FROM {COMMITS} WHERE repo_id = %s AND commit_sha = %s"
+
+_B2_LINKS: Final = f"""
+    SELECT l.evidence_key::int AS pr, s.evidence_key AS sha
+    FROM {CHUNK_EVIDENCE} l
+    JOIN {CHUNK_EVIDENCE} s ON s.repo_id = l.repo_id AND s.chunk_id = l.chunk_id
+    JOIN {CHUNKS} d ON d.chunk_id = l.chunk_id
+    WHERE l.repo_id = %(repo_id)s AND d.kind = 'commit'
+      AND l.source = 'linked' AND l.evidence_kind = 'pull_request'
+      AND s.source = 'self' AND s.evidence_kind = 'commit'
+"""
+_GITHUB_PRS_SQL: Final = f"""
+    SELECT (SELECT count(*) FROM ({_B2_LINKS}) b),
+           (SELECT count(*) FROM {PULL_REQUESTS} WHERE repo_id = %(repo_id)s),
+           (SELECT count(*) FROM {PULL_REQUESTS} p WHERE p.repo_id = %(repo_id)s
+              AND p.pr_number NOT IN (SELECT pr FROM ({_B2_LINKS}) b)),
+           (SELECT count(*) FROM {DEAD_LETTERS}
+              WHERE repo_id = %(repo_id)s AND stage = %(stage)s AND error_class = %(error)s)
+"""
+_GITHUB_ARTIFACTS_SQL: Final = f"""
+    SELECT (SELECT count(*) FROM {PULL_REQUESTS} WHERE repo_id = %(repo_id)s)
+         + (SELECT count(*) FROM {REVIEW_COMMENTS} WHERE repo_id = %(repo_id)s)
+         + (SELECT count(*) FROM {ISSUE_COMMENTS} c JOIN {ISSUES} i
+              ON i.repo_id = c.repo_id AND i.issue_number = c.issue_number
+              WHERE c.repo_id = %(repo_id)s AND i.is_pull_request),
+           (SELECT count(*) FROM {PULL_REQUESTS} WHERE repo_id = %(repo_id)s AND author_is_bot)
+         + (SELECT count(*) FROM {REVIEW_COMMENTS} WHERE repo_id = %(repo_id)s AND author_is_bot)
+         + (SELECT count(*) FROM {ISSUE_COMMENTS} WHERE repo_id = %(repo_id)s AND author_is_bot),
+           (SELECT count(*) FROM {REVIEW_COMMENTS}
+              WHERE repo_id = %(repo_id)s AND NOT author_is_bot AND body ~ '^\\s*$')
+         + (SELECT count(*) FROM {ISSUE_COMMENTS}
+              WHERE repo_id = %(repo_id)s AND NOT author_is_bot AND body ~ '^\\s*$')
+"""
+_GITHUB_DOCUMENTS_SQL: Final = f"""
+    SELECT kind::text, count(*) FROM {CHUNKS}
+    WHERE repo_id = %(repo_id)s AND kind = ANY(%(kinds)s::artifact_kind[])
+    GROUP BY 1
+"""
+_GITHUB_LINKS_SQL: Final = f"""
+    SELECT count(*) FILTER (WHERE p.merged_at IS NULL),
+           count(*) FILTER (WHERE p.merged_at IS NOT NULL AND p.merge_commit_sha = b.sha),
+           count(*) FILTER (WHERE p.merged_at IS NOT NULL AND p.merge_commit_sha <> b.sha
+                            AND c.commit_sha IS NOT NULL),
+           count(*) FILTER (WHERE p.merged_at IS NOT NULL AND c.commit_sha IS NULL)
+    FROM {PULL_REQUESTS} p
+    JOIN ({_B2_LINKS}) b ON b.pr = p.pr_number
+    LEFT JOIN {COMMITS} c ON c.repo_id = p.repo_id AND c.commit_sha = p.merge_commit_sha
+    WHERE p.repo_id = %(repo_id)s
+"""
+_GITHUB_FETCH_SQL: Final = f"""
+    SELECT count(*),
+           coalesce(sum((checkpoint->>'requests')::int), 0),
+           coalesce(sum((checkpoint->>'rate_limit_waits')::int), 0),
+           (SELECT min(fetched_at)::date FROM {PULL_REQUESTS} WHERE repo_id = %(repo_id)s),
+           (SELECT max(fetched_at)::date FROM {PULL_REQUESTS} WHERE repo_id = %(repo_id)s)
+    FROM {INGEST_RUNS} WHERE repo_id = %(repo_id)s AND driver = %(driver)s
+"""
 
 
 class NothingToMeasure(RuntimeError):
@@ -84,6 +158,58 @@ def _git_output(root: Path, *args: str) -> str:
         ["git", "-C", str(root), *args], capture_output=True, text=True, check=True
     )
     return done.stdout.strip()
+
+
+def github_census(
+    conn: Any, repo_id: int, *, data_protection: Path = DATA_PROTECTION
+) -> dict[str, Any]:
+    """Slice B4's fetch, counted and cross-checked. Counts and identifiers only."""
+    params = {
+        "repo_id": repo_id,
+        "stage": STAGE,
+        "error": NOT_FOUND_ERROR,
+        "driver": DRIVER,
+        "kinds": list(PR_KINDS),
+    }
+    linked, fetched, unlinked, not_found = conn.execute(_GITHUB_PRS_SQL, params).fetchone()
+    if unlinked:
+        raise CensusCheckFailed(f"{unlinked:,} stored PRs are not among the pool's links")
+    artifacts, bots, empty = conn.execute(_GITHUB_ARTIFACTS_SQL, params).fetchone()
+    documents = {kind: 0 for kind in PR_KINDS}
+    documents.update(
+        {kind: int(n) for kind, n in conn.execute(_GITHUB_DOCUMENTS_SQL, params).fetchall()}
+    )
+    if artifacts != sum(documents.values()) + bots + empty:
+        raise CensusCheckFailed(
+            f"{artifacts:,} PR artifacts are stored but {sum(documents.values()):,} documents, "
+            f"{bots:,} bot-written and {empty:,} empty account for them: "
+            "rebuild with `pace pool build`"
+        )
+    not_merged, agree, elsewhere, outside = conn.execute(_GITHUB_LINKS_SQL, params).fetchone()
+    runs, requests, waits, first, last = conn.execute(_GITHUB_FETCH_SQL, params).fetchone()
+    assessed = self_assessment_date(data_protection.read_text(encoding="utf-8"))
+    if fetched and (assessed is None or (first is not None and assessed > first)):
+        raise CensusCheckFailed("the self-assessment must precede the first fetch (finding 11)")
+    return {
+        "prs": {"linked": int(linked), "fetched": int(fetched), "not_found": int(not_found)},
+        "documents": dict(sorted(documents.items())),
+        "left_out": {"bot_authored": int(bots), "empty": int(empty)},
+        "links_vs_merge_commits": {
+            "agree": int(agree),
+            "elsewhere_in_graph": int(elsewhere),
+            "outside_graph": int(outside),
+            "not_merged": int(not_merged),
+        },
+        "fetch": {
+            "runs": int(runs),
+            "requests": int(requests),
+            "requests_per_pr": round(requests / fetched, 3) if fetched else None,
+            "rate_limit_waits": int(waits),
+            "first_fetch_on": None if first is None else first.isoformat(),
+            "last_fetch_on": None if last is None else last.isoformat(),
+        },
+        "self_assessment_completed": None if assessed is None else assessed.isoformat(),
+    }
 
 
 def build_census(
@@ -147,6 +273,7 @@ def build_census(
             "lines": _spread(lines),
             f"over_{LONG_MESSAGE_WORDS}_words": sum(1 for w in words if w > LONG_MESSAGE_WORDS),
         },
+        "github": github_census(conn, repo_id),
     }
 
 
@@ -170,6 +297,9 @@ def render_summary(census: dict[str, Any], out: Path) -> str:
             f"  PRs with two or more documents: {evidence['prs_with_two_or_more_documents']:,}",
             f"  message words: median {words['p50']}, p90 {words['p90']}, p99 {words['p99']}, "
             f"max {words['max']:,}",
+            f"  GitHub: {census['github']['prs']['fetched']:,} of "
+            f"{census['github']['prs']['linked']:,} linked PRs fetched; documents "
+            + ", ".join(f"{k} {n:,}" for k, n in census["github"]["documents"].items()),
             f"  wrote {out}",
         ]
     )

@@ -55,8 +55,7 @@ from provenance.eval.schema import (
     passes_leakage_filter,
     write_golden_set,
 )
-from provenance.graph.tables import CHUNK_EVIDENCE, COMMITS
-from provenance.ingest.message_pool import MESSAGE_STRATEGY_VERSION
+from provenance.graph.tables import CHUNK_EVIDENCE, CHUNKS, COMMITS, RATIONALE_KINDS
 
 GENERATION_STRATEGY: Final = "ast_diff_v0"
 
@@ -110,6 +109,18 @@ _LINKED_PRS_SQL: Final = f"""
       AND s.source = 'self' AND s.evidence_kind = 'commit'
       AND l.source = 'linked' AND l.evidence_kind = 'pull_request'
 """
+POOL_VERSION: Final = "rationale-v1"
+_POOL_KINDS_SQL: Final = f"""
+    SELECT kind::text, count(*) FROM {CHUNKS}
+    WHERE repo_id = %s AND tombstoned_at_commit IS NULL AND kind = ANY(%s::artifact_kind[])
+    GROUP BY 1 ORDER BY 1
+"""
+
+
+def pool_version(conn: Any, repo_id: int) -> str:
+    """`rationale-v1:commit=6810,...`: the pool every stored leakage fact was measured on."""
+    rows = conn.execute(_POOL_KINDS_SQL, (repo_id, list(RATIONALE_KINDS))).fetchall()
+    return f"{POOL_VERSION}:" + ",".join(f"{kind}={int(n)}" for kind, n in rows)
 
 
 class NothingToGenerate(RuntimeError):
@@ -226,7 +237,7 @@ def generate(conn: Any, repo_id: int, corpus: Path) -> Generation:
     prs = {str(sha): int(pr) for sha, pr in links}
     splits = assign_splits(group_key(e.sha, prs.get(e.sha)) for e in candidates)
     index = PoolIndex(pool)
-    index_version = f"{MESSAGE_STRATEGY_VERSION}:{len(pool)}"
+    index_version = pool_version(conn, repo_id)
 
     records: list[GoldenRecord] = []
     for event in candidates:

@@ -18,6 +18,7 @@ import httpx
 import pytest
 from pydantic import SecretStr
 
+from provenance.analysis.pool_census import CensusCheckFailed, github_census
 from provenance.ingest.git_walk import STATUS_SUCCEEDED, Checkpointer
 from provenance.ingest.github_backfill import DRIVER, backfill, plan, write_manifest
 from provenance.ingest.github_client import GitHubClient
@@ -310,3 +311,27 @@ def test_a_stale_pr_document_fails_the_build_and_writes_nothing(
     with pytest.raises(PoolInvariantError, match="pull/11"):
         write_pr_pool(migrated_database, test_repo_id)
     assert _documents(query, test_repo_id) == {"pull/11": "pull_request"}
+
+
+def test_the_census_tells_the_fetchs_story(pooled, test_repo_id, migrated_database):
+    fetch(test_repo_id, migrated_database, fake_github(pooled.sha)[0])
+    write_pr_pool(migrated_database, test_repo_id)
+    census = github_census(migrated_database, test_repo_id)
+    assert census["prs"] == {"linked": 4, "fetched": 3, "not_found": 1}
+    assert census["documents"] == {"issue_comment": 2, "pull_request": 3, "review_comment": 150}
+    assert census["left_out"] == {"bot_authored": 1, "empty": 1}
+    assert census["links_vs_merge_commits"] == {
+        "agree": 2,
+        "elsewhere_in_graph": 0,
+        "outside_graph": 1,
+        "not_merged": 0,
+    }
+    assert (census["fetch"]["runs"], census["fetch"]["requests"]) == (1, 8)
+    assert census["self_assessment_completed"] == "2026-10-29"
+    assert census["fetch"]["first_fetch_on"] >= census["self_assessment_completed"]
+
+
+def test_the_census_refuses_a_pool_that_lags_the_fetch(pooled, test_repo_id, migrated_database):
+    fetch(test_repo_id, migrated_database, fake_github(pooled.sha)[0])
+    with pytest.raises(CensusCheckFailed, match="pace pool build"):
+        github_census(migrated_database, test_repo_id)

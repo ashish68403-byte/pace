@@ -101,7 +101,7 @@ def test_every_fixture_question_is_retained_with_its_facts(
     hits = {(r.baseline_grep_r10, r.baseline_bm25_r10) for r in generation.records}
     assert hits == {(0.0, 0.0)}
     versions = {r.leakage.probe_index_version for r in generation.records if r.leakage}
-    assert versions == {"commit-message-v1:8"}
+    assert versions == {"rationale-v1:commit=8"}
     assert {r.corpus_commit for r in generation.records} == {history_repo.sha["c9"]}
 
 
