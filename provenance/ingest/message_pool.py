@@ -389,14 +389,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         with connection() as conn:
             repo_id = resolve_repo_id(conn, settings.repo_owner, settings.repo_name)
             report = write_pool(conn, repo_id)
+            from provenance.ingest.pr_pool import write_pr_pool  # imports this module
+
+            pr_report = write_pr_pool(conn, repo_id)
     except (UnknownRepository, NothingToBuild) as exc:
         print(f"nothing to build: {exc}", file=sys.stderr)
         return 2
     except PoolInvariantError as exc:
         print(f"POOL CHECK FAILED: {exc}", file=sys.stderr)
         return 1
+    from provenance.ingest.pr_pool import render_pr_report
+
     if args.json:
-        print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
+        both = {**report.as_dict(), "pull_requests": pr_report.as_dict()}
+        print(json.dumps(both, indent=2, sort_keys=True))
     else:
         print(render_report(report))
+        print(render_pr_report(pr_report))
     return 0

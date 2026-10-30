@@ -21,7 +21,8 @@ from pydantic import SecretStr
 from provenance.ingest.git_walk import STATUS_SUCCEEDED, Checkpointer
 from provenance.ingest.github_backfill import DRIVER, backfill, plan, write_manifest
 from provenance.ingest.github_client import GitHubClient
-from provenance.ingest.message_pool import write_pool
+from provenance.ingest.message_pool import PoolInvariantError, write_pool
+from provenance.ingest.pr_pool import write_pr_pool
 
 pytestmark = pytest.mark.db
 
@@ -223,3 +224,89 @@ def test_the_budget_stops_between_prs_never_inside_one(
 def test_the_plan_makes_no_request(pooled, test_repo_id, migrated_database):
     todo, report = plan(migrated_database, test_repo_id)
     assert (todo, report.linked, report.already_stored) == ([11, 12, 13, 14], 4, 0)
+
+
+def _documents(query, repo_id):
+    return dict(
+        query(
+            "SELECT path, kind::text FROM chunks WHERE repo_id = %s AND kind <> 'commit'", repo_id
+        )
+    )
+
+
+def test_pr_text_joins_the_pool_with_its_evidence(pooled, test_repo_id, migrated_database, query):
+    sha = pooled.sha
+    fetch(test_repo_id, migrated_database, fake_github(sha)[0])
+    report = write_pr_pool(migrated_database, test_repo_id)
+    docs = _documents(query, test_repo_id)
+    assert {p for p, k in docs.items() if k == "pull_request"} == {"pull/11", "pull/13", "pull/14"}
+    assert sum(1 for k in docs.values() if k == "review_comment") == 150
+    talk = {p for p, k in docs.items() if k == "issue_comment"}
+    assert talk == {"pull/11/comment/1", "pull/14/comment/4"}
+    assert (report.left_out_bot, report.left_out_empty) == (1, 1)
+    [(text,)] = query(
+        "SELECT content FROM chunks WHERE repo_id = %s AND path = 'pull/11'", test_repo_id
+    )
+    assert "<!--" not in text and "@" not in text and text.startswith("PR 11\n\n")
+    evidence = set(
+        query(
+            "SELECT e.evidence_kind::text, e.evidence_key, e.source FROM chunk_evidence e "
+            "JOIN chunks c USING (chunk_id) WHERE c.repo_id = %s AND c.path = 'pull/14/comment/4'",
+            test_repo_id,
+        )
+    )
+    assert evidence == {
+        ("issue_comment", "4", "self"),
+        ("pull_request", "14", "linked"),
+        ("commit", sha["c7"], "linked"),
+    }
+
+
+def test_every_document_of_a_change_satisfies_both_units(
+    pooled, test_repo_id, migrated_database, query
+):
+    from provenance.eval.anchors import resolve_anchors
+    from provenance.eval.schema import GoldenRecord
+
+    sha = pooled.sha
+    fetch(test_repo_id, migrated_database, fake_github(sha)[0])
+    write_pr_pool(migrated_database, test_repo_id)
+    ids = dict(query("SELECT path, chunk_id FROM chunks WHERE repo_id = %s", test_repo_id))
+    record = GoldenRecord.model_validate(
+        {
+            "qid": "b4-1",
+            "query_class": "archaeology",
+            "split": "dev",
+            "question": "Why did `helper` change in January 2020?",
+            "required_evidence": {"commit_shas": [sha["c7"]], "pr_numbers": [14]},
+            "generation_strategy": "handwritten_test",
+        }
+    )
+    units = resolve_anchors(record, migrated_database, repo_id=test_repo_id).required_units
+    change = {ids[f"commit/{sha['c7']}"], ids["pull/14"], ids["pull/14/comment/4"]}
+    assert units == {("commit", sha["c7"]): change, ("pr", "14"): change}
+
+
+def test_a_second_build_inserts_nothing(pooled, test_repo_id, migrated_database):
+    fetch(test_repo_id, migrated_database, fake_github(pooled.sha)[0])
+    first = write_pr_pool(migrated_database, test_repo_id)
+    second = write_pr_pool(migrated_database, test_repo_id)
+    assert (second.documents_inserted, second.evidence_inserted) == (0, 0)
+    assert second.documents_skipped == first.documents_inserted
+
+
+def test_a_stale_pr_document_fails_the_build_and_writes_nothing(
+    pooled, test_repo_id, migrated_database, query
+):
+    sha = pooled.sha
+    fetch(test_repo_id, migrated_database, fake_github(sha)[0])
+    migrated_database.execute(
+        "INSERT INTO chunks (chunk_id, repo_id, path, kind, language, start_line, end_line, "
+        "content, content_sha, chunking_strategy_version, first_seen_commit, last_seen_commit) "
+        "VALUES (%s, %s, 'pull/11', 'pull_request', 'text', 1, 1, 'an older text', %s, "
+        "'pull-request-v0', %s, %s)",
+        ("e" * 64, test_repo_id, "d" * 64, sha["c2"], sha["c2"]),
+    )
+    with pytest.raises(PoolInvariantError, match="pull/11"):
+        write_pr_pool(migrated_database, test_repo_id)
+    assert _documents(query, test_repo_id) == {"pull/11": "pull_request"}
