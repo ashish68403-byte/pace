@@ -37,10 +37,11 @@ def test_text_without_an_address_is_untouched() -> None:
     assert scrub_emails(text) == text
 
 
-def test_the_github_path_imports_the_shared_helpers() -> None:
-    fetch = (ROOT / "scripts" / "fetch_corpus.py").read_text(encoding="utf-8")
-    assert "from provenance.privacy import hash_email, scrub_emails" in fetch
-    assert "def hash_email" not in fetch and "def scrub_emails" not in fetch
+def test_the_github_path_scrubs_through_the_shared_helper() -> None:
+    fetch = (ROOT / "provenance" / "ingest" / "github_backfill.py").read_text(encoding="utf-8")
+    assert "from provenance.privacy import scrub_emails" in fetch
+    assert "def scrub_emails" not in fetch and "EMAIL_RE" not in fetch
+    assert not (ROOT / "scripts" / "fetch_corpus.py").exists()
 
 
 # ------------------------------------------------- migration 0008's frozen copy

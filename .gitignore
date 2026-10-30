@@ -41,9 +41,9 @@ corpus/
 # Redistributing the dump in a public repo would be republishing other people's
 # words without permission.
 #
-# What may be committed: the IDs (commit_sha, pr_number, issue_number,
-# review_comment_id), the fetch script, and derived numeric artifacts. Anyone
-# reproducing the work re-fetches the bodies themselves with `pace ingest`.
+# What may be committed: identifiers and hashes (results/github_manifest.jsonl), the
+# fetch code, and derived numeric artifacts. Anyone reproducing the work re-fetches the
+# text themselves with `pace github backfill`.
 data/raw/
 data/github/
 *.comments.jsonl

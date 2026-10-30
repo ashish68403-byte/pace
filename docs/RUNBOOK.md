@@ -91,15 +91,21 @@ catalogue on each CI run.
 
 ### Corpus
 
+The git history comes from the clone at `~/corpus/airflow` (`pace ingest`). PR text comes from
+the GitHub API, only for the PRs the pool links
+([tasks/eval-harness/004](tasks/eval-harness/004_github_backfill.md)):
+
 ```bash
-export GITHUB_TOKEN=...                     # read-only
-uv run python scripts/fetch_corpus.py manifest --since 2023-01-01
-uv run python scripts/fetch_corpus.py hydrate    # gitignored body cache
-uv run python scripts/fetch_corpus.py verify
+# once: a fine-grained token, read-only access to public repositories, 30-day expiry
+read -rs PACE_TOKEN && printf 'PACE_GITHUB_TOKEN=%s\n' "$PACE_TOKEN" >> .env && unset PACE_TOKEN && chmod 600 .env
+uv run pace github backfill --plan     # what is left and its minimum cost; makes no request
+uv run pace github backfill            # resumable: after any stop, run it again
+uv run pace pool build && uv run pace measure pool
 ```
 
-Only the ID manifest is committed. Bodies are the comment authors' copyright and are
-fetched at runtime — see `docs/DATA-PROTECTION.md`.
+The fetched text lives in the local database only. Only an ID-and-hash manifest
+(`results/github_manifest.jsonl`) is committed — the comment authors' copyright, not ours to
+redistribute — see `docs/DATA-PROTECTION.md`.
 
 ### Before pushing
 
@@ -144,10 +150,10 @@ written down" cannot afford a failure mode that looks like a confident answer.
 | **LLM provider down / rate-limited / no key** | httpx error, 429, or missing credential | Retrieval still runs. The system returns the **retrieved evidence with citations and no generated synthesis** — which is a genuinely useful degraded product, not an error page. | `200` with `"answer": null`, `"citations": [...]`, `"degraded": ["synthesis_unavailable"]` |
 | **LLM returns a citation that does not resolve** | post-hoc validation against the `provenance_edges` view and `chunks` | Answer is **suppressed and converted to a refusal.** An uncheckable citation is worse than no answer. | `"refusal": "cited evidence did not resolve"`, with the offending anchors listed. |
 | **Jaeger / OTLP collector down** | exporter connect error | Degrade silently *for the request*, loudly *in the log*. Spans are dropped after a bounded in-memory queue fills; request handling is never blocked on telemetry. | Request succeeds normally. `trace_id` is still returned and still valid — it just will not be findable in the UI. One WARN per minute, rate-limited. |
-| **GitHub API rate-limited or down** | 403 with rate-limit header, 429, 5xx | `fetch_corpus.py` sleeps until reset for primary limits, exponential backoff for secondary/5xx, then gives up cleanly leaving a partial manifest. Never a partial *record*. | Progress on stderr; partial manifest is valid JSONL and re-runnable. |
-| **Body cache miss at query time** | cached file absent for a manifest record | The artefact is excluded from the answer and named in the degradation list. Never fetched inline — a synchronous GitHub call inside a request is an unbounded latency and a rate-limit hazard. | `"degraded": ["N artefacts not hydrated"]`; run `fetch_corpus.py hydrate`. |
+| **GitHub API rate-limited or down** | 403 or 429 with rate-limit headers, 5xx, a dropped connection | `pace github backfill` waits for the announced reset at zero remaining requests, waits `retry-after` (else backs off) on secondary limits, backs off on 5xx, at most 6 attempts per request, then stops. Every PR before the stop is stored whole; never a partial PR. | Progress in `ingest_runs` (`driver = 'github_backfill'`); run the command again to resume. |
+| **PR text missing at query time** | the PR was never fetched (no `pull_requests` row) | The artefact is excluded from the answer and named in the degradation list. Never fetched inline: a synchronous GitHub call inside a request is an unbounded latency and a rate-limit hazard. | `"degraded": ["N artefacts not fetched"]`; run `pace github backfill`. |
 | **Corpus git repository missing at `~/corpus/airflow`** | `pygit2` open fails at startup | Commit-level provenance disabled; PR/issue/comment provenance still works. Flagged at startup and on every response. | `"degraded": ["commit_provenance_unavailable"]` |
-| **Disk full** (3.7 GB machine; index builds are the usual cause) | Postgres `53100`, or `OSError: [Errno 28]` in the hydrate cache | Writes fail fast; no partial index is left half-built because index creation is inside a transaction. | `503`. Recover with `docker volume ls`, prune old images, re-run `alembic upgrade head`. |
+| **Disk full** (3.7 GB machine; index builds are the usual cause) | Postgres `53100`, or `OSError: [Errno 28]` | Writes fail fast; no partial index is left half-built because index creation is inside a transaction. | `503`. Recover with `docker volume ls`, prune old images, re-run `alembic upgrade head`. |
 
 Two rules that hold across every row:
 

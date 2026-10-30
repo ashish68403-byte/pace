@@ -1,10 +1,11 @@
 """Personal data: the only code allowed to see a raw email address.
 
 DATA-PROTECTION.md §2 promises that an email address is never written to disk, the
-database, the manifest or a log. Two ingestion paths read addresses -- the GitHub fetch
-(`scripts/fetch_corpus.py`) and the git walk (`provenance/ingest/git_walk.py`) -- and
-both redact through these functions, so an address hashes the same on either path and
-"same author" stays a join key across them.
+database, the manifest or a log. Two ingestion paths handle text that may hold one: the
+git walk (`provenance/ingest/git_walk.py`), which hashes author and committer addresses
+and scrubs messages, and the GitHub fetch (`provenance/ingest/github_backfill.py`), which
+scrubs every text field it keeps and requests no commit data. Both redact through these
+functions, so an address is redacted the same way on either path.
 
 Checkpoint A's git walk once stored addresses raw, because these helpers lived only in
 the fetch script: docs/tasks/ingest/004_personal_data.md.
