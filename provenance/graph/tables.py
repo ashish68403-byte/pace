@@ -27,6 +27,13 @@ FILE_REVISIONS: Final = "file_revisions"
 INGEST_RUNS: Final = "ingest_runs"
 DEAD_LETTERS: Final = "dead_letters"
 
+# --- GitHub (migration 0003; author_is_bot from 0009) -------------------------
+PULL_REQUESTS: Final = "pull_requests"
+ISSUES: Final = "issues"
+ISSUE_COMMENTS: Final = "issue_comments"
+REVIEW_COMMENTS: Final = "review_comments"
+EDGE_COMMIT_PR: Final = "edge_commit_pr"
+
 # chunks columns that differ from the obvious spelling
 COL_REPO_ID: Final = "repo_id"  # bigint FK, NOT the "owner/name" string
 COL_LANGUAGE: Final = "language"  # not `lang`

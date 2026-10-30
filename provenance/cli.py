@@ -9,6 +9,7 @@ Canonical commands, and nothing else claims to exist:
     pace measure      truncation | pool: the measurements the write-up quotes
     pace pool         build: the benchmark's document pool (ADR-0003)
     pace golden       generate: the benchmark's questions, from the code diff (ADR-0003)
+    pace github       backfill: the pool's PR text, under a request budget (ADR-0003)
     pace eval         run | fixtures | invariants
     pace leakage      cheap baselines over the golden set; checkpoint B's leakage verdict
     pace health       database + extension healthcheck
@@ -204,6 +205,23 @@ def generate(ctx: typer.Context) -> None:
 
 
 app.add_typer(golden_app, name="golden")
+
+
+github_app = typer.Typer(no_args_is_help=True, add_completion=False)
+
+
+@github_app.callback()
+def _github() -> None:
+    """GitHub text for the pool: the PRs B2 linked, under a request budget (slice B4)."""
+
+
+@github_app.command(context_settings=PASSTHROUGH)
+def backfill(ctx: typer.Context) -> None:
+    """Fetch each linked PR's description and comments: one request per PR plus pages."""
+    _call(_load("provenance.ingest.github_backfill", "main"), ctx.args)
+
+
+app.add_typer(github_app, name="github")
 
 
 # --- eval: mounted as a real Typer sub-app ---------------------------------- #

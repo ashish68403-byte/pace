@@ -67,3 +67,9 @@ def test_pace_golden_lists_generate():
     result = CliRunner().invoke(app, ["golden", "--help"])
     assert result.exit_code == 0
     assert "generate" in result.output
+
+
+def test_pace_github_lists_backfill():
+    result = CliRunner().invoke(app, ["github", "--help"])
+    assert result.exit_code == 0
+    assert "backfill" in result.output
