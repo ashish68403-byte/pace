@@ -223,8 +223,9 @@ first difference.
 - **Scenario:** the statistics are right
   - **Then:**
     - `cohens_kappa` matches a hand-computed example, and is `None` when chance agreement is 1;
-    - `stratified_proportion` matches a hand computation, equals `wilson_interval` for a single
-      stratum, and uses the sample size when the variance is 0.
+    - `stratified_proportion` matches a hand computation, gives Wilson's interval at n − 1 for a
+      single stratum of a very large population (Cochran's unbiased variance), and uses the
+      sample size when the variance is 0.
 
 - **Scenario:** the report
   - **Then:**

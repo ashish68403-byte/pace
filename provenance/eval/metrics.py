@@ -189,11 +189,12 @@ def mde(n: int, discordance: float, *, z: float = Z_95) -> float:
     return z * math.sqrt(discordance / n)
 
 
-def wilson_interval(successes: int, n: int, *, z: float = Z_95) -> tuple[float, float]:
+def wilson_interval(successes: float, n: float, *, z: float = Z_95) -> tuple[float, float]:
     """Wilson score interval for a binomial proportion (Brown, Cai & DasGupta, 2001).
 
     The leakage gate uses it instead of the bootstrap: at small n and p near 0 or 1 the
-    percentile bootstrap under-covers, and a gate must not pass by luck.
+    percentile bootstrap under-covers, and a gate must not pass by luck. `successes` and
+    `n` may be fractional: `stratified_proportion` calls it at an effective sample size.
     """
     if n <= 0:
         raise ValueError(f"n must be positive, got {n}")
@@ -204,6 +205,76 @@ def wilson_interval(successes: int, n: int, *, z: float = Z_95) -> tuple[float, 
     centre = (p + z * z / (2 * n)) / denominator
     half = z * math.sqrt(p * (1 - p) / n + z * z / (4 * n * n)) / denominator
     return max(0.0, centre - half), min(1.0, centre + half)
+
+
+@dataclass(frozen=True, slots=True)
+class StratumCount:
+    """One stratum of a stratified sample: its size, how many were drawn, how many hit."""
+
+    population: int
+    sampled: int
+    successes: int
+
+
+@dataclass(frozen=True, slots=True)
+class StratifiedProportion:
+    estimate: float
+    low: float
+    high: float
+    effective_n: float
+
+
+def stratified_proportion(
+    strata: Sequence[StratumCount], *, z: float = Z_95
+) -> StratifiedProportion:
+    """A population proportion from a stratified sample, with its interval (ADR-0004 §5).
+
+    The estimate weights each stratum's share by its share of the population, so an
+    over-sampled stratum counts for its real size (Cochran 1977). The variance is
+    Cochran's unbiased one, with the finite-population correction. The interval is a
+    Wilson interval at Kish's effective sample size p(1 - p) / Var(p): for one stratum
+    of a very large population, that is the Wilson interval at n - 1. When every
+    stratum is unanimous the variance is 0, and the effective size is the sample size.
+    """
+    if not strata:
+        raise ValueError("no strata")
+    for s in strata:
+        if not 2 <= s.sampled <= s.population:
+            raise ValueError(f"a stratum needs 2 <= sampled <= population, got {s}")
+        if not 0 <= s.successes <= s.sampled:
+            raise ValueError(f"successes must be in [0, sampled], got {s}")
+    total = sum(s.population for s in strata)
+    estimate = 0.0
+    variance = 0.0
+    for s in strata:
+        weight = s.population / total
+        share = s.successes / s.sampled
+        estimate += weight * share
+        correction = 1 - s.sampled / s.population
+        variance += weight * weight * correction * share * (1 - share) / (s.sampled - 1)
+    estimate = min(1.0, max(0.0, estimate))
+    n = sum(s.sampled for s in strata)
+    effective_n = estimate * (1 - estimate) / variance if variance > 0 else float(n)
+    low, high = wilson_interval(estimate * effective_n, effective_n, z=z)
+    return StratifiedProportion(estimate, low, high, effective_n)
+
+
+def cohens_kappa(first: Sequence[str], second: Sequence[str]) -> float | None:
+    """Cohen's (1960) unweighted kappa between two labellings of the same items.
+
+    None when chance agreement is 1 -- both labellings gave every item one and the same
+    label -- because kappa is 0/0 there, and calling it 0 or 1 would be a choice.
+    """
+    if len(first) != len(second) or not first:
+        raise ValueError("two labellings of the same, non-empty set of items are needed")
+    n = len(first)
+    observed = sum(a == b for a, b in zip(first, second, strict=True)) / n
+    chance = sum(
+        (first.count(label) / n) * (second.count(label) / n) for label in set(first) | set(second)
+    )
+    if math.isclose(chance, 1.0):
+        return None
+    return (observed - chance) / (1 - chance)
 
 
 # --------------------------------------------------------------------------- #

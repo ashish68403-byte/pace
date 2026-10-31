@@ -26,8 +26,10 @@ import pytest
 from provenance.eval.metrics import (
     BOOTSTRAP_SEED,
     CI,
+    StratumCount,
     bootstrap_ci,
     citation_precision,
+    cohens_kappa,
     format_metric,
     mde,
     mrr,
@@ -38,6 +40,7 @@ from provenance.eval.metrics import (
     refusal_precision,
     refusal_recall,
     resample_indices,
+    stratified_proportion,
     unit_recall_at_k,
     wilson_interval,
 )
@@ -331,3 +334,73 @@ def test_wilson_interval_rejects_impossible_counts() -> None:
         wilson_interval(11, 10)
     with pytest.raises(ValueError):
         wilson_interval(1, 0)
+
+
+# ----------------------------------------------------------------- gold-validity audit
+
+
+def test_cohens_kappa_matches_a_hand_computation() -> None:
+    first = ["r", "r", "m", "u", "r", "m", "u", "u", "r", "m"]
+    second = ["r", "m", "m", "u", "r", "m", "u", "r", "r", "m"]
+    # observed 8/10; chance 0.4*0.4 + 0.3*0.4 + 0.3*0.2 = 0.34
+    assert cohens_kappa(first, second) == pytest.approx((0.8 - 0.34) / (1 - 0.34))
+
+
+def test_cohens_kappa_is_one_for_identical_varied_labels() -> None:
+    labels = ["r", "m", "u", "r"]
+    assert cohens_kappa(labels, list(labels)) == pytest.approx(1.0)
+
+
+def test_cohens_kappa_is_undefined_when_chance_agreement_is_one() -> None:
+    assert cohens_kappa(["r", "r", "r"], ["r", "r", "r"]) is None
+
+
+def test_cohens_kappa_rejects_misaligned_labellings() -> None:
+    with pytest.raises(ValueError):
+        cohens_kappa(["r"], ["r", "m"])
+    with pytest.raises(ValueError):
+        cohens_kappa([], [])
+
+
+def test_stratified_proportion_matches_a_hand_computation() -> None:
+    result = stratified_proportion(
+        [
+            StratumCount(population=100, sampled=10, successes=7),
+            StratumCount(population=300, sampled=10, successes=4),
+        ]
+    )
+    assert result.estimate == pytest.approx(0.475)  # 0.25 * 0.7 + 0.75 * 0.4
+    variance = 0.25**2 * 0.9 * 0.7 * 0.3 / 9 + 0.75**2 * (1 - 10 / 300) * 0.4 * 0.6 / 9
+    assert result.effective_n == pytest.approx(0.475 * 0.525 / variance)
+    expected = wilson_interval(0.475 * result.effective_n, result.effective_n)
+    assert (result.low, result.high) == pytest.approx(expected)
+
+
+def test_one_stratum_of_a_large_population_is_wilson_at_n_minus_one() -> None:
+    result = stratified_proportion([StratumCount(population=10**9, sampled=20, successes=14)])
+    assert result.effective_n == pytest.approx(19, rel=1e-6)
+    assert (result.low, result.high) == pytest.approx(wilson_interval(0.7 * 19, 19), rel=1e-6)
+
+
+def test_unanimous_strata_use_the_sample_size() -> None:
+    result = stratified_proportion(
+        [
+            StratumCount(population=50, sampled=5, successes=5),
+            StratumCount(population=50, sampled=5, successes=0),
+        ]
+    )
+    assert (result.estimate, result.effective_n) == (0.5, 10.0)
+    assert (result.low, result.high) == pytest.approx(wilson_interval(5, 10))
+
+
+def test_stratified_proportion_rejects_impossible_strata() -> None:
+    for bad in (StratumCount(10, 1, 0), StratumCount(5, 6, 1), StratumCount(10, 5, 6)):
+        with pytest.raises(ValueError):
+            stratified_proportion([bad])
+    with pytest.raises(ValueError):
+        stratified_proportion([])
+
+
+def test_wilson_interval_accepts_an_effective_sample_size() -> None:
+    low, high = wilson_interval(13.3, 19.0)
+    assert 0 < low < 13.3 / 19 < high < 1
