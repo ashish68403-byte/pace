@@ -1,7 +1,7 @@
 # Tracker: Evaluation harness
 
-**Task(s):** [docs/tasks/eval-harness/](../tasks/eval-harness/) — 001 (checkpoint B, slice B1) written 2026-10-27; 002 (slice B2, the commit-message pool) written 2026-10-27; 003 (slice B3, generator and verdict) written 2026-10-29; 004 (slice B4, the GitHub backfill) written 2026-10-29
-**Decision record:** [ADR-0003](../ADR-0003-rationale-pool-benchmark.md) — the pool is rationale text
+**Task(s):** [docs/tasks/eval-harness/](../tasks/eval-harness/) — 001 (checkpoint B, slice B1) written 2026-10-27; 002 (slice B2, the commit-message pool) written 2026-10-27; 003 (slice B3, generator and verdict) written 2026-10-29; 004 (slice B4, the GitHub backfill) written 2026-10-29; 005 (the gold-validity audit, finding 6) written 2026-10-31
+**Decision records:** [ADR-0003](../ADR-0003-rationale-pool-benchmark.md) — the pool is rationale text; [ADR-0004](../ADR-0004-gold-validity-audit.md) — how much of the gold explains its function
 **Priority:** P0
 **Status:** 🚧 In progress
 **Date:** 2026-10-06
@@ -27,7 +27,7 @@ honouring the identity contract its own reasoning establishes.
 | 3 | Set-valued relevance: `required_units: list[set[str]]`, recall as fraction of units with a member in top k; persist `n_units`, `max_parts_per_unit` (finding 7) — units are evidence keys, done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md) | ✅ | `anchors.py:113-159`, `metrics.py` |
 | 4 | `_verdict` takes the **strongest** cheap baseline, not grep alone; gate `retention_rate` too (finding 8) — ADR-0003 §6's verdict, implemented in [eval-harness/003](../tasks/eval-harness/003_golden_set_generator.md): dev only, Wilson upper bound, retention, stale facts refuse to pass | ✅ | `provenance/eval/leakage.py` (`verdict`) |
 | 5 | Add `baseline_grep_r10`, `gold_symbol_df` to `PER_QUERY_COLUMNS`; second `per_class` breakdown on `gold_symbol_df == 0` vs `> 0` (finding 8) | ⬜ | `runner.py:266-285` |
-| 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) | ⬜ | new ADR + committed JSONL |
+| 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) — specified in [eval-harness/005](../tasks/eval-harness/005_gold_validity_audit.md): 56 dev records, a two-step label for PR-linked ones, and two companions that need no labeller | ⬜ | [ADR-0004](../ADR-0004-gold-validity-audit.md), `provenance/eval/gold_validity.py`, `provenance/eval/audit/` |
 | 7 | Bootstrap the refusal pair; report `None` not 0.0 when `ci.n == 0` (finding 14) | ⬜ | `runner.py:396-399, 413-416` |
 | 8 | Define the submission bundle: repo + corpus SHA + ID manifest + frozen `.npz` + body-stripped dump (finding 20) | ⬜ | `docs/ROADMAP.md` §5 Report and Buffer rows |
 

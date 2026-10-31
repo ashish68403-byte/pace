@@ -351,6 +351,7 @@ fetch script, never a comment dump. See [DATA-PROTECTION.md](DATA-PROTECTION.md)
 - [ADR-0001](ADR-0001-typed-edges.md) — typed edge tables over one polymorphic table
 - [ADR-0002](ADR-0002-golden-set-construction.md) — the anchor symbol comes from code, never the rationale
 - [ADR-0003](ADR-0003-rationale-pool-benchmark.md) — the benchmark searches rationale text and scores one relevance unit per change
+- [ADR-0004](ADR-0004-gold-validity-audit.md) — how much of the benchmark's gold explains its function, and how every lift is quoted against it
 - [RUNBOOK.md](RUNBOOK.md) — starting everything, degradation behaviour, reading a trace
 - [DATA-PROTECTION.md](DATA-PROTECTION.md) — what personal data is processed, and what is excluded
 - [../provenance/eval/README.md](../provenance/eval/README.md) — why the CI gate splits in two
