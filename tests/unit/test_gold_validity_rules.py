@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from collections import Counter
 from datetime import date, timedelta
+from pathlib import Path
 
 import pytest
 
@@ -13,17 +15,24 @@ from provenance.eval.gold_validity import (
     AuditStale,
     LabelRecord,
     SampleExists,
+    agreement_section,
     append_label,
+    build_report,
     check_fresh,
     check_relabel_allowed,
     corpus_commit_of,
     draw_sample,
+    label_section,
     load_labels,
     load_sample,
     population,
+    reachability_section,
+    render_report_json,
+    render_report_summary,
     stratum_of,
     write_sample,
 )
+from provenance.eval.metrics import StratumCount, stratified_proportion
 from provenance.eval.schema import GoldenRecord
 
 VERSION = "rationale-v1:commit=8"
@@ -216,3 +225,113 @@ def test_the_relabel_waits_for_every_first_label_and_seven_days():
     with pytest.raises(AuditError, match="opens on 2026-11-08"):
         check_relabel_allowed(sample, every, DAY + timedelta(days=6))
     check_relabel_allowed(sample, every, DAY + timedelta(days=7))
+
+
+def labelled(sample, rule):
+    """A label for every sampled record: `rule(stratum, i)` gives (first, final) for the
+    i-th sampled record of its stratum."""
+    seen: Counter[str] = Counter()
+    labels = {}
+    for r in sample.records:
+        first, final = rule(r.stratum, seen[r.stratum])
+        seen[r.stratum] += 1
+        labels[r.qid] = label(r.qid, r.stratum, first, final)
+    return labels
+
+
+def test_an_incomplete_labelling_gives_no_rate():
+    sample = drawn()
+    labels = labelled(sample, lambda s, i: ("rationale", "rationale"))
+    del labels[sample.records[-1].qid]
+    assert label_section(sample, labels) == {"status": "incomplete", "labelled": 8, "of": 9}
+
+
+def test_a_complete_labelling_gives_every_rate():
+    sample = drawn()
+
+    def rule(stratum, i):
+        # PR-linked: the first record of a stratum gives the reason in its commit message,
+        # the rest only once the PR is read. Commit-only: one reason, the rest unrelated.
+        if stratum.endswith("-pr"):
+            return ("rationale", "rationale") if i == 0 else ("mentions", "rationale")
+        return ("rationale", "rationale") if i == 0 else ("unrelated", "unrelated")
+
+    section = label_section(sample, labelled(sample, rule))
+    assert section["status"] == "complete"
+    archaeology = section["by_stratum"]["archaeology-pr"]
+    assert archaeology["labels"] == {"rationale": 3, "mentions": 0, "unrelated": 0}
+    assert archaeology["message_only"]["labels"] == {"rationale": 1, "mentions": 2, "unrelated": 0}
+    expected = stratified_proportion(
+        [
+            StratumCount(3, 2, 1),  # archaeology-commit
+            StratumCount(6, 3, 3),  # archaeology-pr
+            StratumCount(3, 2, 1),  # provenance-commit
+            StratumCount(5, 2, 2),  # provenance-pr
+        ]
+    )
+    assert section["overall"]["rate"] == round(expected.estimate, 4)
+    assert section["pr_text"]["supplied_by_pr_text"] == 3  # two archaeology, one provenance
+    assert section["pr_text"]["with_pr_text"]["rate"] == 1.0
+    assert section["reading"]["pr_text_shown"] == 3
+
+
+def test_a_label_from_another_stratum_refuses():
+    sample = drawn()
+    labels = {r.qid: label(r.qid, r.stratum, "mentions") for r in sample.records}
+    commit_only = next(r for r in sample.records if r.stratum.endswith("-commit"))
+    labels[commit_only.qid] = label(commit_only.qid, "archaeology-pr", "mentions")
+    with pytest.raises(AuditError, match="sampled as"):
+        label_section(sample, labels)
+
+
+def test_self_agreement_waits_for_every_relabel_then_reports_kappa():
+    sample = drawn()
+    subset = sample.relabel_records()
+    labels = {r.qid: label(r.qid, r.stratum, "mentions") for r in sample.records}
+    for r, value in zip(subset, ("rationale", "mentions", "unrelated"), strict=True):
+        labels[r.qid] = label(r.qid, r.stratum, value)
+    assert agreement_section(sample, labels, {})["status"] == "not_measured"
+    relabels = {
+        r.qid: label(r.qid, r.stratum, value)
+        for r, value in zip(subset, ("rationale", "mentions", "mentions"), strict=True)
+    }
+    measured = agreement_section(sample, labels, relabels)
+    assert (measured["status"], measured["n"]) == ("measured", 3)
+    # observed 2/3; chance 1/9 + 2/9 + 0 = 1/3; kappa (2/3 - 1/3) / (2/3) = 0.5
+    assert measured["final"] == {"observed": 0.6667, "kappa": 0.5}
+
+
+def test_a_unanimous_relabel_reports_kappa_as_undefined():
+    sample = drawn()
+    labels = {r.qid: label(r.qid, r.stratum, "mentions") for r in sample.records}
+    relabels = {r.qid: labels[r.qid] for r in sample.relabel_records()}
+    final = agreement_section(sample, labels, relabels)["final"]
+    assert final["kappa"] is None and final["observed"] == 1.0 and "kappa_undefined" in final
+
+
+def test_reachability_counts_unreachable_records_per_stratum():
+    sample = drawn()
+    reached = {"pp0": True, "pp1": False, "ap0": False}
+    strata = {"pp0": "provenance-pr", "pp1": "provenance-pr", "ap0": "archaeology-pr"}
+    section = reachability_section(sample, reached, strata)
+    assert (section["records"], section["unreachable"], section["share"]) == (3, 2, 0.6667)
+    assert section["by_stratum"]["provenance-pr"] == {"records": 2, "unreachable": 1, "share": 0.5}
+    empty = {"records": 0, "unreachable": 0, "share": None}
+    assert section["by_stratum"]["provenance-commit"] == empty
+    assert section["k"] == 100 and "not measured" in section["dense"]
+
+
+def test_the_report_is_the_same_bytes_twice_and_summarises():
+    sample = drawn()
+    labels = {r.qid: label(r.qid, r.stratum, "mentions") for r in sample.records}
+    reach = reachability_section(sample, {"pp0": True}, {"pp0": "provenance-pr"})
+    bias = {"groups": {"linked": 3, "no_reference": 4}, "module_tvd": 0.1, "year_tvd": 0.2}
+
+    def render():
+        report = build_report(sample, labels, {}, reachability=reach, linkage_bias=bias)
+        return report, render_report_json(report)
+
+    (report, first), (_, second) = render(), render()
+    assert first == second and json.loads(first)["labels"]["status"] == "complete"
+    summary = render_report_summary(report, Path("out.json"))
+    assert "validity 0.0%" in summary and "not measured (0 of 3 re-labelled)" in summary
