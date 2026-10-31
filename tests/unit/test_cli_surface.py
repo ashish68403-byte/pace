@@ -73,3 +73,10 @@ def test_pace_github_lists_backfill():
     result = CliRunner().invoke(app, ["github", "--help"])
     assert result.exit_code == 0
     assert "backfill" in result.output
+
+
+def test_pace_audit_lists_its_four_commands():
+    result = CliRunner().invoke(app, ["audit", "--help"])
+    assert result.exit_code == 0
+    for name in ("sample", "label", "relabel", "report"):
+        assert name in result.output

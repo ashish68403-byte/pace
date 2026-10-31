@@ -224,6 +224,41 @@ def backfill(ctx: typer.Context) -> None:
 app.add_typer(github_app, name="github")
 
 
+audit_app = typer.Typer(no_args_is_help=True, add_completion=False)
+
+
+@audit_app.callback()
+def _audit() -> None:
+    """The gold-validity audit: how much of the gold explains its function (ADR-0004)."""
+
+
+@audit_app.command(name="sample", context_settings=PASSTHROUGH)
+def audit_sample(ctx: typer.Context) -> None:
+    """Draw the stratified sample once: 56 dev records, 15 of them to re-label."""
+    _call(_load("provenance.eval.gold_validity", "sample_main"), ctx.args)
+
+
+@audit_app.command(name="label", context_settings=PASSTHROUGH)
+def audit_label(ctx: typer.Context) -> None:
+    """Label the sample in two steps, resumably. The labels are yours: nothing is suggested."""
+    _call(_load("provenance.eval.labelling", "label_main"), ctx.args)
+
+
+@audit_app.command(name="relabel", context_settings=PASSTHROUGH)
+def audit_relabel(ctx: typer.Context) -> None:
+    """Label the 15-record subset again, at least seven days later, without the first labels."""
+    _call(_load("provenance.eval.labelling", "relabel_main"), ctx.args)
+
+
+@audit_app.command(name="report", context_settings=PASSTHROUGH)
+def audit_report(ctx: typer.Context) -> None:
+    """The validity rate, self-agreement, reachability and linkage bias, in one report."""
+    _call(_load("provenance.eval.gold_validity", "report_main"), ctx.args)
+
+
+app.add_typer(audit_app, name="audit")
+
+
 # --- eval: mounted as a real Typer sub-app ---------------------------------- #
 # `typer.add_typer(runner.app, name="eval")` is the canonical mount. The
 # alternative -- a passthrough command that calls runner.main() -- dropped argv,
