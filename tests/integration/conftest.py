@@ -240,3 +240,15 @@ def ingest(history_repo: HistoryRepo, test_repo_id: int, writer_conn: Any) -> Ca
         return writer
 
     return run
+
+
+@pytest.fixture
+def pooled(
+    history_repo: HistoryRepo, test_repo_id: int, ingest: Callable[..., Any], migrated_database: Any
+) -> HistoryRepo:
+    """The fixture ingested and its commit-message pool built: B2's four PR links."""
+    from provenance.ingest.message_pool import write_pool
+
+    ingest()
+    write_pool(migrated_database, test_repo_id, numbering_starts=history_repo.sha["c1"])
+    return history_repo
