@@ -27,7 +27,7 @@ honouring the identity contract its own reasoning establishes.
 | 3 | Set-valued relevance: `required_units: list[set[str]]`, recall as fraction of units with a member in top k; persist `n_units`, `max_parts_per_unit` (finding 7) — units are evidence keys, done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md) | ✅ | `anchors.py:113-159`, `metrics.py` |
 | 4 | `_verdict` takes the **strongest** cheap baseline, not grep alone; gate `retention_rate` too (finding 8) — ADR-0003 §6's verdict, implemented in [eval-harness/003](../tasks/eval-harness/003_golden_set_generator.md): dev only, Wilson upper bound, retention, stale facts refuse to pass | ✅ | `provenance/eval/leakage.py` (`verdict`) |
 | 5 | Add `baseline_grep_r10`, `gold_symbol_df` to `PER_QUERY_COLUMNS`; second `per_class` breakdown on `gold_symbol_df == 0` vs `> 0` (finding 8) | ⬜ | `runner.py:266-285` |
-| 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) — specified in [eval-harness/005](../tasks/eval-harness/005_gold_validity_audit.md): 56 dev records, a two-step label for PR-linked ones, and two companions that need no labeller | ⬜ | [ADR-0004](../ADR-0004-gold-validity-audit.md), `provenance/eval/gold_validity.py`, `provenance/eval/audit/` |
+| 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) — specified in [eval-harness/005](../tasks/eval-harness/005_gold_validity_audit.md): 56 dev records, a two-step label for PR-linked ones, and two companions that need no labeller | 🚧 | [ADR-0004](../ADR-0004-gold-validity-audit.md), `provenance/eval/gold_validity.py`, `provenance/eval/audit/` |
 | 7 | Bootstrap the refusal pair; report `None` not 0.0 when `ci.n == 0` (finding 14) | ⬜ | `runner.py:396-399, 413-416` |
 | 8 | Define the submission bundle: repo + corpus SHA + ID manifest + frozen `.npz` + body-stripped dump (finding 20) | ⬜ | `docs/ROADMAP.md` §5 Report and Buffer rows |
 
@@ -98,3 +98,9 @@ honouring the identity contract its own reasoning establishes.
   not a bug). Regenerated on the grown pool, the golden set retains 7,199 of 8,250 (87.3%), 4,206
   dev; the verdict is **PASS**: bm25_ident recall@10 0.140, Wilson upper bound 0.151 against the
   0.35 ceiling.
+- **2026-10-31 — gold-validity audit, stage 1 of 3.** `pace audit` is built
+  ([eval-harness/005](../tasks/eval-harness/005_gold_validity_audit.md), ADR-0004). The sample was
+  committed before any label: 56 retained dev records — 11 provenance and 33 archaeology records
+  with a linked PR, and 6 of each class without one. 15 of them are re-labelled at least seven
+  days after the first pass. Next: the author's labelling and the report (stage 2), then the
+  re-label and the kappa (stage 3).

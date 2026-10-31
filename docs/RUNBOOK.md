@@ -107,6 +107,25 @@ The fetched text lives in the local database only. Only an ID-and-hash manifest
 (`results/github_manifest.jsonl`) is committed — the comment authors' copyright, not ours to
 redistribute — see `docs/DATA-PROTECTION.md`.
 
+### The gold-validity audit
+
+ADR-0004 measures how much of the benchmark's gold explains its function
+([tasks/eval-harness/005](tasks/eval-harness/005_gold_validity_audit.md)). The labels are the
+author's: the tool never suggests one.
+
+```bash
+uv run pace audit sample     # once: draws the 56 records; commit the sample before any label
+uv run pace audit label      # about an hour; q stops, and the next run continues from there
+uv run pace audit report     # the validity rate, reachability and linkage bias
+uv run pace audit relabel    # at least seven days after the last label: the 15-record subset
+uv run pace audit report     # again, now with the self-agreement kappa
+```
+
+In the labelling tool, `d` shows the function's change, `c` the PR's comments and `?` the
+codebook. Commit `provenance/eval/audit/` and `results/gold_validity_audit.json` after each
+stage. A regenerated golden set or a grown pool makes the audit stale: the commands refuse,
+and a new sample is needed (ADR-0004 §9).
+
 ### Before pushing
 
 ```bash

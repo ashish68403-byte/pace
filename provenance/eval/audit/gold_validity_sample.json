@@ -1,0 +1,424 @@
+{
+  "corpus_commit": "1e2ad803f74eadb5fb28d4504ca06b008c48b63e",
+  "golden_path": "provenance/eval/golden/auto_full.jsonl",
+  "pool_version": "rationale-v1:commit=6810,issue_comment=18972,pull_request=5961,review_comment=38026",
+  "records": [
+    {
+      "order": 1,
+      "qid": "added-2a615ab89d8d-890e964c",
+      "record_sha256": "321111b9044537d4f89060345c89e106822425747590dd02543e1774f5c59d53",
+      "relabel_order": 9,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 2,
+      "qid": "changed-8af1bbdf25e2-325cbba4",
+      "record_sha256": "bd1defdf851056e42244e24b2331e2419301d6669afb74b2982b56b2c4171a8d",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 3,
+      "qid": "added-03c870a6172a-5e86bd69",
+      "record_sha256": "65b9ec85da4ba9a8ce32a79f64e7e748886ee90a2be228a38eb82fbd3a93c6ee",
+      "relabel_order": null,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 4,
+      "qid": "changed-7ea847512800-2aa7a01e",
+      "record_sha256": "0a0c033d5b7448ecaca64b3d0805eda50bca28ca17aa0e960111a8d0328d17c7",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 5,
+      "qid": "added-5264b63a8327-6d9b9576",
+      "record_sha256": "0af6e455fa778db75cc9172185c6d61edec55cd15b712c3af0afa1df15a17024",
+      "relabel_order": null,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 6,
+      "qid": "added-9dba430b6833-f95061fd",
+      "record_sha256": "03ca6951e0df3465fb514aad3b0880dcbd70f28186fb76f2fdcdc61f7acdcb94",
+      "relabel_order": null,
+      "stratum": "provenance-commit"
+    },
+    {
+      "order": 7,
+      "qid": "added-e2c73fd35cab-f3f711e3",
+      "record_sha256": "bb4a8d0340bcf197aec15e3b30bdfda18216a04a99a9939fcc76c55b5186d65e",
+      "relabel_order": null,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 8,
+      "qid": "changed-16ab314c21d1-c80c1f12",
+      "record_sha256": "b818d49ed2094b35cf38ab48a8decde55f6a22fa0422c370c858658f373f452a",
+      "relabel_order": null,
+      "stratum": "archaeology-commit"
+    },
+    {
+      "order": 9,
+      "qid": "changed-ef80507e8037-a92f6ce2",
+      "record_sha256": "652fa7bfed8774607701f13b144fcdfd856f03ea1b5308a8bc43308271b8847f",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 10,
+      "qid": "changed-32c5f445e450-724b28c3",
+      "record_sha256": "031313d250ab165b64db9212e0410470c7cf64553603cd0f58e8e605677f7839",
+      "relabel_order": 15,
+      "stratum": "archaeology-commit"
+    },
+    {
+      "order": 11,
+      "qid": "changed-7a5b6a39c948-96a85c01",
+      "record_sha256": "e7de0220ef713823b35c1dd8ac414a92655fbacce29a8f4b3926ab18e325539b",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 12,
+      "qid": "added-dd2bc8cb971d-c80c1f12",
+      "record_sha256": "7cdb8f9213feb2d3f857330714b44ce45d33407d60117833c144834f9407cc74",
+      "relabel_order": null,
+      "stratum": "provenance-commit"
+    },
+    {
+      "order": 13,
+      "qid": "changed-ee38382efa54-4018f735",
+      "record_sha256": "afa4d76cb0d62797aa18fc66d49ed9648d797a022f2458f66a21e2d8a87e336a",
+      "relabel_order": 13,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 14,
+      "qid": "added-c160ab70a00f-133b41ab",
+      "record_sha256": "5c86be50cc163108bcbac0af7b1035e6237db569668e2e8bffb5069eb48251d7",
+      "relabel_order": null,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 15,
+      "qid": "changed-811fa2b016ca-916bffed",
+      "record_sha256": "2f0801cc1bd630cd4c753dbc9e9d1eeb2fc26f9b288ffb803d17aaa3ddd7e624",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 16,
+      "qid": "changed-4364908da2c0-fc0112ad",
+      "record_sha256": "13685cb36ab43fbfd27519f49ceb9f8e853b4bf4f3b19d111aef6e82976907ba",
+      "relabel_order": 11,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 17,
+      "qid": "changed-624211f33f30-377617e9",
+      "record_sha256": "e4fa1d8d1c3d79129de3b89d87fb44a33efe470b5caf85b2577e39b385cae94d",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 18,
+      "qid": "changed-2242ea4ec1e4-84bc217c",
+      "record_sha256": "38d11ca78ba25e076fa8c8ee1e906ae670ef5ed894db5ae0f82099b0a6add469",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 19,
+      "qid": "changed-cafa7655b9a8-51f15cd7",
+      "record_sha256": "abb7a9520006f0bb014de789096c74fde1f82b6b08998e6fcce1383a22b013e9",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 20,
+      "qid": "changed-53ea85e234b4-5d2f58db",
+      "record_sha256": "a26f901f3b4a28dae7ea893bf21fe7edec63783aeeadead16bcaff33f8f5f20e",
+      "relabel_order": 7,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 21,
+      "qid": "changed-40d2d6bc157c-98d8159f",
+      "record_sha256": "d43d8aebda540c38f8c7eac0f461a538b6178cc9d3e3f151340dc6251146340d",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 22,
+      "qid": "changed-301ce6b4f0da-3326c018",
+      "record_sha256": "e9cb4749797bb79831fbcb923f66816b657ab9b2586309c90953ca1331358717",
+      "relabel_order": null,
+      "stratum": "archaeology-commit"
+    },
+    {
+      "order": 23,
+      "qid": "changed-a34a4865b118-b518ac0e",
+      "record_sha256": "d8aae6ad4324ad5afce99dc67a1ac7a34f3de5db3d39539784478565d1037139",
+      "relabel_order": null,
+      "stratum": "archaeology-commit"
+    },
+    {
+      "order": 24,
+      "qid": "changed-8c3ce9323270-cf5c5165",
+      "record_sha256": "debf8872fd3412055f1f2bf08f88f8d75767715930d6381bff414ec86a3ad3df",
+      "relabel_order": 6,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 25,
+      "qid": "added-25537acfa28e-06e21b15",
+      "record_sha256": "36bf62075fdeb2e2551fd626108f542537c4661ab5a0c0b2bf761a5d71a3675d",
+      "relabel_order": null,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 26,
+      "qid": "changed-24b52c535ff2-78ac4559",
+      "record_sha256": "d1adac4711238dcfd91e384c2f2e92e66b8c8ecc31fb58973f4217e53f0afad8",
+      "relabel_order": 4,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 27,
+      "qid": "changed-fbcbd053a2c5-29731a54",
+      "record_sha256": "c647ee599bb158f0e7c3a31c1b1cf0984a18aa7c32a6f69eb2296d88f5d59fd1",
+      "relabel_order": null,
+      "stratum": "archaeology-commit"
+    },
+    {
+      "order": 28,
+      "qid": "changed-2794c4172e7b-c12db9b8",
+      "record_sha256": "203f4cbecd18087ebb7be9c02f5998bbb436d03957e1e41bcd3ff40a264b93f4",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 29,
+      "qid": "changed-56c41d460c3f-8320e9b4",
+      "record_sha256": "5f261a91e46fd97f9aad0d3270e9feace50160e9ef2e4dff47be33c6f28969e2",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 30,
+      "qid": "added-c75774d3a31e-bccd08f9",
+      "record_sha256": "88a7448e3c3fb79d401b5acb82ebf8caa73597e5d203a008f12bb866b5397be8",
+      "relabel_order": null,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 31,
+      "qid": "changed-f7ee273ea5d3-d9025f8e",
+      "record_sha256": "6ac16d108fa96f0e7915cec741a08c605081ec97fab5b287ecc42d1d0c0bb153",
+      "relabel_order": 3,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 32,
+      "qid": "added-302efad167a5-60f400c3",
+      "record_sha256": "c1a6fb7a573ca2bd333e4f0b082f308db8526a4fafdfcaa27e3cfd585c6e75fa",
+      "relabel_order": null,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 33,
+      "qid": "changed-3c12c2e1e5c2-bb463103",
+      "record_sha256": "04a3edcb7dbb3ad0ed558224228090cc0353927dc757c5fc4913b189bd7c9ceb",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 34,
+      "qid": "changed-98f89a049767-e226c675",
+      "record_sha256": "580e877246fe97694a491db5444ca43666c4295d2dee0ae13f8153ad0f489a4e",
+      "relabel_order": 2,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 35,
+      "qid": "changed-b175e3c81fb4-6c70bf23",
+      "record_sha256": "6092df459b53c766e91c28c17ab693a6d162989433372e9972e1b313b4a33781",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 36,
+      "qid": "added-dd2bc8cb971d-67107072",
+      "record_sha256": "af4a53c65cf396b2e2ec2a6f22ddeac4c90ba12e77d217557602d287ebfe3154",
+      "relabel_order": null,
+      "stratum": "provenance-commit"
+    },
+    {
+      "order": 37,
+      "qid": "changed-2b38b194633e-00e2c10d",
+      "record_sha256": "d2b17766a509f244d9e68356cb82e8d9e4c8b28d0f2596b0584b8aa4ea3c7962",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 38,
+      "qid": "changed-9608ebff5e8c-22f38b8c",
+      "record_sha256": "c33a403f1bfa088bb7726d6c403763d9fa59a49ee015d2334b178542d53d7c56",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 39,
+      "qid": "added-4ee4e474b835-fcf9f38a",
+      "record_sha256": "e618c99a9c23aed0036593501b48d9c1ab7b5a660f3ced8b1e2f6dfb677e4faa",
+      "relabel_order": null,
+      "stratum": "provenance-commit"
+    },
+    {
+      "order": 40,
+      "qid": "added-ae96f27fd866-a228e9e0",
+      "record_sha256": "1225f419bc11482344cbef685f76bc1a0e326bdf4bc24f38a51266ff95667bcf",
+      "relabel_order": 10,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 41,
+      "qid": "added-867cd0f71434-a87678cc",
+      "record_sha256": "25c32ba328ce485ae17dfd2228197e7e7decf1492fed60c675a1dc72f27cc604",
+      "relabel_order": 1,
+      "stratum": "provenance-commit"
+    },
+    {
+      "order": 42,
+      "qid": "changed-b39cbdba0bf3-61e3ef13",
+      "record_sha256": "78033cdc8086337e331753fa6e13f8884a711c6b0ff7abb16ce941950619d4ce",
+      "relabel_order": null,
+      "stratum": "archaeology-commit"
+    },
+    {
+      "order": 43,
+      "qid": "changed-13128f44ec46-ccc089f3",
+      "record_sha256": "17b00776e3acf7f15e26108320d6773fb99f598a0e4c720214f229789716e5a0",
+      "relabel_order": 14,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 44,
+      "qid": "changed-fa3be084a1cd-69b472d6",
+      "record_sha256": "3a1df0f707bb01034c88c8a4009cd6b2cb7d271c1fb0799786f5cd964b875243",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 45,
+      "qid": "added-9dba430b6833-33faa451",
+      "record_sha256": "eac028f94bdf84a1f23d77700f81ecc53310fffb2e9e634de330b033f1d0aed7",
+      "relabel_order": null,
+      "stratum": "provenance-commit"
+    },
+    {
+      "order": 46,
+      "qid": "changed-396fd3cae91d-9ad9cf6c",
+      "record_sha256": "700e4e12515a6e58900a37ec80c46e414488333770bf2179d0734e1e6ed79d0f",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 47,
+      "qid": "changed-9d0006fb9ee9-b09d9f85",
+      "record_sha256": "081277c8efeb63f46c262eb588b69ddd0a02bb7745b7296943ad5d90b37a185a",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 48,
+      "qid": "changed-b7247b132190-4557e875",
+      "record_sha256": "c9f8bb655a719d93928b141a1182380dcee6c8d9193b85a4ce7d849f68985c3e",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 49,
+      "qid": "changed-120b49aa3c9a-c32f41f5",
+      "record_sha256": "bf23ecbba69f10cd37b03068d0107dadfc746f76fcd5e86860724b2ab597fa98",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 50,
+      "qid": "added-15173321dea4-8c47fe3d",
+      "record_sha256": "556d979a102097613da4faa3bf3845a000c34ffb2cd3c45287db3e4e5500982e",
+      "relabel_order": 8,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 51,
+      "qid": "changed-0fa4d833f72a-2a74428f",
+      "record_sha256": "d82bc8ea191d88c5a2212c7a889a901b5639e0f14f639cfe3dea7d0bcdbaf2ef",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 52,
+      "qid": "changed-1428890c2b3f-8b91f215",
+      "record_sha256": "b5f1021e427147188718638c10a5a0377a3289e1bb82286d1054a77e9753aaa8",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 53,
+      "qid": "changed-2970152b1906-99308abe",
+      "record_sha256": "b49b00840dba49b52d65dfdd13e2d17a6a75765a7a1349d6ff9b2159f1fdcebd",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 54,
+      "qid": "changed-cad7d0e2a9cb-ff07ed5c",
+      "record_sha256": "cb57c35ff630811b4b8b4f895104ceb7e7bde535ef26624c1f41ffb32163c39b",
+      "relabel_order": 12,
+      "stratum": "archaeology-pr"
+    },
+    {
+      "order": 55,
+      "qid": "added-a5211f2efd5c-595a2c34",
+      "record_sha256": "322c1f71b0e85e731c433531daad978a47393c46f6c6cf6fa10fcbe33dfbd896",
+      "relabel_order": 5,
+      "stratum": "provenance-pr"
+    },
+    {
+      "order": 56,
+      "qid": "changed-2dc7aa8e7d5c-98af76fa",
+      "record_sha256": "f3244567291a1721c88c0210695e2d46c9f090ba996d62405f4d4a446bdec7a9",
+      "relabel_order": null,
+      "stratum": "archaeology-pr"
+    }
+  ],
+  "schema": "pace.gold_validity_sample/v1",
+  "seeds": {
+    "order": "gold-validity-order-v1",
+    "relabel": "gold-validity-relabel-v1",
+    "relabel_order": "gold-validity-relabel-order-v1",
+    "sample": "gold-validity-v1"
+  },
+  "strata": {
+    "archaeology-commit": {
+      "population": 52,
+      "sampled": 6
+    },
+    "archaeology-pr": {
+      "population": 3083,
+      "sampled": 33
+    },
+    "provenance-commit": {
+      "population": 37,
+      "sampled": 6
+    },
+    "provenance-pr": {
+      "population": 1034,
+      "sampled": 11
+    }
+  }
+}
