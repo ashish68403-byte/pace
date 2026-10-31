@@ -1,45 +1,45 @@
 {
   "baselines": [
     {
-      "hits_at_10": 111,
+      "hits_at_10": 431,
       "measured": true,
-      "mrr_at_10": 0.006931229167584395,
-      "n": 4324,
+      "mrr_at_10": 0.024882726113111275,
+      "n": 4206,
       "name": "grep",
       "note": "",
       "recall_at_1": 0.0,
-      "recall_at_10": 0.02567067530064755,
+      "recall_at_10": 0.10247265810746553,
       "recall_at_10_wilson_95": [
-        0.021361155828476194,
-        0.030822238819772845
+        0.09366721713472657,
+        0.11200358241677076
       ]
     },
     {
-      "hits_at_10": 142,
+      "hits_at_10": 213,
       "measured": true,
-      "mrr_at_10": 0.0092281177040659,
-      "n": 4324,
+      "mrr_at_10": 0.029654726052728904,
+      "n": 4206,
       "name": "bm25_default",
       "note": "",
-      "recall_at_1": 0.0037002775208140612,
-      "recall_at_10": 0.03283996299722479,
+      "recall_at_1": 0.02306229196386115,
+      "recall_at_10": 0.05064194008559201,
       "recall_at_10_wilson_95": [
-        0.027928840879425418,
-        0.03858040202133667
+        0.04441582965059903,
+        0.057688124387875815
       ]
     },
     {
-      "hits_at_10": 477,
+      "hits_at_10": 588,
       "measured": true,
-      "mrr_at_10": 0.04271654699499288,
-      "n": 4324,
+      "mrr_at_10": 0.0611612096098544,
+      "n": 4206,
       "name": "bm25_ident",
       "note": "",
-      "recall_at_1": 0.020582793709528216,
-      "recall_at_10": 0.1103145235892692,
+      "recall_at_1": 0.03637660485021398,
+      "recall_at_10": 0.1398002853067047,
       "recall_at_10_wilson_95": [
-        0.10132045405830982,
-        0.12000037479702887
+        0.12964845200674618,
+        0.15060947940504715
       ]
     },
     {
@@ -59,45 +59,45 @@
   ],
   "baselines_unfiltered": [
     {
-      "hits_at_10": 498,
+      "hits_at_10": 939,
       "measured": true,
-      "mrr_at_10": 0.06706481619411754,
+      "mrr_at_10": 0.09752371021401261,
       "n": 4795,
       "name": "grep",
       "note": "",
-      "recall_at_1": 0.04817518248175182,
-      "recall_at_10": 0.10385818561001042,
+      "recall_at_1": 0.06173096976016684,
+      "recall_at_10": 0.19582898852971845,
       "recall_at_10_wilson_95": [
-        0.09553792613388272,
-        0.11281266585804427
+        0.18484209048293765,
+        0.2073028626206293
       ]
     },
     {
-      "hits_at_10": 321,
+      "hits_at_10": 398,
       "measured": true,
-      "mrr_at_10": 0.03050747306221759,
+      "mrr_at_10": 0.04982107684923118,
       "n": 4795,
       "name": "bm25_default",
       "note": "",
-      "recall_at_1": 0.0191866527632951,
-      "recall_at_10": 0.06694473409801877,
+      "recall_at_1": 0.03753910323253389,
+      "recall_at_10": 0.08300312825860272,
       "recall_at_10_wilson_95": [
-        0.06021172308679661,
-        0.07437106410522044
+        0.07552411338419757,
+        0.0911497527320741
       ]
     },
     {
-      "hits_at_10": 890,
+      "hits_at_10": 1080,
       "measured": true,
-      "mrr_at_10": 0.09352458745055199,
+      "mrr_at_10": 0.12481776652266746,
       "n": 4795,
       "name": "bm25_ident",
       "note": "",
-      "recall_at_1": 0.05714285714285714,
-      "recall_at_10": 0.18561001042752867,
+      "recall_at_1": 0.08717413972888426,
+      "recall_at_10": 0.22523461939520334,
       "recall_at_10_wilson_95": [
-        0.17485869592085082,
-        0.19686466150364504
+        0.21363347200890176,
+        0.23727566457933924
       ]
     },
     {
@@ -117,8 +117,8 @@
   ],
   "ceiling": 0.35,
   "drop_reason_counts": {
-    "grep_answers_at_rank_1": 231,
-    "rare_token_overlap": 240
+    "grep_answers_at_rank_1": 296,
+    "rare_token_overlap": 293
   },
   "dropped": [
     {
@@ -130,24 +130,56 @@
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-0238244413e1-bfbf27c7",
+      "qid": "added-061caff2862d-7bac9eb8",
+      "reason": "rare_token_overlap: _get_log_retrieval_url, getlogretrievalurl"
+    },
+    {
+      "qid": "added-06981d4ad824-fe63c400",
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-0be5decdc828-71bde401",
-      "reason": "rare_token_overlap: syspath"
+      "qid": "added-09674537cb12-c499fd4a",
+      "reason": "rare_token_overlap: airflowdagduplicatedidexception"
     },
     {
-      "qid": "added-1222ebd4e1eb-dd95513f",
+      "qid": "added-09674537cb12-d405d603",
+      "reason": "rare_token_overlap: airflowdagduplicatedidexception"
+    },
+    {
+      "qid": "added-0c2079585e4e-10473bde",
+      "reason": "rare_token_overlap: with_db_lock_timeout, withdblocktimeout"
+    },
+    {
+      "qid": "added-0fba616ccb21-c5d54825",
+      "reason": "rare_token_overlap: basetaskendevent"
+    },
+    {
+      "qid": "added-0fba616ccb21-cae38633",
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-126b7b8a073f-7c8446d6",
-      "reason": "rare_token_overlap: rotating"
+      "qid": "added-101bc155e0fc-dc74c6f2",
+      "reason": "rare_token_overlap: _resolve_version_data, resolveversiondata"
+    },
+    {
+      "qid": "added-1193073f9083-24cfcce2",
+      "reason": "rare_token_overlap: _create_log_forwarder, createlogforwarder, forwarder"
+    },
+    {
+      "qid": "added-1193073f9083-f1ff0c60",
+      "reason": "rare_token_overlap: _get_target_loggers, gettargetloggers"
+    },
+    {
+      "qid": "added-11b49e755930-059ac8ee",
+      "reason": "rare_token_overlap: jsoncontains"
+    },
+    {
+      "qid": "added-1222ebd4e1eb-8ff70914",
+      "reason": "rare_token_overlap: task_policy, taskpolicy"
     },
     {
       "qid": "added-15173321dea4-12ad52cc",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: is_satisfied, issatisfied, minimumcount"
     },
     {
       "qid": "added-15173321dea4-14ca4eee",
@@ -155,26 +187,18 @@
     },
     {
       "qid": "added-15173321dea4-29e08df6",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: minimumcount"
     },
     {
-      "qid": "added-15173321dea4-4dc1e849",
-      "reason": "grep_answers_at_rank_1"
+      "qid": "added-15173321dea4-38c3ae4c",
+      "reason": "rare_token_overlap: decode_wait_policy, decodewaitpolicy"
     },
     {
       "qid": "added-15173321dea4-67b2b1af",
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-15173321dea4-76fd8629",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
       "qid": "added-15173321dea4-7ff80afc",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-15173321dea4-8c47fe3d",
       "reason": "grep_answers_at_rank_1"
     },
     {
@@ -183,7 +207,7 @@
     },
     {
       "qid": "added-15173321dea4-9173d95e",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: is_unreachable, isunreachable, minimumcount"
     },
     {
       "qid": "added-15173321dea4-946ddeb7",
@@ -191,11 +215,11 @@
     },
     {
       "qid": "added-15173321dea4-b03cdc8a",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: minimumcount"
     },
     {
       "qid": "added-15173321dea4-c1c50518",
-      "reason": "rare_token_overlap: wait_policy, waitpolicy"
+      "reason": "rare_token_overlap: partitionsatisfaction"
     },
     {
       "qid": "added-15173321dea4-d2c0a9bd",
@@ -203,99 +227,227 @@
     },
     {
       "qid": "added-15173321dea4-dd5a3fe3",
+      "reason": "rare_token_overlap: minimumcount"
+    },
+    {
+      "qid": "added-1aaa87bc624f-1d65076d",
+      "reason": "rare_token_overlap: encodepriorityweightstrategy"
+    },
+    {
+      "qid": "added-1dcd3e13fd0a-c2b13c63",
+      "reason": "rare_token_overlap: extra_links_class_names, extralinksclassnames"
+    },
+    {
+      "qid": "added-22677defbeac-f8b7161c",
+      "reason": "rare_token_overlap: get_no_log_state_message, getnologstatemessage"
+    },
+    {
+      "qid": "added-230293c2c91e-3b8ed3a1",
+      "reason": "rare_token_overlap: next_dagrun_info_v2, nextdagruninfov2"
+    },
+    {
+      "qid": "added-230293c2c91e-7004bee9",
+      "reason": "rare_token_overlap: getpartitioninfo"
+    },
+    {
+      "qid": "added-230293c2c91e-8fd0faed",
+      "reason": "rare_token_overlap: getpartitiondate"
+    },
+    {
+      "qid": "added-230293c2c91e-c2cec485",
+      "reason": "rare_token_overlap: next_dagrun_info_v2, nextdagruninfov2"
+    },
+    {
+      "qid": "added-230293c2c91e-d0da10fc",
+      "reason": "rare_token_overlap: _format_key, formatkey"
+    },
+    {
+      "qid": "added-257903a4044b-4adb1dd2",
+      "reason": "rare_token_overlap: _get_current_dr_task_concurrency, getcurrentdrtaskconcurrency"
+    },
+    {
+      "qid": "added-28b3f6eb9213-003154f4",
+      "reason": "rare_token_overlap: deserialize_reference, deserializereference"
+    },
+    {
+      "qid": "added-28b3f6eb9213-01bb1572",
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-15173321dea4-f98498f3",
+      "qid": "added-28b3f6eb9213-181b7a93",
+      "reason": "rare_token_overlap: decode_deadline_reference, decodedeadlinereference, decoders"
+    },
+    {
+      "qid": "added-28b3f6eb9213-380a36db",
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-18ef68756638-65c662d5",
-      "reason": "rare_token_overlap: dialects"
+      "qid": "added-28b3f6eb9213-66c81733",
+      "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-18ef68756638-6d9bcd60",
-      "reason": "rare_token_overlap: dialects"
+      "qid": "added-28b3f6eb9213-729e0962",
+      "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-18ef68756638-9447097d",
-      "reason": "rare_token_overlap: dialects"
+      "qid": "added-28b3f6eb9213-b12da221",
+      "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-2970152b1906-e90050c4",
-      "reason": "rare_token_overlap: callbackkey"
+      "qid": "added-28b3f6eb9213-d93427d8",
+      "reason": "rare_token_overlap: serialize_reference, serializereference"
     },
     {
-      "qid": "added-29a26a810ee8-36d73acf",
-      "reason": "rare_token_overlap: deactivatestaledags"
+      "qid": "added-28b3f6eb9213-e07ac85a",
+      "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-2a615ab89d8d-26c951eb",
-      "reason": "rare_token_overlap: sink"
+      "qid": "added-28b3f6eb9213-f2eca3de",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-29aab6434ffe-13c1cfc2",
+      "reason": "rare_token_overlap: initialize_providers_secrets_backends, initializeproviderssecretsbackends"
+    },
+    {
+      "qid": "added-29aab6434ffe-18ed82c9",
+      "reason": "rare_token_overlap: secrets_backend_class_names, secretsbackendclassnames"
+    },
+    {
+      "qid": "added-29aab6434ffe-7dab59fe",
+      "reason": "rare_token_overlap: provider_command, providercommand"
+    },
+    {
+      "qid": "added-29aab6434ffe-816a05a4",
+      "reason": "grep_answers_at_rank_1"
     },
     {
       "qid": "added-2a9d508e0b4d-3febfe05",
-      "reason": "rare_token_overlap: dag_tags_for_stats, dagtagsforstats"
+      "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-2b719056cc56-6326eb84",
-      "reason": "rare_token_overlap: baseeventtrigger"
+      "qid": "added-2aec99c22847-aba9a0c0",
+      "reason": "rare_token_overlap: usestime"
+    },
+    {
+      "qid": "added-2b4bf7fe67fc-7ace566e",
+      "reason": "rare_token_overlap: get_all_dag_task_query, getalldagtaskquery"
     },
     {
       "qid": "added-2b7a0be359cd-336b429c",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: _decode_next_kwargs, decodenextkwargs"
     },
     {
       "qid": "added-2b7a0be359cd-b11c5468",
       "reason": "grep_answers_at_rank_1"
     },
     {
+      "qid": "added-2fb232178f10-16761355",
+      "reason": "rare_token_overlap: _cleanup_partial_backfill, cleanuppartialbackfill"
+    },
+    {
+      "qid": "added-2fea4cdceaa1-f175f93c",
+      "reason": "rare_token_overlap: _create_process"
+    },
+    {
+      "qid": "added-31acf95f58dd-a12ab94f",
+      "reason": "rare_token_overlap: get_plugin_info, getplugininfo"
+    },
+    {
+      "qid": "added-337aee896a91-8b8ef688",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-337aee896a91-d017de05",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-354863690f25-7572b1f8",
+      "reason": "rare_token_overlap: on_new_dag_import_error, onnewdagimporterror"
+    },
+    {
+      "qid": "added-354863690f25-a9832db4",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-3bb2dd5ec41f-fabb34fe",
+      "reason": "rare_token_overlap: startofmonthmapper"
+    },
+    {
+      "qid": "added-3cfe4b924a8a-a1e74a03",
+      "reason": "rare_token_overlap: _add_new_files_to_queue, addnewfilestoqueue"
+    },
+    {
+      "qid": "added-3e46e28302cc-b28a68c1",
+      "reason": "rare_token_overlap: get_execution_api_server_url, getexecutionapiserverurl"
+    },
+    {
+      "qid": "added-40ced09754fd-b8a773c4",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
       "qid": "added-40ced09754fd-e4a93acd",
-      "reason": "rare_token_overlap: _guess_best_bundle_for_fileloc, guess, guessbestbundleforfileloc"
+      "reason": "rare_token_overlap: _guess_best_bundle_for_fileloc, guessbestbundleforfileloc"
     },
     {
       "qid": "added-40ced09754fd-f1f47cbd",
-      "reason": "rare_token_overlap: reassign, reassign_dags_with_unconfigured_bundles, reassigndagswithunconfiguredbundles, unconfigured"
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-40dbe4b73454-ff9d73b9",
+      "reason": "rare_token_overlap: get_serialized_template_fields, getserializedtemplatefields"
     },
     {
       "qid": "added-41df5a980c8d-9ad3d359",
+      "reason": "rare_token_overlap: unpack_bundle_version, unpackbundleversion"
+    },
+    {
+      "qid": "added-46e2bdca6d2c-f23b2d50",
+      "reason": "rare_token_overlap: _get_team_names_for_dag_ids, getteamnamesfordagids"
+    },
+    {
+      "qid": "added-47dab8b8c091-d2a9579e",
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-485ef131b9aa-26547894",
-      "reason": "rare_token_overlap: lazydeserializeddag"
-    },
-    {
-      "qid": "added-492518edfae3-1c9e5688",
-      "reason": "rare_token_overlap: decoder, triggercommsdecoder"
-    },
-    {
-      "qid": "added-492518edfae3-264747af",
-      "reason": "rare_token_overlap: decoder, triggercommsdecoder"
-    },
-    {
-      "qid": "added-492518edfae3-2b7552a1",
-      "reason": "rare_token_overlap: decoder, frame, triggercommsdecoder"
+      "qid": "added-47dab8b8c091-da96f6f0",
+      "reason": "rare_token_overlap: get_windows_plugins, getwindowsplugins"
     },
     {
       "qid": "added-4c227e26c3ab-f593af14",
-      "reason": "rare_token_overlap: kill_child_processes_by_pids, killchildprocessesbypids, pids"
+      "reason": "rare_token_overlap: kill_child_processes_by_pids, killchildprocessesbypids"
+    },
+    {
+      "qid": "added-4c32caa92bae-b1af3b5b",
+      "reason": "rare_token_overlap: _run_dag_processor_job, rundagprocessorjob"
     },
     {
       "qid": "added-4fbac5fd9d8d-d23e293c",
-      "reason": "rare_token_overlap: cnf"
+      "reason": "rare_token_overlap: _quote_mysql_password_for_cnf, quotemysqlpasswordforcnf"
     },
     {
       "qid": "added-53c6305bd0a9-ce9825ca",
+      "reason": "rare_token_overlap: get_query_count, getquerycount"
+    },
+    {
+      "qid": "added-53e82838715b-07dee3bc",
       "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-541c9addb6b2-9091b92c",
+      "reason": "rare_token_overlap: fetch_task_instance, fetchtaskinstance"
+    },
+    {
+      "qid": "added-541c9addb6b2-a0c8b85a",
+      "reason": "rare_token_overlap: save_to_db, savetodb"
+    },
+    {
+      "qid": "added-5593a15bede7-18ce5478",
+      "reason": "rare_token_overlap: should_skip_refresh, shouldskiprefresh"
     },
     {
       "qid": "added-5593a15bede7-ac60f127",
       "reason": "rare_token_overlap: cleanup_stale_bundle_versions, cleanupstalebundleversions"
-    },
-    {
-      "qid": "added-5593a15bede7-d46a56a0",
-      "reason": "rare_token_overlap: sync_bundles, syncbundles"
     },
     {
       "qid": "added-5593a15bede7-e76c6ed7",
@@ -306,12 +458,16 @@
       "reason": "rare_token_overlap: persist_parsing_result, persistparsingresult"
     },
     {
-      "qid": "added-58294c544060-96a85c01",
-      "reason": "rare_token_overlap: basejobrunner"
+      "qid": "added-56d1b1ffaa58-d1e10b42",
+      "reason": "rare_token_overlap: handle_parsing_result, handleparsingresult"
     },
     {
-      "qid": "added-586a67d5bf72-78d28e4f",
-      "reason": "rare_token_overlap: lazydictwithcache"
+      "qid": "added-57eed581523c-3473bca5",
+      "reason": "rare_token_overlap: _log_memory_usage, logmemoryusage"
+    },
+    {
+      "qid": "added-58294c544060-1e82e669",
+      "reason": "rare_token_overlap: perform_heartbeat, performheartbeat"
     },
     {
       "qid": "added-58f3e67be5f5-5ca2a0f6",
@@ -322,47 +478,99 @@
       "reason": "rare_token_overlap: order_queued_tasks_by_priority, orderqueuedtasksbypriority"
     },
     {
+      "qid": "added-5d58c048b1a1-144b19db",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-2444e4e6",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-34ac952a",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-5bd9ebbc",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-630bb995",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-65796975",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-71e230fc",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-d2b49475",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-db9dd19f",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-dfc8055a",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-f66ebbe9",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5d58c048b1a1-f6f8f978",
+      "reason": "rare_token_overlap: serializedparamsdict"
+    },
+    {
+      "qid": "added-5f07ae132600-3a1fcb72",
+      "reason": "rare_token_overlap: utc_epoch, utcepoch"
+    },
+    {
       "qid": "added-60b2220c1712-158b6a6f",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: deltatriggertimetable"
     },
     {
       "qid": "added-60b2220c1712-c61fb909",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: deltatriggertimetable"
     },
     {
       "qid": "added-60b2220c1712-fd5ebac9",
+      "reason": "rare_token_overlap: deltatriggertimetable"
+    },
+    {
+      "qid": "added-65fba6f12006-8ce59ff3",
+      "reason": "rare_token_overlap: get_streaming_task_log, getstreamingtasklog"
+    },
+    {
+      "qid": "added-6630357fd1b7-a85e8984",
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-6208a479924d-85804359",
-      "reason": "rare_token_overlap: localfilesystem"
-    },
-    {
-      "qid": "added-6208a479924d-8828f828",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-6208a479924d-dc1f2b63",
-      "reason": "rare_token_overlap: localfilesystem, localfilesystembackend"
-    },
-    {
-      "qid": "added-6542fe6a2891-227c4d8b",
-      "reason": "rare_token_overlap: dag_run_data, dagrundata"
-    },
-    {
-      "qid": "added-6542fe6a2891-2739ef7e",
-      "reason": "rare_token_overlap: create_runtime_ti, createruntimeti"
+      "qid": "added-6714142dba15-7cc58586",
+      "reason": "rare_token_overlap: getdbbackend"
     },
     {
       "qid": "added-68691417109b-460128c4",
-      "reason": "rare_token_overlap: uuids"
+      "reason": "rare_token_overlap: _try_reuse_deadline_uuids, tryreusedeadlineuuids"
     },
     {
       "qid": "added-68691417109b-a053a160",
-      "reason": "rare_token_overlap: deadlinealert"
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-692728371f8f-506b9d43",
+      "reason": "grep_answers_at_rank_1"
     },
     {
       "qid": "added-6977fbf4f7ff-58b89873",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-6b0ccd384171-53a89e5e",
       "reason": "grep_answers_at_rank_1"
     },
     {
@@ -370,87 +578,75 @@
       "reason": "grep_answers_at_rank_1"
     },
     {
+      "qid": "added-6b0ccd384171-83a151a3",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-6b0ccd384171-ee29ffa5",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-6c79b097d6e1-73e1d920",
+      "reason": "rare_token_overlap: slots_stats, slotsstats"
+    },
+    {
       "qid": "added-6e6c50f24eb9-c1526298",
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-6f71c973952c-f98e81c5",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-6fd4e6055e36-a1cebd8e",
-      "reason": "rare_token_overlap: utcdatetime"
-    },
-    {
-      "qid": "added-6fd4e6055e36-f00a4511",
-      "reason": "rare_token_overlap: utcdatetime"
-    },
-    {
       "qid": "added-70a050b1c3a4-40209c11",
-      "reason": "rare_token_overlap: occupied"
+      "reason": "rare_token_overlap: get_occupied_states, getoccupiedstates"
     },
     {
-      "qid": "added-71f422c7bc21-8dc142e5",
-      "reason": "rare_token_overlap: sanitize"
+      "qid": "added-7256f4caa226-36e8d0ec",
+      "reason": "rare_token_overlap: _parse_netloc_to_hostname, parsenetloctohostname"
     },
     {
-      "qid": "added-73b90c48b193-af2e7de8",
-      "reason": "grep_answers_at_rank_1"
+      "qid": "added-73e03131d200-e99d3a92",
+      "reason": "rare_token_overlap: complete_execution, completeexecution"
     },
     {
-      "qid": "added-7662cd8ce487-cb8bf667",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-77bc48061dcc-b09d9f85",
-      "reason": "rare_token_overlap: pidfile"
-    },
-    {
-      "qid": "added-7971d3cc3024-6d92a4b0",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-7971d3cc3024-8a5ccc15",
-      "reason": "rare_token_overlap: get_dag_for_run, getdagforrun"
+      "qid": "added-777a2169e21f-929da182",
+      "reason": "rare_token_overlap: _check_last_n_dagruns_failed, checklastndagrunsfailed"
     },
     {
       "qid": "added-7b562ba381f8-05386867",
-      "reason": "rare_token_overlap: average"
+      "reason": "rare_token_overlap: averageruntimedeadline"
     },
     {
       "qid": "added-7b562ba381f8-4a2f172f",
-      "reason": "rare_token_overlap: average"
+      "reason": "rare_token_overlap: averageruntimedeadline"
     },
     {
       "qid": "added-7b562ba381f8-8786fc85",
-      "reason": "rare_token_overlap: average"
+      "reason": "rare_token_overlap: averageruntimedeadline"
     },
     {
       "qid": "added-7b562ba381f8-c67c5a92",
-      "reason": "rare_token_overlap: average"
+      "reason": "rare_token_overlap: __post_init__, averageruntimedeadline, postinit"
     },
     {
-      "qid": "added-8064eb91d02d-1e7a62f7",
-      "reason": "grep_answers_at_rank_1"
+      "qid": "added-7cadb63d3890-2d7cd10a",
+      "reason": "rare_token_overlap: connections_import, connectionsimport"
     },
     {
-      "qid": "added-8064eb91d02d-398340e6",
-      "reason": "rare_token_overlap: partition_mappers, partitionmappers"
+      "qid": "added-7cadb63d3890-afca1fed",
+      "reason": "rare_token_overlap: _import_helper, importhelper"
     },
     {
-      "qid": "added-8064eb91d02d-7204559e",
-      "reason": "grep_answers_at_rank_1"
+      "qid": "added-7d35e040d338-3a5fb292",
+      "reason": "rare_token_overlap: _emit_metrics"
     },
     {
-      "qid": "added-8064eb91d02d-90534277",
-      "reason": "grep_answers_at_rank_1"
+      "qid": "added-8155e8ac0abc-4ad21465",
+      "reason": "rare_token_overlap: reconfigure_orm, reconfigureorm"
     },
     {
-      "qid": "added-8064eb91d02d-a394a5d3",
-      "reason": "grep_answers_at_rank_1"
+      "qid": "added-83bdc297ceba-ea74f70e",
+      "reason": "rare_token_overlap: auth_managers, authmanagers"
     },
     {
-      "qid": "added-8064eb91d02d-dee6e62e",
+      "qid": "added-84a211b5d22a-9c240e65",
       "reason": "grep_answers_at_rank_1"
     },
     {
@@ -459,47 +655,31 @@
     },
     {
       "qid": "added-85ccf1accf2a-78237f78",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: create_async_metadata_engine, createasyncmetadataengine"
+    },
+    {
+      "qid": "added-88043d0782e3-df816c48",
+      "reason": "rare_token_overlap: _emit_dag_runs_metric, emitdagrunsmetric"
+    },
+    {
+      "qid": "added-8809478f444d-7a4e8e06",
+      "reason": "rare_token_overlap: exists_query, existsquery"
     },
     {
       "qid": "added-8daf74e606a4-9ebb16eb",
-      "reason": "rare_token_overlap: principal"
-    },
-    {
-      "qid": "added-8e0d9f09d9c7-15d94c93",
-      "reason": "rare_token_overlap: cheat, sheet"
-    },
-    {
-      "qid": "added-8e0d9f09d9c7-83005240",
-      "reason": "rare_token_overlap: cheat, sheet"
-    },
-    {
-      "qid": "added-90f061288b37-6ed8b2f2",
       "reason": "grep_answers_at_rank_1"
     },
     {
+      "qid": "added-9216489d9a25-7ce31a86",
+      "reason": "rare_token_overlap: set_new_process_group, setnewprocessgroup"
+    },
+    {
       "qid": "added-92290dbd64f5-956dabc1",
-      "reason": "rare_token_overlap: mp, set_component_mp_start_method, setcomponentmpstartmethod"
+      "reason": "rare_token_overlap: set_component_mp_start_method, setcomponentmpstartmethod"
     },
     {
       "qid": "added-92290dbd64f5-b2d0da81",
-      "reason": "rare_token_overlap: mp"
-    },
-    {
-      "qid": "added-93dfdf0d7fc7-a62d5f91",
-      "reason": "rare_token_overlap: executor_loader"
-    },
-    {
-      "qid": "added-93dfdf0d7fc7-ae3584cf",
-      "reason": "rare_token_overlap: executor_loader"
-    },
-    {
-      "qid": "added-93dfdf0d7fc7-b1514625",
-      "reason": "rare_token_overlap: executor_loader"
-    },
-    {
-      "qid": "added-94af07fcbf93-6c4c53f3",
-      "reason": "rare_token_overlap: crontriggertimetable"
+      "reason": "rare_token_overlap: resolve_mp_start_method, resolvempstartmethod"
     },
     {
       "qid": "added-9583c1cab65d-04281123",
@@ -507,23 +687,67 @@
     },
     {
       "qid": "added-9a09bc2ee67b-8b81e2ad",
-      "reason": "rare_token_overlap: set_task_group_state, settaskgroupstate"
+      "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-9a6ce3a330cc-42377d50",
-      "reason": "rare_token_overlap: deltadataintervaltimetable"
-    },
-    {
-      "qid": "added-9a6ce3a330cc-9e9f7d7c",
-      "reason": "rare_token_overlap: deltadataintervaltimetable"
+      "qid": "added-9c69f1cade13-af6463ef",
+      "reason": "rare_token_overlap: dblocks"
     },
     {
       "qid": "added-9ddde7296ccb-05fa55b7",
-      "reason": "rare_token_overlap: ip"
+      "reason": "rare_token_overlap: get_host_ip_address, gethostipaddress"
     },
     {
-      "qid": "added-a0805a808e39-2ade90fe",
+      "qid": "added-9fa13c82ff7c-024cadf4",
       "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-044a5e70",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-185963c9",
+      "reason": "rare_token_overlap: _enqueue_executor_callbacks, enqueueexecutorcallbacks"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-2331a94b",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-498c1e11",
+      "reason": "rare_token_overlap: _executor_to_workloads, executortoworkloads"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-9932b9d8",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-a6e06831",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-badb13c6",
+      "reason": "rare_token_overlap: baseworkload, get_executor_name, getexecutorname"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-c609c05d",
+      "reason": "rare_token_overlap: baseworkload, get_dag_id, getdagid"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-e399786d",
+      "reason": "rare_token_overlap: get_dag_id, getdagid"
+    },
+    {
+      "qid": "added-9fa13c82ff7c-ea849739",
+      "reason": "rare_token_overlap: _get_workloads_to_schedule, getworkloadstoschedule"
+    },
+    {
+      "qid": "added-9fab11cf5141-a92425d9",
+      "reason": "rare_token_overlap: _find_imported_modules, findimportedmodules"
+    },
+    {
+      "qid": "added-9fab11cf5141-ab032580",
+      "reason": "rare_token_overlap: iter_airflow_imports, iterairflowimports"
     },
     {
       "qid": "added-a0805a808e39-644ef90d",
@@ -531,7 +755,7 @@
     },
     {
       "qid": "added-a0805a808e39-c78c9677",
-      "reason": "rare_token_overlap: cronmixin, localize, localize_partition_datetime, localizepartitiondatetime"
+      "reason": "rare_token_overlap: localize_partition_datetime, localizepartitiondatetime"
     },
     {
       "qid": "added-a0805a808e39-e489977a",
@@ -539,67 +763,67 @@
     },
     {
       "qid": "added-a1097f6f2979-fd2770f3",
-      "reason": "rare_token_overlap: airflowconsole"
+      "reason": "rare_token_overlap: simple_table"
     },
     {
-      "qid": "added-a3f2df0f4597-cd657fb1",
-      "reason": "rare_token_overlap: getfqdn"
+      "qid": "added-a3295a88eb5d-2d63cb79",
+      "reason": "rare_token_overlap: _fetch_from_db, fetchfromdb"
     },
     {
-      "qid": "added-a5f1c4edf511-028e3df2",
-      "reason": "rare_token_overlap: partitionedassettimetable"
-    },
-    {
-      "qid": "added-a5f1c4edf511-0a5283a8",
-      "reason": "rare_token_overlap: partitionedassettimetable"
-    },
-    {
-      "qid": "added-a5f1c4edf511-daa2a8bf",
-      "reason": "rare_token_overlap: partitionedassettimetable"
-    },
-    {
-      "qid": "added-a5f1c4edf511-e25773d8",
-      "reason": "rare_token_overlap: partitionedassettimetable"
-    },
-    {
-      "qid": "added-a6115b172f16-2fd09b2d",
-      "reason": "rare_token_overlap: sampled"
+      "qid": "added-a5f1c4edf511-a143b8ea",
+      "reason": "rare_token_overlap: _queue_partitioned_dags, queuepartitioneddags"
     },
     {
       "qid": "added-a74b5f069481-0a119265",
       "reason": "rare_token_overlap: running_state, runningstate"
     },
     {
-      "qid": "added-ab1ee72c2bed-43a130df",
-      "reason": "rare_token_overlap: api_server_command, apiservercommand"
+      "qid": "added-ac76ceee536c-65c74c1d",
+      "reason": "rare_token_overlap: serializedmappedtaskgroup"
     },
     {
       "qid": "added-adaaf3a01eca-a096405e",
-      "reason": "rare_token_overlap: alphabetical, hierarchical"
-    },
-    {
-      "qid": "added-adccc2d0dae2-3c7e10e8",
-      "reason": "rare_token_overlap: creator"
-    },
-    {
-      "qid": "added-adccc2d0dae2-735d868b",
-      "reason": "rare_token_overlap: dagrunnote"
-    },
-    {
-      "qid": "added-adccc2d0dae2-b8c6b4f7",
-      "reason": "rare_token_overlap: creator"
-    },
-    {
-      "qid": "added-adccc2d0dae2-ccf4c97b",
-      "reason": "rare_token_overlap: dagrunnote"
+      "reason": "rare_token_overlap: hierarchical_alphabetical_sort, hierarchicalalphabeticalsort"
     },
     {
       "qid": "added-ae9dbd7681fc-bdbab31c",
       "reason": "rare_token_overlap: parent_trace_context, parenttracecontext"
     },
     {
-      "qid": "added-b07d79908c6a-6de68000",
-      "reason": "rare_token_overlap: as_json, asjson"
+      "qid": "added-aeb4a262ea42-63e3c94e",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-aeb4a262ea42-7223d3e4",
+      "reason": "rare_token_overlap: task_not_running_dep, tasknotrunningdep"
+    },
+    {
+      "qid": "added-aeb4a262ea42-c5251e22",
+      "reason": "rare_token_overlap: task_not_running_dep, tasknotrunningdep"
+    },
+    {
+      "qid": "added-aee4240161df-0bbccf5f",
+      "reason": "rare_token_overlap: dagrun_trace_attributes, dagruntraceattributes"
+    },
+    {
+      "qid": "added-b2a840d68c8d-7012e6d5",
+      "reason": "rare_token_overlap: _add_provider_example_dags_to_bundle, addproviderexampledagstobundle"
+    },
+    {
+      "qid": "added-b3306f15cdb5-3d57b1ca",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-b3306f15cdb5-a5d81fc7",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-b3306f15cdb5-bce632e4",
+      "reason": "grep_answers_at_rank_1"
+    },
+    {
+      "qid": "added-b3f54e046a7f-0f2ae941",
+      "reason": "rare_token_overlap: _get_dagrun"
     },
     {
       "qid": "added-b476b22f264a-14fdd1a0",
@@ -619,7 +843,7 @@
     },
     {
       "qid": "added-b476b22f264a-7a8ff66a",
-      "reason": "rare_token_overlap: arg_bindings, argbindings, bindings"
+      "reason": "rare_token_overlap: arg_bindings, argbindings"
     },
     {
       "qid": "added-b476b22f264a-8949fe73",
@@ -635,7 +859,7 @@
     },
     {
       "qid": "added-b476b22f264a-bbeeb7e7",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: arg_bindings, argbindings"
     },
     {
       "qid": "added-b476b22f264a-bf914f62",
@@ -650,323 +874,99 @@
       "reason": "grep_answers_at_rank_1"
     },
     {
-      "qid": "added-b56771c8c73d-18e94f59",
-      "reason": "rare_token_overlap: has_retry_policy, hasretrypolicy"
-    },
-    {
-      "qid": "added-b64a0e636d9b-e06ea309",
-      "reason": "rare_token_overlap: awaiting"
-    },
-    {
       "qid": "added-b7fe72676fad-42d50f03",
-      "reason": "grep_answers_at_rank_1"
+      "reason": "rare_token_overlap: normalize_pool_name_for_stats, normalizepoolnameforstats"
     },
     {
-      "qid": "added-b906080fe82c-709ed594",
-      "reason": "grep_answers_at_rank_1"
+      "qid": "added-b8e431ff071d-74769cd1",
+      "reason": "rare_token_overlap: serialize_timetable, serializetimetable"
     },
     {
-      "qid": "added-b906080fe82c-df0fbee0",
-      "reason": "grep_answers_at_rank_1"
+      "qid": "added-b8e431ff071d-a34d58e8",
+      "reason": "rare_token_overlap: serialize_partition_mapper, serializepartitionmapper"
     },
     {
       "qid": "added-badd890675d3-ee681b2c",
       "reason": "rare_token_overlap: make_kwargs_callable, makekwargscallable"
     },
     {
-      "qid": "added-baec49a13bb4-17ad8728",
-      "reason": "rare_token_overlap: freeze"
+      "qid": "added-bda39188bd12-a6d3ed25",
+      "reason": "rare_token_overlap: _prepare_log_folder, preparelogfolder"
     },
     {
-      "qid": "added-c1aa4b9500f4-2dcd5ca0",
-      "reason": "rare_token_overlap: continuous, continuoustimetable"
-    },
-    {
-      "qid": "added-c1aa4b9500f4-e6b40ed6",
-      "reason": "rare_token_overlap: continuous, continuoustimetable"
-    },
-    {
-      "qid": "added-c3095d77b81c-ef179741",
-      "reason": "rare_token_overlap: heuristic"
+      "qid": "added-c4a10e718aef-72dd1272",
+      "reason": "grep_answers_at_rank_1"
     },
     {
       "qid": "added-c6531bb06372-2766bac6",
-      "reason": "rare_token_overlap: cronmixin"
+      "reason": "rare_token_overlap: dom, dow"
     },
     {
-      "qid": "added-c717d12f47c6-aeda81ad",
-      "reason": "rare_token_overlap: dagtag"
+      "qid": "added-c7565caf8894-224af31c",
+      "reason": "rare_token_overlap: _symlink_latest_log_directory, symlinklatestlogdirectory"
     },
     {
       "qid": "added-c96f5c894537-03102fcb",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-ca73694702cc-b2220298",
-      "reason": "rare_token_overlap: dejson, get_extra_dejson, getextradejson"
-    },
-    {
-      "qid": "added-cad6220034e8-809553d1",
-      "reason": "rare_token_overlap: prime"
+      "reason": "rare_token_overlap: _emit_executor_events_batch_metrics, emitexecutoreventsbatchmetrics"
     },
     {
       "qid": "added-cc0aad0bab2d-3684614d",
-      "reason": "rare_token_overlap: assetactive"
+      "reason": "rare_token_overlap: for_asset, forasset"
     },
     {
-      "qid": "added-ce0c1c0b56cc-9951f115",
-      "reason": "rare_token_overlap: uuid7"
+      "qid": "added-cd3f7d318029-05512d37",
+      "reason": "rare_token_overlap: decode_deadline_alert, decodedeadlinealert"
     },
     {
-      "qid": "added-d13873666cae-4d4853ca",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-d13873666cae-cacb210c",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-d22505da575f-d185c11e",
-      "reason": "rare_token_overlap: notset"
-    },
-    {
-      "qid": "added-d4a4d853e9d6-378d0f50",
-      "reason": "rare_token_overlap: _resolve_ti_callback_bundle_info, resolveticallbackbundleinfo"
-    },
-    {
-      "qid": "added-d5e5f432d860-08c29b64",
-      "reason": "rare_token_overlap: chainmapper"
-    },
-    {
-      "qid": "added-d5e5f432d860-6eb8ea77",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-d5e5f432d860-a5d81449",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-d5e5f432d860-a753b61c",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-d7c9a0a331dc-a2a1559e",
-      "reason": "rare_token_overlap: bundledagbag"
-    },
-    {
-      "qid": "added-d8b8620662d7-60b9fda1",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-d991d9800e88-193e5534",
-      "reason": "rare_token_overlap: _align_to_prev, aligntoprev"
-    },
-    {
-      "qid": "added-d991d9800e88-8e5de21a",
-      "reason": "rare_token_overlap: _align_to_next, aligntonext"
-    },
-    {
-      "qid": "added-d991d9800e88-a43e8c20",
-      "reason": "rare_token_overlap: _align_to_prev, aligntoprev"
-    },
-    {
-      "qid": "added-d991d9800e88-ea6422b8",
-      "reason": "rare_token_overlap: _align_to_next, aligntonext"
-    },
-    {
-      "qid": "added-de845f3086a2-9543556c",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-de845f3086a2-aeb731a3",
-      "reason": "rare_token_overlap: claimpriorityfiles"
-    },
-    {
-      "qid": "added-e00e53257e90-195471f0",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-e0bbf51870f0-ddbfa0fc",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-e3089bf977c1-4280a11b",
-      "reason": "rare_token_overlap: on_trigger_event, ontriggerevent"
-    },
-    {
-      "qid": "added-e3089bf977c1-761e0424",
-      "reason": "rare_token_overlap: build_trigger_workloads, buildtriggerworkloads"
-    },
-    {
-      "qid": "added-e3089bf977c1-83056c08",
-      "reason": "rare_token_overlap: fetch_non_task_trigger_ids, fetchnontasktriggerids"
-    },
-    {
-      "qid": "added-e3089bf977c1-96d0b90f",
-      "reason": "rare_token_overlap: on_trigger_failure, ontriggerfailure"
-    },
-    {
-      "qid": "added-e3089bf977c1-ab9cbdbc",
-      "reason": "rare_token_overlap: fetch_trigger_details, fetchtriggerdetails"
-    },
-    {
-      "qid": "added-e4817fd1f469-fcc2c8ae",
-      "reason": "rare_token_overlap: serializers"
-    },
-    {
-      "qid": "added-e4e81ed0f2ca-089fff15",
-      "reason": "rare_token_overlap: allowedkeymapper"
-    },
-    {
-      "qid": "added-e4e81ed0f2ca-72747d4f",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-e4e81ed0f2ca-f0105f8b",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-e4e81ed0f2ca-f4e94ec2",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-e5064705cb66-406a2de5",
-      "reason": "rare_token_overlap: schedulable"
-    },
-    {
-      "qid": "added-e5064705cb66-9a59935c",
-      "reason": "rare_token_overlap: schedulable"
-    },
-    {
-      "qid": "added-e70963e7a4eb-700f2e58",
-      "reason": "rare_token_overlap: _get_metric_name, getmetricname"
-    },
-    {
-      "qid": "added-e76193169953-b2f3a381",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-ec6700db0779-75e5d663",
-      "reason": "rare_token_overlap: executecallback"
-    },
-    {
-      "qid": "added-ec6700db0779-93c04c61",
-      "reason": "rare_token_overlap: executecallback"
-    },
-    {
-      "qid": "added-ec6700db0779-a8189261",
-      "reason": "rare_token_overlap: executecallback"
-    },
-    {
-      "qid": "added-ec6700db0779-d9f86d32",
-      "reason": "rare_token_overlap: base_executor, run_workload, runworkload"
-    },
-    {
-      "qid": "added-ec6700db0779-e857fcb3",
-      "reason": "rare_token_overlap: executecallback"
-    },
-    {
-      "qid": "added-ec6700db0779-f054a05b",
-      "reason": "rare_token_overlap: executecallback"
-    },
-    {
-      "qid": "added-ecd4d951da19-802fb72a",
-      "reason": "rare_token_overlap: depcontext"
-    },
-    {
-      "qid": "added-ee54fe93768e-1a5de32b",
-      "reason": "rare_token_overlap: _flush_logs_out_of_heap, flushlogsoutofheap, heap"
-    },
-    {
-      "qid": "added-ee54fe93768e-1eed4434",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-ee54fe93768e-21edaf19",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-ee54fe93768e-23e95dc1",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-ee54fe93768e-25646dbe",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-ee54fe93768e-29ff50bc",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-ee54fe93768e-3be4cf52",
-      "reason": "rare_token_overlap: sortkey, structuredlogmessage"
-    },
-    {
-      "qid": "added-ee54fe93768e-3cba1d6a",
-      "reason": "rare_token_overlap: _create_sort_key, createsortkey"
-    },
-    {
-      "qid": "added-ee54fe93768e-46502943",
-      "reason": "grep_answers_at_rank_1"
-    },
-    {
-      "qid": "added-ee54fe93768e-4e454af0",
-      "reason": "rare_token_overlap: _add_log_from_parsed_log_streams_to_heap, addlogfromparsedlogstreamstoheap, heap"
-    },
-    {
-      "qid": "added-ee54fe93768e-6cc8753f",
-      "reason": "rare_token_overlap: _stream_lines_by_chunk, chunk, streamlinesbychunk"
-    },
-    {
-      "qid": "added-ee54fe93768e-8b298e79",
-      "reason": "rare_token_overlap: _is_logs_stream_like, islogsstreamlike"
+      "qid": "added-cd3f7d318029-8352f340",
+      "reason": "rare_token_overlap: encode_deadline_alert, encodedeadlinealert"
     }
   ],
   "frozen_embeddings_path": "eval/fixtures/qvecs_bge-small-en-v1.5.npz",
   "gold_symbol_df": {
-    "frac_df_le_1": 0.5931178310740355,
-    "max": 2936,
-    "mean": 35.886548488008344,
-    "median": 1,
+    "frac_df_le_1": 0.2500521376433785,
+    "max": 24114,
+    "mean": 321.3839416058394,
+    "median": 6,
     "min": 0,
     "n": 4795
   },
   "golden_path": "provenance/eval/golden/auto_full.jsonl",
-  "grep_recall_at_10": 0.02567067530064755,
+  "grep_recall_at_10": 0.10247265810746553,
   "k": 10,
   "min_retained": 100,
   "min_retention": 0.25,
   "n_candidates": 4795,
-  "n_dropped": 471,
+  "n_dropped": 589,
   "n_golden": 8250,
-  "n_retained": 4324,
+  "n_retained": 4206,
   "n_stale": 0,
   "n_unanswerable": 0,
-  "pool_size": 6810,
-  "retention_rate": 0.9017726798748696,
+  "pool_size": 69769,
+  "retention_rate": 0.8771637122002085,
   "split": "dev",
   "stale": [],
   "strongest_cheap_baseline": "bm25_ident",
-  "strongest_cheap_recall_at_10": 0.1103145235892692,
-  "strongest_cheap_upper_95": 0.12000037479702887,
+  "strongest_cheap_recall_at_10": 0.1398002853067047,
+  "strongest_cheap_upper_95": 0.15060947940504715,
   "symbol_df_strata": {
     "df_positive": {
-      "n": 2395,
+      "n": 3501,
       "recall_at_10": {
-        "bm25_default": 0.04801670146137787,
-        "bm25_ident": 0.10396659707724426,
-        "grep": 0.037995824634655534
+        "bm25_default": 0.05769780062839189,
+        "bm25_ident": 0.14367323621822337,
+        "grep": 0.112539274493002
       }
     },
     "df_zero": {
-      "n": 1929,
+      "n": 705,
       "recall_at_10": {
-        "bm25_default": 0.013996889580093312,
-        "bm25_ident": 0.1181959564541213,
-        "grep": 0.010368066355624676
+        "bm25_default": 0.015602836879432624,
+        "bm25_ident": 0.12056737588652482,
+        "grep": 0.0524822695035461
       }
     },
-    "df_zero_share": 0.4461147086031452
+    "df_zero_share": 0.16761768901569188
   },
   "unresolved_anchors": {},
   "verdict": "PASS",
