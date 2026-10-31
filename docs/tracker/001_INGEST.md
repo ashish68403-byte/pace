@@ -21,7 +21,7 @@ block it, and one is a schedule risk large enough to eat checkpoint B.
 | # | Task | Status | File |
 |---|------|--------|------|
 | 1 | [Freeze the corpus scope](../tasks/review-remediation/004_scope_freeze.md) (finding 4) | ✅ | `provenance/ingest/scope.py`, `scope.txt`, `scope_stats.json` |
-| 2 | Rate-limit budget: filter comment collectors to in-scope PRs; persist bodies during the manifest pass (finding 10) | ⬜ | `scripts/fetch_corpus.py` |
+| 2 | Rate-limit budget: fetch only the pool's PRs, one request each plus comment pages (finding 10) — [eval-harness/004](../tasks/eval-harness/004_github_backfill.md) | ✅ | `provenance/ingest/github_backfill.py` |
 | 3 | `make db-dump` at each checkpoint gate; private full dump + body-stripped examiner dump (finding 12) | ⬜ | `Makefile`, `docs/RUNBOOK.md` |
 | 4 | Commit `artifacts/corpus_facts.json` with the corpus SHA and the command behind each §4 number (finding 18) | ⬜ | `artifacts/corpus_facts.json` |
 | 5 | The graph write path. Checkpoint A: [commits and parent links](../tasks/ingest/001_commit_graph.md), then [files and revisions across renames](../tasks/ingest/002_file_history.md). `chunks` / `chunk_evidence` move to checkpoint B | ✅ | `provenance/ingest/graph_writer.py` |

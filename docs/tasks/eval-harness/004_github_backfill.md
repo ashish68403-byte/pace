@@ -3,7 +3,7 @@
 **Tracker:** [006_EVAL_HARNESS](../../tracker/006_EVAL_HARNESS.md) · **checkpoint B**, slice B4 of 5;
 closes review findings 10 and 11 ([000](../../tracker/000_REVIEW_REMEDIATION.md)) and
 [001_INGEST](../../tracker/001_INGEST.md) row 2
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-10-31)
 **Decision records:** [ADR-0003](../../ADR-0003-rationale-pool-benchmark.md) §1–§2 and its second
 2026-10-29 addendum; [DATA-PROTECTION.md](../../DATA-PROTECTION.md), whose §7 is the dated ethics
 self-assessment

@@ -87,3 +87,14 @@ honouring the identity contract its own reasoning establishes.
   questions name a symbol that no pool document contains. Found while planning and fixed before
   any number existed: `rank()` broke ties by partition order, and counted documents that matched
   nothing as retrieved.
+- **2026-10-31 — slice B4 closed.** The dated self-assessment (DATA-PROTECTION.md §7, 2026-10-29)
+  was committed before the first request. `pace github backfill` fetched 5,962 of the pool's 5,963
+  linked PRs (1 number was not a PR on GitHub any more) in 13,435 requests (2.25 per PR), storing
+  38,026 review comments and 18,972 conversation comments as documents, emails scrubbed and no raw
+  API responses kept. The pool grew to 69,769 documents (5,961 descriptions + 38,026 review +
+  18,972 conversation, beside B2's 6,810 commit messages); 3,226 bot-written texts were left out.
+  B2's commit-subject links agree with GitHub's own merge commit for 5,686 PRs (275 outside the
+  graph — first-parent-only history and squash/rebase merges account for the gap, a known limit,
+  not a bug). Regenerated on the grown pool, the golden set retains 7,199 of 8,250 (87.3%), 4,206
+  dev; the verdict is **PASS**: bm25_ident recall@10 0.140, Wilson upper bound 0.151 against the
+  0.35 ceiling.

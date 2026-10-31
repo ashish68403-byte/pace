@@ -51,8 +51,8 @@ Severity is the audited severity. "Before checkpoint B" means it gates B's work 
 | 7 | CI gate cannot detect 2 points; its denominator moves with the chunker | major | ⬜ | `provenance/eval/runner.py`, `metrics.py`, `anchors.py` |
 | 8 | Leakage gate has three ways to pass green; the thesis stratum is dropped before aggregation | major | 🚧 | `provenance/eval/leakage.py` (closed in B3: [006](006_EVAL_HARNESS.md) row 4), `runner.py` (B5: 006 row 5) |
 | 9 | The week-8 oracle may not exist; the most-quoted number is n=40 with no interval | critical | ⬜ | `docs/ROADMAP.md` §7, new ADR |
-| 10 | Weeks 4-5 spend ~29 h of rate-limited fetching for ~25 min of work; no request budget | major | ⬜ | `scripts/fetch_corpus.py`, `docs/ROADMAP.md` §5 |
-| 11 | Ethics self-assessment has no date; weeks 4-5 are first processing of human text | major | ⬜ | `docs/DATA-PROTECTION.md` §7, `docs/ROADMAP.md` §5 |
+| 10 | Weeks 4-5 spend ~29 h of rate-limited fetching for ~25 min of work; no request budget | major | ✅ | `provenance/ingest/github_backfill.py` ([eval-harness/004](../tasks/eval-harness/004_github_backfill.md)): 13,435 requests for 5,962 PRs (2.25/PR) |
+| 11 | Ethics self-assessment has no date; weeks 4-5 are first processing of human text | major | ✅ | `docs/DATA-PROTECTION.md` §7, dated 2026-10-29, committed (e2e1c4e) before the first fetch (2026-10-30) |
 | 12 | The laptop is the only copy of derived state; nothing in 16 weeks produces a dump | major | ⬜ | `Makefile`, `docs/RUNBOOK.md` |
 
 ### Before the write-up
