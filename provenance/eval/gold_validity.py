@@ -13,8 +13,9 @@ import json
 import sys
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from datetime import date, timedelta
 from pathlib import Path
-from typing import Final
+from typing import Any, Final
 
 from provenance.config import settings
 from provenance.eval.generator import DEFAULT_OUT as GOLDEN_PATH
@@ -45,6 +46,15 @@ SEEDS: Final[Mapping[str, str]] = {
     "relabel": "gold-validity-relabel-v1",
     "relabel_order": "gold-validity-relabel-order-v1",
 }
+
+#: ADR-0004 §3's labels, and how much each claims. A final label never claims less than
+#: the commit message's, because the text only grows (§4).
+RATIONALE: Final = "rationale"
+MENTIONS: Final = "mentions"
+UNRELATED: Final = "unrelated"
+LABELS: Final = (RATIONALE, MENTIONS, UNRELATED)
+CLAIMS: Final[Mapping[str, int]] = {RATIONALE: 2, MENTIONS: 1, UNRELATED: 0}
+MIN_RELABEL_DAYS: Final = 7
 
 
 class AuditError(RuntimeError):
@@ -257,6 +267,95 @@ def render_sample(sample: Sample, path: Path) -> str:
         lines.append(f"  {stratum:<20} {sampled:>3} of {size:,}")
     lines.append(f"  wrote {path}; commit it before the first label")
     return "\n".join(lines)
+
+
+@dataclass(frozen=True)
+class LabelRecord:
+    """One labelled record: a line of the labels or the relabels file."""
+
+    qid: str
+    stratum: str
+    message_label: str
+    label: str
+    note: str | None
+    labelled_on: date
+    read_change: bool
+    read_comments: bool | None
+
+    def __post_init__(self) -> None:
+        for value in (self.message_label, self.label):
+            if value not in CLAIMS:
+                raise AuditError(f"{self.qid}: {value!r} is not one of {', '.join(LABELS)}")
+        if CLAIMS[self.label] < CLAIMS[self.message_label]:
+            raise AuditError(f"{self.qid}: the final label claims less than the commit message's")
+        if self.stratum in PR_STRATA:
+            if self.read_comments is None:
+                raise AuditError(f"{self.qid}: a PR-linked record says whether comments were read")
+        elif self.label != self.message_label or self.read_comments is not None:
+            raise AuditError(f"{self.qid}: a commit-only record has one label and no comments")
+
+    def to_json_line(self) -> str:
+        raw = {
+            "qid": self.qid,
+            "stratum": self.stratum,
+            "message_label": self.message_label,
+            "label": self.label,
+            "note": self.note,
+            "labelled_on": self.labelled_on.isoformat(),
+            "read_change": self.read_change,
+            "read_comments": self.read_comments,
+        }
+        return json.dumps(raw, sort_keys=True) + "\n"
+
+    @classmethod
+    def from_json(cls, raw: Mapping[str, Any]) -> LabelRecord:
+        return cls(
+            qid=str(raw["qid"]),
+            stratum=str(raw["stratum"]),
+            message_label=str(raw["message_label"]),
+            label=str(raw["label"]),
+            note=raw.get("note"),
+            labelled_on=date.fromisoformat(raw["labelled_on"]),
+            read_change=bool(raw["read_change"]),
+            read_comments=raw.get("read_comments"),
+        )
+
+
+def load_labels(path: Path) -> dict[str, LabelRecord]:
+    """A labels file by qid, in file order. A qid labelled twice is an error."""
+    labels: dict[str, LabelRecord] = {}
+    if not path.exists():
+        return labels
+    for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        if not line.strip():
+            continue
+        record = LabelRecord.from_json(json.loads(line))
+        if record.qid in labels:
+            raise AuditError(f"{path}:{lineno}: {record.qid} is labelled twice")
+        labels[record.qid] = record
+    return labels
+
+
+def append_label(path: Path, record: LabelRecord) -> None:
+    """One line, appended at once: a stop loses at most the record on screen."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(record.to_json_line())
+
+
+def check_relabel_allowed(sample: Sample, labels: Mapping[str, LabelRecord], today: date) -> None:
+    """ADR-0004 §6: every subset record labelled once, and seven days since the last label."""
+    subset = sample.relabel_records()
+    missing = [r.qid for r in subset if r.qid not in labels]
+    if missing:
+        raise AuditError(
+            f"{len(missing)} of the {len(subset)} re-label records have no first label yet "
+            f"(first: {missing[0]}); finish `pace audit label` first"
+        )
+    last = max(labels[r.qid].labelled_on for r in subset)
+    if (today - last).days < MIN_RELABEL_DAYS:
+        opens = last + timedelta(days=MIN_RELABEL_DAYS)
+        raise AuditError(f"the last first label is from {last}; the re-label opens on {opens}")
 
 
 def sample_main(argv: Sequence[str] | None = None) -> int:

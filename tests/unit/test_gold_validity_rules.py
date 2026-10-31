@@ -4,16 +4,21 @@ from __future__ import annotations
 
 import hashlib
 from collections import Counter
+from datetime import date, timedelta
 
 import pytest
 
 from provenance.eval.gold_validity import (
     AuditError,
     AuditStale,
+    LabelRecord,
     SampleExists,
+    append_label,
     check_fresh,
+    check_relabel_allowed,
     corpus_commit_of,
     draw_sample,
+    load_labels,
     load_sample,
     population,
     stratum_of,
@@ -164,3 +169,50 @@ def test_the_corpus_commit_is_read_only_from_a_set_measured_on_this_pool():
     assert corpus_commit_of(golden(), VERSION) == CORPUS
     with pytest.raises(AuditError, match="pace golden generate"):
         corpus_commit_of(golden(), "rationale-v1:commit=9")
+
+
+DAY = date(2026, 11, 1)
+
+
+def label(qid, stratum, first, final=None, *, on=DAY, comments=False):
+    linked = stratum.endswith("-pr")
+    return LabelRecord(
+        qid, stratum, first, final or first, None, on, False, comments if linked else None
+    )
+
+
+def test_a_label_line_keeps_the_codebooks_rules():
+    with pytest.raises(AuditError, match="claims less"):
+        LabelRecord("q", "archaeology-pr", "rationale", "mentions", None, DAY, False, False)
+    with pytest.raises(AuditError, match="commit-only"):
+        LabelRecord("q", "archaeology-commit", "mentions", "rationale", None, DAY, False, None)
+    with pytest.raises(AuditError, match="commit-only"):
+        LabelRecord("q", "archaeology-commit", "mentions", "mentions", None, DAY, False, False)
+    with pytest.raises(AuditError, match="PR-linked"):
+        LabelRecord("q", "archaeology-pr", "mentions", "mentions", None, DAY, False, None)
+    with pytest.raises(AuditError, match="not one of"):
+        LabelRecord("q", "archaeology-pr", "maybe", "maybe", None, DAY, False, False)
+
+
+def test_labels_round_trip_and_a_double_label_refuses(tmp_path):
+    path = tmp_path / "labels.jsonl"
+    first = label("a", "archaeology-pr", "mentions", "rationale", comments=True)
+    append_label(path, first)
+    append_label(path, label("b", "provenance-commit", "unrelated"))
+    assert list(load_labels(path)) == ["a", "b"] and load_labels(path)["a"] == first
+    append_label(path, first)
+    with pytest.raises(AuditError, match="labelled twice"):
+        load_labels(path)
+    assert load_labels(tmp_path / "missing.jsonl") == {}
+
+
+def test_the_relabel_waits_for_every_first_label_and_seven_days():
+    sample = drawn()
+    subset = sample.relabel_records()
+    partial = {r.qid: label(r.qid, r.stratum, "mentions") for r in subset[:-1]}
+    with pytest.raises(AuditError, match="no first label"):
+        check_relabel_allowed(sample, partial, DAY + timedelta(days=30))
+    every = {r.qid: label(r.qid, r.stratum, "mentions") for r in subset}
+    with pytest.raises(AuditError, match="opens on 2026-11-08"):
+        check_relabel_allowed(sample, every, DAY + timedelta(days=6))
+    check_relabel_allowed(sample, every, DAY + timedelta(days=7))
