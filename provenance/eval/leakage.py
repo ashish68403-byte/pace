@@ -83,7 +83,7 @@ import re
 import statistics
 import sys
 from collections import Counter
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -916,6 +916,25 @@ def _rankings(
             for rec in records
         }
     return out
+
+
+def reachable_at_k(
+    index: PoolIndex,
+    records: Sequence[GoldenRecord],
+    gold: Mapping[str, set[str]],
+    k: int,
+) -> dict[str, bool]:
+    """For each record, whether any lexical baseline ranks a gold document in its top k.
+
+    ADR-0004 §7's reachability check. It reads the rankings the verdict reads, at a larger
+    k: a record that no lexical baseline reaches at k = 100 is out of reach of every cheap
+    signal the gate measures. Dense joins when frozen vectors exist.
+    """
+    rankings = _rankings(index, records, None, k)
+    return {
+        rec.qid: any(c in gold[rec.qid] for ranked in rankings.values() for c in ranked[rec.qid])
+        for rec in records
+    }
 
 
 def _baselines(

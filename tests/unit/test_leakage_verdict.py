@@ -15,6 +15,7 @@ from provenance.eval.leakage import (
     ResolvedGold,
     build_pool_index,
     rank,
+    reachable_at_k,
     render_report,
     resolve_gold_from_pool,
     run_probe,
@@ -185,3 +186,15 @@ def test_an_empty_run_is_inconclusive_and_still_renders():
     report = run_probe([], [], lambda record: ResolvedGold(qid=record.qid))
     assert (report["verdict"], report["n_candidates"]) == (INCONCLUSIVE, 0)
     assert "VERDICT: INCONCLUSIVE" in render_report(report)
+
+
+def test_a_gold_document_ranked_50th_is_reachable_at_100_not_at_10():
+    # 49 short documents beat the long gold one in grep (shorter wins ties) and in both
+    # BM25s (length normalisation): gold is 50th in every lexical row.
+    pool = [Document(f"s{i}", f"zork tidy {i}", f"commit/{sha(i)}") for i in range(49)]
+    pool.append(Document("gold", "zork " + "padding " * 60, "commit/gold"))
+    record = generated("q", "Why did `zork` change in March 2023?", sha(999))
+    index = PoolIndex(pool)
+    gold = {"q": {"gold"}}
+    assert reachable_at_k(index, [record], gold, 10) == {"q": False}
+    assert reachable_at_k(index, [record], gold, 100) == {"q": True}
