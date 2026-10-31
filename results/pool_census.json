@@ -6,6 +6,37 @@
     "prs_with_two_or_more_documents": 0,
     "self": 6810
   },
+  "github": {
+    "documents": {
+      "issue_comment": 18972,
+      "pull_request": 5961,
+      "review_comment": 38026
+    },
+    "fetch": {
+      "first_fetch_on": "2026-10-30",
+      "last_fetch_on": "2026-10-31",
+      "rate_limit_waits": 1,
+      "requests": 13435,
+      "requests_per_pr": 2.253,
+      "runs": 3
+    },
+    "left_out": {
+      "bot_authored": 3226,
+      "empty": 0
+    },
+    "links_vs_merge_commits": {
+      "agree": 5686,
+      "elsewhere_in_graph": 0,
+      "not_merged": 1,
+      "outside_graph": 275
+    },
+    "prs": {
+      "fetched": 5962,
+      "linked": 5963,
+      "not_found": 1
+    },
+    "self_assessment_completed": "2026-10-29"
+  },
   "links": {
     "candidates": 6102,
     "dropped": {
