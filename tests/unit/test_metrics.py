@@ -30,6 +30,7 @@ from provenance.eval.metrics import (
     bootstrap_ci,
     citation_precision,
     cohens_kappa,
+    discordant,
     format_metric,
     mde,
     mrr,
@@ -41,6 +42,7 @@ from provenance.eval.metrics import (
     refusal_recall,
     resample_indices,
     stratified_proportion,
+    unit_ndcg_at_k,
     unit_recall_at_k,
     wilson_interval,
 )
@@ -404,3 +406,45 @@ def test_stratified_proportion_rejects_impossible_strata() -> None:
 def test_wilson_interval_accepts_an_effective_sample_size() -> None:
     low, high = wilson_interval(13.3, 19.0)
     assert 0 < low < 13.3 / 19 < high < 1
+
+
+# ------------------------------------------------------------------ slice B5a: units, D
+
+
+def test_unit_ndcg_counts_a_shared_unit_pair_once_at_its_first_rank() -> None:
+    change = {"msg", "pr", "c1"}
+    units = [(change, 2.0), (change, 2.0)]  # a commit and its PR share their documents
+    assert unit_ndcg_at_k(["x", "y", "pr", "msg"], units, k=10) == pytest.approx(1 / math.log2(4))
+
+
+def test_unit_ndcg_rewards_finding_both_of_two_separate_units() -> None:
+    units = [({"a"}, 2.0), ({"b"}, 2.0)]
+    both = unit_ndcg_at_k(["a", "b"], units, k=10)
+    one = unit_ndcg_at_k(["a", "z"], units, k=10)
+    assert both == pytest.approx(1.0) and one < both
+
+
+def test_unit_ndcg_is_not_padded_by_many_documents_of_one_unit() -> None:
+    pr = {f"d{i}" for i in range(30)}
+    many = unit_ndcg_at_k(["x", *sorted(pr)[:9]], [(pr, 2.0)], k=10)
+    single = unit_ndcg_at_k(["x", "d0"], [(pr, 2.0)], k=10)
+    assert many == pytest.approx(single) == pytest.approx(1 / math.log2(3))
+
+
+def test_unit_ndcg_is_zero_without_a_hit_and_nan_without_units() -> None:
+    assert unit_ndcg_at_k(["x"], [({"a"}, 2.0)], k=10) == 0.0
+    assert math.isnan(unit_ndcg_at_k(["x"], [], k=10))
+
+
+def test_discordant_counts_queries_where_two_runs_differ() -> None:
+    assert discordant([1.0, 0.0, 1.0, 0.0], [1.0, 1.0, 0.0, 0.0]) == (2, 4)
+
+
+def test_discordant_skips_queries_undefined_in_either_run() -> None:
+    nan = float("nan")
+    assert discordant([1.0, nan, 0.0], [0.0, 1.0, nan]) == (1, 1)
+
+
+def test_discordant_rejects_misaligned_runs() -> None:
+    with pytest.raises(ValueError):
+        discordant([1.0], [1.0, 0.0])

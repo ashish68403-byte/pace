@@ -125,6 +125,41 @@ def ndcg_at_k(retrieved: Sequence[str], gains: Mapping[str, float], k: int = DEF
     return actual / ideal if ideal > 0 else float("nan")
 
 
+def unit_ndcg_at_k(
+    retrieved: Sequence[str],
+    units: Sequence[tuple[Collection[str], float]],
+    k: int = DEFAULT_K,
+) -> float:
+    """nDCG@k over relevance units (ADR-0003 §4): each unit counts once.
+
+    A unit earns its gain at the rank of its first retrieved member, so a PR whose thirty
+    documents all rank in the top k scores like one of them at the same first rank. The
+    ideal ranking is built greedily: each rank holds the document that covers the most
+    gain still uncovered, so one document satisfying two units -- a commit and its PR
+    share their documents -- satisfies both at rank 1. Greedy is exact for up to two
+    units, which is every generated record. NaN without units, as recall is.
+    """
+    live = [(set(members), gain) for members, gain in units if members and gain > 0]
+    if not live:
+        return float("nan")
+    top = list(retrieved[:k])
+    actual = 0.0
+    for members, gain in live:
+        rank = next((i for i, cid in enumerate(top, 1) if cid in members), None)
+        if rank is not None:
+            actual += gain / math.log2(rank + 1)
+    ideal = 0.0
+    remaining = list(live)
+    for rank in range(1, k + 1):
+        if not remaining:
+            break
+        candidates = sorted({cid for members, _ in remaining for cid in members})
+        best = max(candidates, key=lambda cid: sum(g for m, g in remaining if cid in m))
+        ideal += sum(g for m, g in remaining if best in m) / math.log2(rank + 1)
+        remaining = [(m, g) for m, g in remaining if best not in m]
+    return actual / ideal if ideal > 0 else float("nan")
+
+
 def citation_precision(cited: Sequence[str], supported: Collection[str]) -> float:
     """Fraction of emitted citations that are actually in the gold evidence.
 
@@ -187,6 +222,22 @@ def mde(n: int, discordance: float, *, z: float = Z_95) -> float:
     if not 0.0 < discordance <= 1.0:
         raise ValueError(f"discordance must be in (0, 1], got {discordance}")
     return z * math.sqrt(discordance / n)
+
+
+def discordant(system: Sequence[float], baseline: Sequence[float]) -> tuple[int, int]:
+    """(D, n): queries where two aligned runs differ, of the n defined in both (finding 7).
+
+    D is what a paired comparison can see. With D = 0 the runs agree everywhere, and no
+    difference between them is measurable.
+    """
+    if len(system) != len(baseline):
+        raise ValueError("paired arms must be aligned query-for-query")
+    pairs = [
+        (a, b)
+        for a, b in zip(system, baseline, strict=True)
+        if not (math.isnan(a) or math.isnan(b))
+    ]
+    return sum(1 for a, b in pairs if a != b), len(pairs)
 
 
 def wilson_interval(successes: float, n: float, *, z: float = Z_95) -> tuple[float, float]:
