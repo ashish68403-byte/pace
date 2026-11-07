@@ -60,7 +60,9 @@ from provenance.eval.metrics import (
     SUPPORTING_GAIN,
     bootstrap_ci,
     citation_precision,
+    discordant,
     format_metric,
+    mde,
     mrr,
     paired_bootstrap,
     percentile,
@@ -69,7 +71,7 @@ from provenance.eval.metrics import (
     unit_ndcg_at_k,
     unit_recall_at_k,
 )
-from provenance.eval.schema import GoldenRecord, load_golden_set
+from provenance.eval.schema import GoldenRecord, load_golden_set, passes_leakage_filter
 from provenance.graph.tables import CHUNKS, COL_CHUNK_ID, COL_REPO_ID
 from provenance.retrieve.embedder import (
     BGE_QUERY_PREFIX,
@@ -260,6 +262,24 @@ def load_retriever(spec: str) -> Retriever:
     if not hasattr(retriever, "name"):
         retriever.name = attr
     return cast(Retriever, retriever)
+
+
+#: ADR-0003 §7: every gate and tuning decision reads dev; test is opened at most twice.
+SPLITS = ("dev", "test", "all")
+
+
+def select_records(
+    records: Sequence[GoldenRecord], split: str
+) -> tuple[list[GoldenRecord], dict[str, int]]:
+    """The records a run scores: one split (or all), retained records only (ADR-0003 §5)."""
+    if split not in SPLITS:
+        raise typer.BadParameter(f"--split must be one of {', '.join(SPLITS)}, got {split!r}")
+    in_split = [r for r in records if split == "all" or r.split == split]
+    kept = [r for r in in_split if passes_leakage_filter(r)]
+    return kept, {
+        "other_split": len(records) - len(in_split),
+        "dropped_by_leakage_filter": len(in_split) - len(kept),
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -489,6 +509,18 @@ def load_baseline(path: Path = BASELINE_PATH) -> dict[str, Any]:
     return cast(dict[str, Any], json.loads(path.read_text(encoding="utf-8")))
 
 
+def _as_float(value: Any) -> float:
+    return float("nan") if value is None else float(value)
+
+
+def detectable(system: Sequence[float], baseline: Sequence[float]) -> str:
+    """D and the MDE beside a paired difference (finding 7): could this comparison see it?"""
+    d, n = discordant(system, baseline)
+    if d == 0:
+        return f"D=0 of {n}: the runs agree on every query, so no difference is measurable"
+    return f"D={d} of {n}, MDE={mde(n, d / n):.4f}"
+
+
 def compare_to_baseline(
     agg: dict[str, Any],
     baseline: dict[str, Any],
@@ -553,14 +585,15 @@ def compare_to_baseline(
 
     shared = sorted(set(agg.get("per_query", {})) & set(baseline.get("per_query", {})))
     if shared:
-        sys_vals = [agg["per_query"][q] for q in shared]
-        base_vals = [baseline["per_query"][q] for q in shared]
+        sys_vals = [_as_float(agg["per_query"][q]) for q in shared]
+        base_vals = [_as_float(baseline["per_query"][q]) for q in shared]
         classes = agg.get("per_query_class", {})
         strata = [classes.get(q, "unknown") for q in shared]
         paired = paired_bootstrap(sys_vals, base_vals, strata)
         cmp.paired = paired.as_dict()
         cmp.messages.append(
-            f"INFO  paired delta {paired} prob_not_better={paired.prob_not_better:.3f}"
+            f"INFO  paired delta {paired} prob_not_better={paired.prob_not_better:.3f}; "
+            f"{detectable(sys_vals, base_vals)}"
         )
 
     if cmp.delta < -threshold:
@@ -941,6 +974,9 @@ def _emit(agg: dict[str, Any], k: int) -> None:
 @app.command("run")
 def run(
     golden: Annotated[Path, typer.Option(help="Golden set .jsonl.")] = DEFAULT_GOLDEN,
+    split: Annotated[
+        str, typer.Option(help="Score one split: dev (default), test or all. Retained only.")
+    ] = "dev",
     retriever_spec: Annotated[
         str, typer.Option("--retriever", help="module:attr providing .retrieve(question, qvec, k)")
     ] = "provenance.eval.runner:NullRetriever",
@@ -981,12 +1017,25 @@ def run(
     ] = None,
 ) -> None:
     """Score a golden set and gate on regression against the committed baseline."""
+    if update_baseline and split != "dev":
+        typer.secho(
+            "[eval] --update-baseline reads dev only: test is opened at most twice in the "
+            "project (ADR-0003 §7).",
+            fg=typer.colors.RED,
+            err=True,
+        )
+        raise typer.Exit(2)
     model_id = model or settings.embedding_model_version
     rid = run_id or _new_run_id(model_id)
     out_dir = (runs_dir or (eval_root() / "runs")) / rid
 
-    records = load_golden_set(golden)
+    records, skipped = select_records(load_golden_set(golden), split)
     typer.echo(f"[eval] run_id={rid} model={model_id} golden={golden} n={len(records)}")
+    if any(skipped.values()):
+        typer.echo(
+            f"[eval] split={split}: skipped {skipped['other_split']} record(s) of another split "
+            f"and {skipped['dropped_by_leakage_filter']} the leakage filter dropped (ADR-0003 §5)"
+        )
 
     # --- empty golden set: clean zeros, exit 0. The CI subset, until B5. ------
     if not records:
