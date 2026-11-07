@@ -1,6 +1,6 @@
 # Tracker: Evaluation harness
 
-**Task(s):** [docs/tasks/eval-harness/](../tasks/eval-harness/) — 001 (checkpoint B, slice B1) written 2026-10-27; 002 (slice B2, the commit-message pool) written 2026-10-27; 003 (slice B3, generator and verdict) written 2026-10-29; 004 (slice B4, the GitHub backfill) written 2026-10-29; 005 (the gold-validity audit, finding 6) written 2026-10-31
+**Task(s):** [docs/tasks/eval-harness/](../tasks/eval-harness/) — 001 (checkpoint B, slice B1) written 2026-10-27; 002 (slice B2, the commit-message pool) written 2026-10-27; 003 (slice B3, generator and verdict) written 2026-10-29; 004 (slice B4, the GitHub backfill) written 2026-10-29; 005 (the gold-validity audit, finding 6) written 2026-10-31; 006 (slice B5a, the lexical baselines) written 2026-11-07
 **Decision records:** [ADR-0003](../ADR-0003-rationale-pool-benchmark.md) — the pool is rationale text; [ADR-0004](../ADR-0004-gold-validity-audit.md) — how much of the gold explains its function
 **Priority:** P0
 **Status:** 🚧 In progress

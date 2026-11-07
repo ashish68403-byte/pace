@@ -225,3 +225,23 @@ PR-referencing commits, before "added" candidates are counted.
   that PR, as §2 requires. Issues stay outside B's pool. None of this touches §5's filters, §6's
   gate or §8's sizes: the golden set is regenerated against the grown pool, and the verdict is
   re-run and reported whatever it says.
+- **2026-11-07 — CI scores no retrieval; the benchmark's numbers are produced locally.** The
+  Consequences above say CI's retrieval gate moves to a committed subset of generated records in
+  slice B5. It cannot:
+  - **why:** scoring a record needs its gold documents, and the distractors around them, in CI's
+    database. DATA-PROTECTION.md §3 commits no pool text: PR text is its authors' copyright, and
+    §5's answer to an erasure request ("nothing needs withdrawing from the repository") holds
+    only while no text is ever committed;
+  - **what CI does:** it keeps running `pace eval run` and the leakage probe against an empty
+    database. That checks the scoring code against the real schema on every push, and nothing
+    more;
+  - **where the numbers come from:** they are produced locally, by the leakage verdict and by
+    `pace eval ablation` (slice B5a, [tasks/eval-harness/006](tasks/eval-harness/006_lexical_baselines.md)),
+    and committed as results files that reproduce byte for byte. Anyone can rebuild them from
+    the committed golden set and manifest, plus `pace github backfill`.
+
+  Two alternatives were considered and not chosen. A scheduled CI job could clone
+  apache/airflow, ingest a bounded stretch of history and build a commit-message-only pool:
+  real signal and no text committed, but a heavy job and several tasks of work. A committed
+  commit-message fixture would contradict §3 and §5. This changes no gate, no size and no
+  record: only where the gate's numbers are produced.
