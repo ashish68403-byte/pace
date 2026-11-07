@@ -11,5 +11,6 @@ reproduces it byte for byte.
 | `golden_census.json` | `uv run pace golden generate` | The golden set's census: candidates per rule, leakage-filter outcomes per template, the split, dropped examples. Its records are `provenance/eval/golden/auto_full.jsonl` |
 | `leakage_verdict.json` | `uv run pace leakage --from-db --no-dense --golden provenance/eval/golden/auto_full.jsonl --json-out results/leakage_verdict.json` | Checkpoint B's leakage verdict on the dev split (ADR-0003 §6): every lexical baseline with its Wilson interval, before and after the filters |
 | `github_manifest.jsonl` | `uv run pace github backfill` | One line per fetched PR description and comment: kind, PR number, comment id and the SHA-256 of the stored text. No text, no logins (DATA-PROTECTION.md §3) |
+| `gold_validity_audit.json` | `uv run pace audit report` | ADR-0004's gold-validity audit: the dev set's validity rate from 56 stratified, labelled records with its interval; what PR text adds over the commit message; self-agreement once the 15-record re-label is in; reachability at k = 100; linked against unlinked commits. Its inputs are `provenance/eval/audit/` |
 
 `artifacts/` is different: gitignored scratch that CI writes and uploads.

@@ -104,3 +104,14 @@ honouring the identity contract its own reasoning establishes.
   with a linked PR, and 6 of each class without one. 15 of them are re-labelled at least seven
   days after the first pass. Next: the author's labelling and the report (stage 2), then the
   re-label and the kappa (stage 3).
+- **2026-11-07 — gold-validity audit, stage 2 of 3.** The author labelled all 56 sampled records
+  (2 on 31 Oct, 54 on 7 Nov). Validity of the dev set's gold: **95.5%**, Wilson 95% interval at
+  the effective sample size [84.9%, 98.8%] (n_eff 43.3). 54 records were labelled `rationale`, 2
+  `unrelated`, 0 `mentions`. On the 44 PR-linked records the commit message alone was judged to
+  carry the rationale in 42; the PR text was shown for the other 2 and supplied 0. The labeller
+  opened the function's change for 4 records and a PR's comments for 1. Reachability: 2,500 of
+  4,206 dev records (59.4%) are beyond every lexical baseline's top 100: 28.3% of provenance
+  records with a PR, 68.9% of archaeology records with a PR, and 89.2%–94.2% of the commit-only
+  strata. Linkage bias: 5,450 linked against 641 unlinked qualifying commits differ by year
+  (total-variation distance 0.96) far more than by module (0.24). The re-label of the 15-record
+  subset opens on 2026-11-14.

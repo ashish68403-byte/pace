@@ -1,0 +1,333 @@
+{
+  "labels": {
+    "by_stratum": {
+      "archaeology-commit": {
+        "labels": {
+          "mentions": 0,
+          "rationale": 6,
+          "unrelated": 0
+        },
+        "message_only": {
+          "labels": {
+            "mentions": 0,
+            "rationale": 6,
+            "unrelated": 0
+          },
+          "validity": {
+            "ci95": [
+              0.6097,
+              1.0
+            ],
+            "rate": 1.0
+          }
+        },
+        "population": 52,
+        "sampled": 6,
+        "validity": {
+          "ci95": [
+            0.6097,
+            1.0
+          ],
+          "rate": 1.0
+        }
+      },
+      "archaeology-pr": {
+        "labels": {
+          "mentions": 0,
+          "rationale": 32,
+          "unrelated": 1
+        },
+        "message_only": {
+          "labels": {
+            "mentions": 0,
+            "rationale": 32,
+            "unrelated": 1
+          },
+          "validity": {
+            "ci95": [
+              0.8468,
+              0.9946
+            ],
+            "rate": 0.9697
+          }
+        },
+        "population": 3083,
+        "sampled": 33,
+        "validity": {
+          "ci95": [
+            0.8468,
+            0.9946
+          ],
+          "rate": 0.9697
+        }
+      },
+      "provenance-commit": {
+        "labels": {
+          "mentions": 0,
+          "rationale": 6,
+          "unrelated": 0
+        },
+        "message_only": {
+          "labels": {
+            "mentions": 0,
+            "rationale": 6,
+            "unrelated": 0
+          },
+          "validity": {
+            "ci95": [
+              0.6097,
+              1.0
+            ],
+            "rate": 1.0
+          }
+        },
+        "population": 37,
+        "sampled": 6,
+        "validity": {
+          "ci95": [
+            0.6097,
+            1.0
+          ],
+          "rate": 1.0
+        }
+      },
+      "provenance-pr": {
+        "labels": {
+          "mentions": 0,
+          "rationale": 10,
+          "unrelated": 1
+        },
+        "message_only": {
+          "labels": {
+            "mentions": 0,
+            "rationale": 10,
+            "unrelated": 1
+          },
+          "validity": {
+            "ci95": [
+              0.6226,
+              0.9838
+            ],
+            "rate": 0.9091
+          }
+        },
+        "population": 1034,
+        "sampled": 11,
+        "validity": {
+          "ci95": [
+            0.6226,
+            0.9838
+          ],
+          "rate": 0.9091
+        }
+      }
+    },
+    "labelled": 56,
+    "of": 56,
+    "overall": {
+      "ci95": [
+        0.8488,
+        0.9879
+      ],
+      "effective_n": 43.34,
+      "mentions_share": 0.0,
+      "rate": 0.9554,
+      "unrelated_share": 0.0446
+    },
+    "pr_text": {
+      "message_only": {
+        "ci95": [
+          0.8457,
+          0.9877
+        ],
+        "effective_n": 42.38,
+        "rate": 0.9545
+      },
+      "records": 44,
+      "supplied_by_pr_text": 0,
+      "with_pr_text": {
+        "ci95": [
+          0.8457,
+          0.9877
+        ],
+        "effective_n": 42.38,
+        "rate": 0.9545
+      }
+    },
+    "reading": {
+      "change_opened": 4,
+      "comments_opened": 1,
+      "pr_text_shown": 2
+    },
+    "status": "complete"
+  },
+  "linkage_bias": {
+    "authors": {
+      "linked": {
+        "distinct": 822,
+        "top10_share": 0.4804
+      },
+      "no_reference": {
+        "distinct": 166,
+        "top10_share": 0.5913
+      },
+      "top10_overlap": 1
+    },
+    "groups": {
+      "linked": 5450,
+      "no_reference": 641
+    },
+    "module_tvd": 0.2409,
+    "modules": {
+      "linked": {
+        "(top level)": 0.1073,
+        "_shared": 0.0,
+        "_vendor": 0.0003,
+        "api": 0.0119,
+        "assets": 0.0067,
+        "callbacks": 0.0018,
+        "cli": 0.1107,
+        "config_templates": 0.0132,
+        "dag_processing": 0.0628,
+        "decorators": 0.0031,
+        "executors": 0.0274,
+        "hooks": 0.0026,
+        "io": 0.0011,
+        "jobs": 0.0926,
+        "lineage": 0.0028,
+        "listeners": 0.0015,
+        "logging": 0.0002,
+        "macros": 0.0024,
+        "models": 0.2791,
+        "notifications": 0.0004,
+        "observability": 0.0011,
+        "operators": 0.0013,
+        "partition_mappers": 0.0022,
+        "secrets": 0.008,
+        "security": 0.0077,
+        "sensors": 0.0015,
+        "serialization": 0.0654,
+        "state": 0.001,
+        "task": 0.0025,
+        "ti_deps": 0.0139,
+        "timetables": 0.0118,
+        "triggers": 0.0041,
+        "utils": 0.1516
+      },
+      "no_reference": {
+        "(top level)": 0.1967,
+        "api": 0.003,
+        "cli": 0.1061,
+        "config_templates": 0.0093,
+        "dag_processing": 0.0262,
+        "executors": 0.0201,
+        "hooks": 0.0128,
+        "jobs": 0.151,
+        "lineage": 0.0005,
+        "macros": 0.0062,
+        "models": 0.3404,
+        "operators": 0.0181,
+        "security": 0.0052,
+        "sensors": 0.0018,
+        "task": 0.0033,
+        "ti_deps": 0.0094,
+        "utils": 0.09
+      }
+    },
+    "population": "qualifying pool commits: not merges, not mechanical",
+    "year_tvd": 0.9571,
+    "years": {
+      "linked": {
+        "2016": 4,
+        "2018": 111,
+        "2019": 376,
+        "2020": 646,
+        "2021": 488,
+        "2022": 703,
+        "2023": 609,
+        "2024": 739,
+        "2025": 1046,
+        "2026": 728
+      },
+      "no_reference": {
+        "2014": 37,
+        "2015": 171,
+        "2016": 109,
+        "2017": 155,
+        "2018": 155,
+        "2019": 9,
+        "2020": 2,
+        "2022": 2,
+        "2024": 1
+      }
+    }
+  },
+  "reachability": {
+    "baselines": [
+      "grep",
+      "bm25_default",
+      "bm25_ident"
+    ],
+    "by_stratum": {
+      "archaeology-commit": {
+        "records": 52,
+        "share": 0.9423,
+        "unreachable": 49
+      },
+      "archaeology-pr": {
+        "records": 3083,
+        "share": 0.6893,
+        "unreachable": 2125
+      },
+      "provenance-commit": {
+        "records": 37,
+        "share": 0.8919,
+        "unreachable": 33
+      },
+      "provenance-pr": {
+        "records": 1034,
+        "share": 0.2834,
+        "unreachable": 293
+      }
+    },
+    "dense": "not measured: no frozen vectors",
+    "k": 100,
+    "records": 4206,
+    "share": 0.5944,
+    "unreachable": 2500
+  },
+  "sample": {
+    "corpus_commit": "1e2ad803f74eadb5fb28d4504ca06b008c48b63e",
+    "pool_version": "rationale-v1:commit=6810,issue_comment=18972,pull_request=5961,review_comment=38026",
+    "seeds": {
+      "order": "gold-validity-order-v1",
+      "relabel": "gold-validity-relabel-v1",
+      "relabel_order": "gold-validity-relabel-order-v1",
+      "sample": "gold-validity-v1"
+    },
+    "strata": {
+      "archaeology-commit": {
+        "population": 52,
+        "sampled": 6
+      },
+      "archaeology-pr": {
+        "population": 3083,
+        "sampled": 33
+      },
+      "provenance-commit": {
+        "population": 37,
+        "sampled": 6
+      },
+      "provenance-pr": {
+        "population": 1034,
+        "sampled": 11
+      }
+    }
+  },
+  "schema": "pace.gold_validity_audit/v1",
+  "self_agreement": {
+    "of": 15,
+    "relabelled": 0,
+    "status": "not_measured"
+  }
+}

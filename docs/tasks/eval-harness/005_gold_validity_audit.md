@@ -2,7 +2,7 @@
 
 **Tracker:** [006_EVAL_HARNESS](../../tracker/006_EVAL_HARNESS.md) row 6 · **checkpoint B**, before
 slice B5's ablation rows; closes review finding 6 ([000](../../tracker/000_REVIEW_REMEDIATION.md))
-**Priority:** P0 · **Status:** 🚧 Stage 1 of 3 done (2026-10-31): the tools, and the committed sample
+**Priority:** P0 · **Status:** 🚧 Stage 2 of 3 done (2026-11-07): the labels and the report; the re-label opens 2026-11-14
 **Decision records:** [ADR-0004](../../ADR-0004-gold-validity-audit.md), new in the spec commit;
 [ADR-0003](../../ADR-0003-rationale-pool-benchmark.md) §4 (what gold is) and §7 (the split's hash
 rule)
