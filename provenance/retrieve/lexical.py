@@ -71,6 +71,7 @@ Everything below is plain SQL through psycopg 3. No ORM.
 from __future__ import annotations
 
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Literal
 
@@ -89,9 +90,11 @@ from provenance.graph.tables import (
     COL_LANGUAGE,
     COL_REPO_ID,
     COL_TOMBSTONE,
+    RATIONALE_KINDS,
 )
 
 __all__ = [
+    "Bm25Retriever",
     "LexicalForm",
     "LexicalResult",
     "lexical_search",
@@ -130,10 +133,12 @@ LIMIT %(limit)s
 # Query-language metacharacters. The Tantivy-family parser behind pg_search
 # reads `+ - ! ( ) : ^ [ ] { } ~ * ? \ / " |` as syntax, so a user pasting
 # `TaskInstance.refresh_from_db(session=None)` or asking "why 429: retries?"
-# would get a parse error instead of results. The source_code tokenizer would
-# discard every one of these characters anyway, so blanking them costs nothing
-# and removes an entire class of runtime failure.
-_QUERY_META = re.compile(r"""[+\-!(){}\[\]:^~*?\\/"|&<>=,;#@$%]""")
+# would get a parse error instead of results. The backtick and the apostrophe
+# break it too (measured 2026-11-07): every generated question wraps its symbol
+# in backticks, and "why doesn't X retry" is plain English. The source_code
+# tokenizer would discard every one of these characters anyway, so blanking
+# them costs nothing and removes an entire class of runtime failure.
+_QUERY_META = re.compile(r"""[+\-!(){}\[\]:^~*?\\/"'`|&<>=,;#@$%]""")
 
 
 def _sanitise(query: str) -> str:
@@ -160,6 +165,7 @@ def _build_filter(
     path_prefix: str | None,
     lang: str | None,
     include_tombstoned: bool,
+    kinds: Sequence[str] | None = None,
 ) -> tuple[str, dict[str, object]]:
     clauses: list[str] = []
     params: dict[str, object] = {}
@@ -177,6 +183,11 @@ def _build_filter(
         # default retrieval surface; chunks_live_idx is partial on this exact
         # predicate.
         clauses.append(f"AND c.{COL_TOMBSTONE} IS NULL")
+    if kinds is not None:
+        # The benchmark searches its pool only (ADR-0003 §1): once checkpoint C adds code
+        # chunks to this table, an unfiltered search would quietly score them too.
+        clauses.append("AND c.kind = ANY(%(kinds)s::artifact_kind[])")
+        params["kinds"] = list(kinds)
     return "\n  ".join(clauses), params
 
 
@@ -244,6 +255,7 @@ def lexical_search(
     path_prefix: str | None = None,
     lang: str | None = None,
     include_tombstoned: bool = False,
+    kinds: Sequence[str] | None = None,
     qualname_boost: float = 1.25,
 ) -> list[LexicalResult]:
     """BM25 over the three indexed fields, merged.
@@ -276,6 +288,7 @@ def lexical_search(
             path_prefix=path_prefix,
             lang=lang,
             include_tombstoned=include_tombstoned,
+            kinds=kinds,
         )
         hits: dict[LexicalForm, list[tuple[str, float]]] = {
             "content": _run(conn, BM25_FIELD_CONTENT, q, fetch, filters),
@@ -384,3 +397,23 @@ def lexical_search_tsvector(
 def default_repo_id(conn: psycopg.Connection) -> int:
     """The configured corpus as a bigint. Convenience for callers holding a conn."""
     return resolve_repo_id(conn, settings.repo_owner, settings.repo_name)
+
+
+class Bm25Retriever:
+    """The production BM25 index over the benchmark's pool, as a runner retriever (B5a).
+
+    Restricted to the pool's kinds, so the row keeps searching rationale text once
+    checkpoint C adds code chunks to the same table.
+    """
+
+    name = "bm25"
+
+    def __init__(self, repo_id: int | None = None) -> None:
+        self._repo_id = repo_id
+
+    def retrieve(self, question: str, qvec: object, k: int) -> list[str]:
+        if self._repo_id is None:
+            with connection() as conn:
+                self._repo_id = default_repo_id(conn)
+        hits = lexical_search(question, limit=k, repo_id=self._repo_id, kinds=RATIONALE_KINDS)
+        return [hit.chunk_id for hit in hits]
