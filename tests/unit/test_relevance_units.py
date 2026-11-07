@@ -6,10 +6,13 @@ the share of units with any member in the top k, and records the units' shape.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
+import pytest
+
 from provenance.eval.anchors import ResolvedAnchors, resolve_anchors
-from provenance.eval.runner import PER_QUERY_COLUMNS, _score_one
+from provenance.eval.runner import PER_QUERY_COLUMNS, _score_one, aggregate
 from provenance.eval.schema import GoldenRecord
 
 SHA = "cd" * 20
@@ -89,3 +92,88 @@ def test_the_runner_scores_units_and_records_their_shape() -> None:
     assert row["recall_at_k"] == 1.0
     assert (row["n_units"], row["max_parts_per_unit"]) == (1, 30)
     assert {"n_units", "max_parts_per_unit"} <= set(PER_QUERY_COLUMNS)
+
+
+def generated(df: int) -> GoldenRecord:
+    return GoldenRecord.model_validate(
+        {
+            "qid": "g-1",
+            "query_class": "archaeology",
+            "split": "dev",
+            "question": "Why did `X` change in March 2023?",
+            "required_evidence": {"commit_shas": [SHA], "pr_numbers": [7]},
+            "supporting_evidence": {
+                "symbol_anchors": [{"path": "pkg/x.py", "qualified_name": "X"}]
+            },
+            "generation_strategy": "ast_diff_v0",
+            "leakage": {
+                "baseline_grep_r10": 0.0,
+                "baseline_bm25_r10": 1.0,
+                "gold_symbol_df": df,
+                "grep_answers_at_rank_1": False,
+                "rare_tokens_shared_with_gold": [],
+            },
+        }
+    )
+
+
+def test_a_row_carries_its_first_gold_rank_and_its_leakage_facts() -> None:
+    change = {"msg", "pr"}
+    resolved = ResolvedAnchors(
+        qid="g-1",
+        required_chunk_ids=set(change),
+        required_units={("commit", SHA): change, ("pr", "7"): change},
+    )
+    row = _score_one(
+        generated(0), resolved, ["x", "pr"], k=10, latency_ms=1.0, refused=False, citations=["pr"]
+    )
+    assert (row["first_gold_rank"], row["gold_symbol_df"], row["baseline_grep_r10"]) == (2, 0, 0.0)
+    assert row["ndcg_at_k"] == pytest.approx(1 / math.log2(3))
+    assert {"first_gold_rank", "gold_symbol_df", "baseline_grep_r10"} <= set(PER_QUERY_COLUMNS)
+
+
+def test_thirty_documents_of_one_pr_count_once_in_ndcg() -> None:
+    pr_docs = {f"pr-doc-{i}" for i in range(30)}
+    resolved = ResolvedAnchors(
+        qid="u-1", required_chunk_ids=set(pr_docs), required_units={("pr", "7"): pr_docs}
+    )
+
+    def score(retrieved: list[str]) -> dict[str, Any]:
+        return _score_one(
+            record(), resolved, retrieved, k=10, latency_ms=1.0, refused=False, citations=[]
+        )
+
+    padded, single = score(["noise", *sorted(pr_docs)[:9]]), score(["noise", "pr-doc-3"])
+    assert padded["ndcg_at_k"] == pytest.approx(single["ndcg_at_k"])
+    assert single["ndcg_at_k"] == pytest.approx(1 / math.log2(3))
+    assert (padded["first_gold_rank"], single["gold_symbol_df"]) == (2, None)
+
+
+def agg_row(qid: str, recall: float, df: int | None) -> dict[str, Any]:
+    return {
+        "qid": qid,
+        "query_class": "archaeology",
+        "k": 10,
+        "recall_at_k": recall,
+        "mrr": recall,
+        "ndcg_at_k": recall,
+        "citation_precision": recall,
+        "refused": False,
+        "expected_refusal": False,
+        "latency_ms": 1.0,
+        "unresolved_anchors": 0,
+        "gold_symbol_df": df,
+    }
+
+
+def test_aggregate_breaks_recall_down_by_the_symbols_document_frequency() -> None:
+    rows = [
+        agg_row("a", 1.0, 0),
+        agg_row("b", 0.0, 0),
+        agg_row("c", 1.0, 3),
+        agg_row("d", 1.0, None),
+    ]
+    per_df = aggregate(rows)["per_symbol_df"]
+    assert (per_df["df_zero"]["n"], per_df["df_zero"]["recall@10"]) == (2, 0.5)
+    assert (per_df["df_positive"]["n"], per_df["df_positive"]["recall@10"]) == (1, 1.0)
+    assert per_df["unmeasured"] == 1

@@ -56,15 +56,17 @@ from provenance.eval import anchors as anchors_mod
 from provenance.eval.metrics import (
     BOOTSTRAP_SEED,
     CI,
+    REQUIRED_GAIN,
+    SUPPORTING_GAIN,
     bootstrap_ci,
     citation_precision,
     format_metric,
     mrr,
-    ndcg_at_k,
     paired_bootstrap,
     percentile,
     refusal_precision,
     refusal_recall,
+    unit_ndcg_at_k,
     unit_recall_at_k,
 )
 from provenance.eval.schema import GoldenRecord, load_golden_set
@@ -281,6 +283,9 @@ PER_QUERY_COLUMNS = (
     "expected_refusal",
     "latency_ms",
     "unresolved_anchors",
+    "first_gold_rank",
+    "gold_symbol_df",
+    "baseline_grep_r10",
     "retriever",
     "model",
     "index_version",
@@ -299,6 +304,18 @@ def _score_one(
 ) -> dict[str, Any]:
     gains = resolved.gains
     units = list(resolved.required_units.values())
+    # B5a: nDCG counts each required unit once, at its first retrieved document; supporting
+    # evidence has no units and keeps its per-document gain.
+    graded: list[tuple[set[str], float]] = [(unit, REQUIRED_GAIN) for unit in units]
+    graded += [
+        ({cid}, SUPPORTING_GAIN)
+        for cid in sorted(resolved.supporting_chunk_ids - resolved.required_chunk_ids)
+    ]
+    first_gold = next(
+        (rank for rank, cid in enumerate(retrieved[:k], 1) if cid in resolved.required_chunk_ids),
+        None,
+    )
+    leakage = record.leakage
     return {
         "qid": record.qid,
         "query_class": str(record.query_class),
@@ -312,12 +329,15 @@ def _score_one(
         # documents -- a PR with thirty review comments is one answer, not thirty.
         "recall_at_k": unit_recall_at_k(retrieved, units, k),
         "mrr": mrr(retrieved, resolved.required_chunk_ids, k),
-        "ndcg_at_k": ndcg_at_k(retrieved, gains, k),
+        "ndcg_at_k": unit_ndcg_at_k(retrieved, graded, k),
         "citation_precision": citation_precision(citations, set(gains)),
         "refused": refused,
         "expected_refusal": record.expected_refusal,
         "latency_ms": latency_ms,
         "unresolved_anchors": resolved.n_unresolved,
+        "first_gold_rank": first_gold,
+        "gold_symbol_df": None if leakage is None else leakage.gold_symbol_df,
+        "baseline_grep_r10": None if leakage is None else leakage.baseline_grep_r10,
     }
 
 
@@ -382,6 +402,7 @@ def aggregate(rows: Sequence[dict[str, Any]], *, seed: int = BOOTSTRAP_SEED) -> 
             "p95_latency_ms": 0.0,
             "unresolved_anchor_queries": 0,
             "per_class": {},
+            "per_symbol_df": {},
             "per_query": {},
             "per_query_class": {},
             "empty": True,
@@ -405,6 +426,17 @@ def aggregate(rows: Sequence[dict[str, Any]], *, seed: int = BOOTSTRAP_SEED) -> 
         ci = bootstrap_ci(_col(subset, "recall_at_k"), None, seed=seed)
         per_class[cls] = {"n": len(subset), f"recall@{k}": ci.point, f"recall@{k}_ci": ci.as_dict()}
 
+    # ADR-0002's thesis stratum: a symbol named in no pool document can only be found by a
+    # method that does not match its name. Records without a measured df are counted.
+    measured = [r for r in rows if r.get("gold_symbol_df") is not None]
+    per_df: dict[str, Any] = {"unmeasured": len(rows) - len(measured)}
+    for name, subset in (
+        ("df_zero", [r for r in measured if int(r["gold_symbol_df"]) == 0]),
+        ("df_positive", [r for r in measured if int(r["gold_symbol_df"]) > 0]),
+    ):
+        ci = bootstrap_ci(_col(subset, "recall_at_k"), None, seed=seed)
+        per_df[name] = {"n": len(subset), f"recall@{k}": ci.point, f"recall@{k}_ci": ci.as_dict()}
+
     return {
         "n_queries": len(rows),
         f"recall@{k}": recall.point,
@@ -424,6 +456,7 @@ def aggregate(rows: Sequence[dict[str, Any]], *, seed: int = BOOTSTRAP_SEED) -> 
         "p95_latency_ms": percentile(_col(rows, "latency_ms"), 95),
         "unresolved_anchor_queries": sum(1 for r in rows if (r.get("unresolved_anchors") or 0) > 0),
         "per_class": per_class,
+        "per_symbol_df": per_df,
         # per_query is keyed on qid so the compare step can pair query-for-query;
         # per_query_class travels with it so the paired bootstrap can stratify.
         "per_query": {str(r["qid"]): r.get("recall_at_k") for r in rows},
