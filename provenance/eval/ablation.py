@@ -12,7 +12,9 @@ bm25_ident's hits must equal the leakage verdict's: two computations of one numb
 
 from __future__ import annotations
 
+import gc
 import json
+import sys
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, Final
@@ -229,3 +231,83 @@ def render_summary(table: Mapping[str, Any], out: Path, per_query_out: Path) -> 
     )
     lines.append(f"  wrote {out} and {per_query_out}")
     return "\n".join(lines)
+
+
+def run_ablation(
+    *,
+    golden: Path = DEFAULT_GOLDEN,
+    out: Path = DEFAULT_OUT,
+    per_query_out: Path = DEFAULT_PER_QUERY,
+    verdict: Path = DEFAULT_VERDICT,
+    audit: Path = DEFAULT_AUDIT,
+    repo_id: int | None = None,
+) -> int:
+    """Score the three rows, check them against the verdict, and write both files."""
+    from provenance.eval.generator import pool_version
+    from provenance.eval.leakage import PoolIndex, load_pool_from_db
+    from provenance.eval.lexical_baselines import Bm25IdentRetriever, GrepRetriever
+    from provenance.eval.schema import load_golden_set
+    from provenance.graph.db import connection
+    from provenance.retrieve.lexical import Bm25Retriever
+
+    records, _ = runner.select_records(load_golden_set(golden), SPLIT)
+    if not records:
+        print(f"nothing to score: {golden} has no retained {SPLIT} records", file=sys.stderr)
+        return 2
+    with connection() as conn:
+        repo = repo_id if repo_id is not None else runner._repo_id(conn)
+        if repo is None:
+            print("nothing to score: the corpus is not in `repositories`", file=sys.stderr)
+            return 2
+        version = pool_version(conn, repo)
+        resolved = runner._resolve_gold(conn, records, repo)
+        runner._fail_on_unresolved(resolved, allow_unresolved=False)
+        pool = load_pool_from_db(conn, repo)
+        conn.rollback()
+    pool_size = len(pool)
+    index = PoolIndex(pool)
+    retrievers: tuple[runner.Retriever, ...] = (
+        GrepRetriever(index),
+        Bm25IdentRetriever(index),
+        Bm25Retriever(repo),
+    )
+    rows = {
+        retriever.name: runner._score_records(
+            records,
+            resolved,
+            retriever,
+            None,
+            k=K,
+            rid="ablation",
+            model_id="none",
+            index_version=version,
+        )
+        for retriever in retrievers
+    }
+    # The probe's index holds the whole pool in memory; the bootstraps below need the room.
+    del index, retrievers, pool
+    gc.collect()
+    try:
+        checked = cross_check(
+            verdict,
+            {name: hits_at_k(rows[name]) for name in CHECKED},
+            records=len(records),
+            pool_size=pool_size,
+        )
+    except AblationCheckFailed as exc:
+        print(f"ABLATION CHECK FAILED: {exc}. Nothing was written.", file=sys.stderr)
+        return 1
+    commits = sorted({str(r.corpus_commit) for r in records})
+    meta = {
+        "corpus_commit": commits[0] if len(commits) == 1 else commits,
+        "pool_version": version,
+        "golden_path": golden.as_posix(),
+        "records": len(records),
+    }
+    table = build_table(rows, meta=meta, validity=read_validity(audit, version), checked=checked)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render_json(table), encoding="utf-8")
+    per_query_out.parent.mkdir(parents=True, exist_ok=True)
+    per_query_out.write_text("".join(per_query_lines(rows)), encoding="utf-8")
+    print(render_summary(table, out, per_query_out))
+    return 0

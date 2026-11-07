@@ -1219,6 +1219,28 @@ def invariants_cmd(
     raise typer.Exit(1 if any(i.failed for i in results) else 0)
 
 
+@app.command("ablation")
+def ablation_cmd(
+    golden: Annotated[Path | None, typer.Option(help="Golden set .jsonl.")] = None,
+    out: Annotated[Path | None, typer.Option(help="The table.")] = None,
+    per_query_out: Annotated[Path | None, typer.Option(help="One line per record.")] = None,
+    verdict: Annotated[Path | None, typer.Option(help="The verdict to cross-check.")] = None,
+    audit: Annotated[Path | None, typer.Option(help="The gold-validity report.")] = None,
+) -> None:
+    """The ablation table's lexical rows on the retained dev records (slice B5a)."""
+    from provenance.eval import ablation  # noqa: PLC0415 -- keeps --help DB-free
+
+    raise typer.Exit(
+        ablation.run_ablation(
+            golden=golden or ablation.DEFAULT_GOLDEN,
+            out=out or ablation.DEFAULT_OUT,
+            per_query_out=per_query_out or ablation.DEFAULT_PER_QUERY,
+            verdict=verdict or ablation.DEFAULT_VERDICT,
+            audit=audit or ablation.DEFAULT_AUDIT,
+        )
+    )
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}

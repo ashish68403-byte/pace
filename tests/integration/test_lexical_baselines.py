@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
-from provenance.eval.leakage import PoolIndex, load_pool_from_db
+from provenance.eval.ablation import run_ablation
+from provenance.eval.generator import generate
+from provenance.eval.leakage import PoolIndex, load_pool_from_db, resolve_gold_from_db, run_probe
 from provenance.eval.lexical_baselines import Bm25IdentRetriever, GrepRetriever
+from provenance.eval.schema import write_golden_set
 from provenance.graph.tables import RATIONALE_KINDS
 from provenance.retrieve.lexical import Bm25Retriever, lexical_search
 
@@ -53,3 +58,36 @@ def test_each_retriever_returns_pool_documents_only(pooled, test_repo_id, migrat
     for retriever in retrievers:
         found = list(retriever.retrieve(QUESTION, None, 10))
         assert found and set(found) <= pool, retriever.name
+
+
+def test_the_ablation_runs_end_to_end_and_reproduces_its_bytes(
+    pooled, test_repo_id, migrated_database, tmp_path
+):
+    records = [
+        r.model_copy(update={"split": "dev"})
+        for r in generate(migrated_database, test_repo_id, pooled.root).records
+    ]
+    golden = write_golden_set(records, tmp_path / "golden.jsonl")
+    pool = load_pool_from_db(migrated_database, test_repo_id)
+    verdict = run_probe(
+        records, pool, lambda r: resolve_gold_from_db(r, migrated_database, test_repo_id)
+    )
+    (tmp_path / "verdict.json").write_text(json.dumps(verdict), encoding="utf-8")
+    written = []
+    for i in (1, 2):
+        out, per_query = tmp_path / f"ablation{i}.json", tmp_path / f"per_query{i}.jsonl"
+        code = run_ablation(
+            golden=golden,
+            out=out,
+            per_query_out=per_query,
+            verdict=tmp_path / "verdict.json",
+            audit=tmp_path / "no-audit.json",
+            repo_id=test_repo_id,
+        )
+        assert code == 0
+        written.append((out.read_bytes(), per_query.read_bytes()))
+    assert written[0] == written[1]
+    table = json.loads(written[0][0])
+    assert (table["records"], table["validity"]["status"]) == (3, "missing")
+    assert set(table["rows"]) == {"grep", "bm25_ident", "bm25"}
+    assert len(written[0][1].splitlines()) == 3

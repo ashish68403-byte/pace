@@ -80,3 +80,9 @@ def test_pace_audit_lists_its_four_commands():
     assert result.exit_code == 0
     for name in ("sample", "label", "relabel", "report"):
         assert name in result.output
+
+
+def test_pace_eval_lists_ablation():
+    result = CliRunner().invoke(app, ["eval", "--help"])
+    assert result.exit_code == 0
+    assert "ablation" in result.output
