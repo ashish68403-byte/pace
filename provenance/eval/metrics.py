@@ -160,6 +160,36 @@ def unit_ndcg_at_k(
     return actual / ideal if ideal > 0 else float("nan")
 
 
+def chain_hit(commits: Collection[str], gold: Collection[str]) -> float:
+    """One question's provenance-chain recall in arms A, C and L (ADR-0005 §3).
+
+    1.0 when any gold commit is among the arm's commits, else 0.0. A record's commit unit and
+    PR unit belong to one change, so reaching its commit reaches both. The arm's commits arrive
+    with mechanical commits already removed (ADR-0005 §2).
+    """
+    return 1.0 if set(gold) & set(commits) else 0.0
+
+
+def equal_size_chance(blame_count: int, lineage: Collection[str], gold: Collection[str]) -> float:
+    """Arm B, the equal-size control (ADR-0005 §2): computed exactly, never sampled.
+
+    The probability that a uniformly random subset of `lineage`, as large as blame's set, holds
+    at least one gold commit: 1 - C(n - g, k) / C(n, k), for n lineage commits of which g are
+    gold, and k = min(blame_count, n). With one gold commit -- every retained dev record has
+    exactly one -- that is min(1, blame_count / n). The size comes from `blame_count` alone:
+    no other argument can change how the control is sized.
+    """
+    if blame_count < 0:
+        raise ValueError(f"blame_count must be >= 0, got {blame_count}")
+    members = set(lineage)
+    golds = len(set(gold) & members)
+    if golds == 0:
+        return 0.0
+    n = len(members)
+    k = min(blame_count, n)
+    return 1.0 - math.comb(n - golds, k) / math.comb(n, k)
+
+
 def citation_precision(cited: Sequence[str], supported: Collection[str]) -> float:
     """Fraction of emitted citations that are actually in the gold evidence.
 
