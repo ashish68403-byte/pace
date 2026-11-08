@@ -1,6 +1,7 @@
 # Tracker: Function identity and the lineage DAG
 
-**Task(s):** `docs/tasks/function-identity/` — created as tasks are written
+**Task(s):** [docs/tasks/function-identity/](../tasks/function-identity/) — 001 (checkpoint C, slice C1, the pre-registration) written 2026-11-08
+**Decision records:** [ADR-0005](../ADR-0005-lineage-vs-blame.md) — the lineage-against-blame experiment; [PREREGISTRATION.md](../PREREGISTRATION.md)
 **Priority:** P0
 **Status:** ⬜ Not started
 **Date:** 2026-10-06
