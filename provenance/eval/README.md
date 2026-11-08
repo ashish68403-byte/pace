@@ -288,9 +288,10 @@ pace eval run --no-db --no-invariants  # week-1 smoke: no Postgres needed
 pace eval run --update-baseline        # deliberate re-baseline
 pace eval fixtures                     # audit the frozen query-vector cache
 pace eval invariants --strict          # structural checks on their own
+pace eval ablation                     # B5a: the lexical rows -> results/ablation.json
 ```
 
-Those three sub-commands — `run`, `fixtures`, `invariants` — are the whole
+Those four sub-commands — `run`, `fixtures`, `invariants`, `ablation` — are the whole
 surface. Anything in CI, the Makefile or the runbook that invokes
 `pace eval retrieval`, `pace eval end-to-end` or `pace eval summarise` is naming
 a command that does not exist.

@@ -1037,11 +1037,12 @@ def run(
             f"and {skipped['dropped_by_leakage_filter']} the leakage filter dropped (ADR-0003 §5)"
         )
 
-    # --- empty golden set: clean zeros, exit 0. The CI subset, until B5. ------
+    # --- empty golden set: clean zeros, exit 0. The CI subset, by design. -----
     if not records:
         typer.echo(
-            "[eval] golden set is EMPTY -> reporting zeros. Expected for the CI subset until "
-            "checkpoint B slice B5 (ADR-0003); for any other file, nothing was loaded."
+            "[eval] golden set is EMPTY -> reporting zeros. Expected for the CI subset, "
+            "which scores no retrieval by design (ADR-0003, third addendum); for any "
+            "other file, nothing was loaded."
         )
         agg = aggregate([])
         path = write_per_query([], out_dir)

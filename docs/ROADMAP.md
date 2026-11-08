@@ -31,13 +31,15 @@ the demo. 168 tests, ruff clean.
 
 **Next.** Checkpoint B (§5), re-founded by [ADR-0003](ADR-0003-rationale-pool-benchmark.md) on a
 pool of rationale text. Slices B1 (the definition: relevance units, the dev/test split, sizes from
-the MDE; findings 2, 7), B2 (commit messages as the pool: 6,810 documents, 5,963 PR links), B3
-(the golden-set generator and the first leakage verdict) and B4 (the GitHub backfill, dated before
-the first fetch — 5,962 PRs in 13,435 requests, 5,961 descriptions + 38,026 review comments +
-18,972 conversation comments joining the pool) are done. The regenerated golden set: 8,250
-questions, 7,199 retained (87.3%), 4,206 dev; leakage verdict **PASS**
-([results/leakage_verdict.json](../results/leakage_verdict.json)). Then: grep/BM25/dense baselines
-and the ablation table's first rows (B5).
+the MDE; findings 2, 7), B2 (commit messages as the pool: 6,810 documents, 5,963 PR links), B3 (the
+golden-set generator and the first leakage verdict) and B4 (the GitHub backfill, dated before the
+first fetch — 5,962 PRs in 13,435 requests, 5,961 descriptions + 38,026 review comments + 18,972
+conversation comments joining the pool) are done. The regenerated golden set: 8,250 questions, 7,199
+retained (87.3%), 4,206 dev; leakage verdict **PASS**
+([results/leakage_verdict.json](../results/leakage_verdict.json)). B5a is done
+([results/ablation.json](../results/ablation.json)): recall@10 on dev is grep 0.102, `bm25_ident`
+0.140 and the production BM25 index 0.044, low because its query parser turns each multi-part
+identifier into a phrase. Then: BM25's identifier queries, dense retrieval and RRF (B5b).
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Tracker:** [006_EVAL_HARNESS](../../tracker/006_EVAL_HARNESS.md) rows 1, 2 and 5, and the two
 open notes B1 gave B5 · **checkpoint B**, slice B5a (the first half of B5)
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-11-08)
 **Decision records:** [ADR-0003](../../ADR-0003-rationale-pool-benchmark.md) §4–§7, and its third
 addendum (2026-11-07, in the spec commit); [ADR-0004](../../ADR-0004-gold-validity-audit.md) §8
 (every lift is quoted twice)

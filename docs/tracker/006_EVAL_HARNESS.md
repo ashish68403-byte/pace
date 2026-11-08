@@ -22,11 +22,11 @@ honouring the identity contract its own reasoning establishes.
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 1 | [Dev/test split](../tasks/review-remediation/002_dev_test_split.md) (finding 2) — field and `assign_splits` done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); the runner's `--split` filter and its refusal to update a baseline from test come in B5 | 🚧 | `provenance/eval/schema.py`, `runner.py` |
-| 2 | Print `D` (discordant queries) and `1.96·√D/n` beside the paired delta; decide target `n` vs threshold (finding 7) — `mde()` and the sizes done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); printing D in B5 | 🚧 | `provenance/eval/runner.py:89`, `metrics.py` |
+| 1 | [Dev/test split](../tasks/review-remediation/002_dev_test_split.md) (finding 2) — field and `assign_splits` done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); the runner's `--split` filter and its refusal to update a baseline from test landed in [eval-harness/006](../tasks/eval-harness/006_lexical_baselines.md) | ✅ | `provenance/eval/schema.py`, `runner.py` |
+| 2 | Print `D` (discordant queries) and `1.96·√D/n` beside the paired delta; decide target `n` vs threshold (finding 7) — `mde()` and the sizes done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md); printing D and the MDE landed in [eval-harness/006](../tasks/eval-harness/006_lexical_baselines.md) | ✅ | `provenance/eval/runner.py:89`, `metrics.py` |
 | 3 | Set-valued relevance: `required_units: list[set[str]]`, recall as fraction of units with a member in top k; persist `n_units`, `max_parts_per_unit` (finding 7) — units are evidence keys, done in [eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md) | ✅ | `anchors.py:113-159`, `metrics.py` |
 | 4 | `_verdict` takes the **strongest** cheap baseline, not grep alone; gate `retention_rate` too (finding 8) — ADR-0003 §6's verdict, implemented in [eval-harness/003](../tasks/eval-harness/003_golden_set_generator.md): dev only, Wilson upper bound, retention, stale facts refuse to pass | ✅ | `provenance/eval/leakage.py` (`verdict`) |
-| 5 | Add `baseline_grep_r10`, `gold_symbol_df` to `PER_QUERY_COLUMNS`; second `per_class` breakdown on `gold_symbol_df == 0` vs `> 0` (finding 8) | ⬜ | `runner.py:266-285` |
+| 5 | Add `baseline_grep_r10`, `gold_symbol_df` to `PER_QUERY_COLUMNS`; second `per_class` breakdown on `gold_symbol_df == 0` vs `> 0` (finding 8) — done in [eval-harness/006](../tasks/eval-harness/006_lexical_baselines.md) | ✅ | `runner.py:266-285` |
 | 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) — specified in [eval-harness/005](../tasks/eval-harness/005_gold_validity_audit.md): 56 dev records, a two-step label for PR-linked ones, and two companions that need no labeller | 🚧 | [ADR-0004](../ADR-0004-gold-validity-audit.md), `provenance/eval/gold_validity.py`, `provenance/eval/audit/` |
 | 7 | Bootstrap the refusal pair; report `None` not 0.0 when `ci.n == 0` (finding 14) | ⬜ | `runner.py:396-399, 413-416` |
 | 8 | Define the submission bundle: repo + corpus SHA + ID manifest + frozen `.npz` + body-stripped dump (finding 20) | ⬜ | `docs/ROADMAP.md` §5 Report and Buffer rows |
@@ -115,3 +115,22 @@ honouring the identity contract its own reasoning establishes.
   strata. Linkage bias: 5,450 linked against 641 unlinked qualifying commits differ by year
   (total-variation distance 0.96) far more than by module (0.24). The re-label of the 15-record
   subset opens on 2026-11-14.
+- **2026-11-08 — slice B5a closed.** `pace eval ablation` scores three lexical rows through the
+  runner on the 4,206 retained dev records, k = 10. Recall@10: grep 0.102 [0.093, 0.112],
+  `bm25_ident` 0.140 [0.130, 0.150], the production BM25 index 0.044 [0.038, 0.050]. Against
+  `bm25_ident`, the reference: grep -0.037 (interval -0.047 to -0.028, D = 405, MDE 0.009; -0.039
+  divided by the validity); BM25 -0.096 (interval -0.106 to -0.087, D = 475, MDE 0.010; -0.101
+  divided by the validity). On the df = 0 stratum (705 records whose symbol appears in no pool
+  document) recall@10 is grep 0.052, `bm25_ident` 0.121, BM25 0.026. The production row is low for
+  a measured reason: pg_search's query parser turns an identifier that `pdb.source_code` splits
+  into a phrase, so a question naming `TaskInstance.refresh_from_db` matches only documents
+  holding all five parts in that order (`_schedule_dag_run` matches the same 22 documents as the
+  phrase `"schedule dag run"`; the three words, loose, match 12,093). A read-only check on a
+  seeded 600-record sample lifted its hits@10 from 24 to 91 (`bm25_ident`: 95) by rewriting each
+  identifier as its loose parts plus its joined form; appending the joined forms alone reached 30.
+  The runner reproduced the verdict's hits exactly (grep 431, `bm25_ident` 588) and the table is
+  byte-identical across two runs. The runner now scores one split (default dev, never a baseline
+  from test) and retained records only, prints D and the MDE beside every paired delta, counts
+  nDCG per unit, and breaks recall down by symbol df. The two open B5 notes are closed: CI's
+  subset by ADR-0003's third addendum, nDCG by `unit_ndcg_at_k`. Next: B5b, which fixes BM25's
+  identifier queries first, then adds dense retrieval and RRF.

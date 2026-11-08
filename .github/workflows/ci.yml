@@ -187,6 +187,10 @@ jobs:
         # reports clean zeros against an empty baseline. That is not a formality: it
         # executes anchors.py's SQL against the real schema on every push, which is
         # where `chunk` vs `chunks` and the slug-as-bigint bugs would have died.
+        #
+        # CI scores no retrieval by design (ADR-0003, third addendum): pool text is
+        # never committed (DATA-PROTECTION.md §3), so the benchmark's numbers come
+        # from `pace eval ablation`, run locally and committed under results/.
         run: |
           uv run pace eval run \
             --golden provenance/eval/golden/ci_subset.jsonl \
