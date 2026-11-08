@@ -60,6 +60,7 @@ Start with the roadmap; it says what to build next and, more usefully, what not 
 ```bash
 git clone <this repo> ~/pace && cd ~/pace
 uv sync --extra dev              # base install is CPU-only and CUDA-free
+uv sync --extra dev --extra ml   # to embed (pace pool embed, pace eval bake): name both
 make db-up                       # paradedb container, pinned by digest
 make migrate                     # raw-SQL Alembic revisions
 make trace-up                    # Jaeger, UI on http://localhost:16686

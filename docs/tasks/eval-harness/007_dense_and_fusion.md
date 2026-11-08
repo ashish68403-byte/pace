@@ -2,7 +2,7 @@
 
 **Tracker:** [006_EVAL_HARNESS](../../tracker/006_EVAL_HARNESS.md) · **checkpoint B**, slice B5b
 (the second half of B5)
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-11-08)
 **Decision records:** [ADR-0003](../../ADR-0003-rationale-pool-benchmark.md) §1 and its 2026-10-28
 erratum (pool documents embed as chunks), §6 (dense is reported beside the verdict, never in it)
 and §7 (every tuning decision reads dev; test is opened at most twice);

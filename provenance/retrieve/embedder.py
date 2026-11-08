@@ -40,11 +40,13 @@ with a new model must not invalidate chunk ids (and therefore the golden set);
 it must only invalidate the vectors. See provenance/graph/ids.py.
 
 --------------------------------------------------------------------------
-BATCH EMBEDDING BELONGS ON KAGGLE, NOT ON THIS LAPTOP
+BATCH EMBEDDING: THIS LAPTOP FOR THE POOL, KAGGLE IF IT OUTGROWS IT
 --------------------------------------------------------------------------
-Embedding the whole airflow corpus on 2 CPU cores is measured in hours. Kaggle
-gives ~30 free GPU hours/week and that is the right place for it. The pipeline
-is deliberately a plain file handoff -- no cluster, no queue:
+Measured (slice B5b): the benchmark's pool, 69,769 documents, embedded on
+this laptop's 2 CPU cores in 62 minutes (`pace pool embed`,
+results/pool_embedding.json). If checkpoint C's code chunks make that hours,
+Kaggle gives ~30 free GPU hours/week, and the pipeline is deliberately a plain
+file handoff -- no cluster, no queue:
 
     1. local:   pace ingest chunk  ->  data/export/chunks.parquet
                 columns: chunk_id (text, the join key), content (text)

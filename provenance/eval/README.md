@@ -97,7 +97,8 @@ keeps CI free.)
 
 Baking vectors is an offline, deliberate act. `pace eval fixtures` only *reports*
 which questions are missing, with the exact keys a baker must produce; it never
-embeds.
+embeds. `pace eval bake` is the baker (slice B5b): it embeds every golden question
+once, exactly as a live query is embedded, and needs the `ml` extra.
 
 Consequence worth stating in the write-up: the retrieval gate is reproducible
 forever. The `.npz` is committed, so the exact vectors that produced a published
@@ -282,16 +283,17 @@ an argument list that still began with `eval` and every sub-command failed with
 
 ```bash
 pace eval run                          # gate with the built-in null retriever
-pace eval run --retriever provenance.retrieve.router:HybridRetriever \
+pace eval run --retriever provenance.retrieve.fusion:RrfRetriever --embeddings frozen \
               --golden provenance/eval/golden/auto_full.jsonl
 pace eval run --no-db --no-invariants  # week-1 smoke: no Postgres needed
 pace eval run --update-baseline        # deliberate re-baseline
 pace eval fixtures                     # audit the frozen query-vector cache
+pace eval bake                         # B5b: bake every golden question's vector (ml extra)
 pace eval invariants --strict          # structural checks on their own
-pace eval ablation                     # B5a: the lexical rows -> results/ablation.json
+pace eval ablation                     # B5: the six rows -> results/ablation.json
 ```
 
-Those four sub-commands — `run`, `fixtures`, `invariants`, `ablation` — are the whole
+Those five sub-commands — `run`, `fixtures`, `bake`, `invariants`, `ablation` — are the whole
 surface. Anything in CI, the Makefile or the runbook that invokes
 `pace eval retrieval`, `pace eval end-to-end` or `pace eval summarise` is naming
 a command that does not exist.

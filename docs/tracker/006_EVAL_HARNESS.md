@@ -29,7 +29,8 @@ honouring the identity contract its own reasoning establishes.
 | 5 | Add `baseline_grep_r10`, `gold_symbol_df` to `PER_QUERY_COLUMNS`; second `per_class` breakdown on `gold_symbol_df == 0` vs `> 0` (finding 8) — done in [eval-harness/006](../tasks/eval-harness/006_lexical_baselines.md) | ✅ | `runner.py:266-285` |
 | 6 | Gold-validity audit: 50-60 stratified records, three-way labels, Wilson interval, self-agreement kappa (finding 6) — specified in [eval-harness/005](../tasks/eval-harness/005_gold_validity_audit.md): 56 dev records, a two-step label for PR-linked ones, and two companions that need no labeller | 🚧 | [ADR-0004](../ADR-0004-gold-validity-audit.md), `provenance/eval/gold_validity.py`, `provenance/eval/audit/` |
 | 7 | Bootstrap the refusal pair; report `None` not 0.0 when `ci.n == 0` (finding 14) | ⬜ | `runner.py:396-399, 413-416` |
-| 8 | Define the submission bundle: repo + corpus SHA + ID manifest + frozen `.npz` + body-stripped dump (finding 20) | ⬜ | `docs/ROADMAP.md` §5 Report and Buffer rows |
+| 8 | Define the submission bundle: repo + corpus SHA + ID manifest + frozen `.npz` + body-stripped dump (finding 20) — the frozen `.npz` exists since [eval-harness/007](../tasks/eval-harness/007_dense_and_fusion.md) | ⬜ | `docs/ROADMAP.md` §5 Report and Buffer rows |
+| 9 | Integration tests write to `pace`'s own `chunks` table and BM25 index, so the rows they insert and delete enter BM25's statistics until vacuumed and merged (found 2026-11-08 in [eval-harness/007](../tasks/eval-harness/007_dense_and_fusion.md)): give them their own database, or clean the index before every measurement | ⬜ | `tests/conftest.py`, `tests/integration/conftest.py` |
 
 ## Dependencies
 - Tasks 1 and 2 **decide checkpoint B's generator target `n`** — do them before the generator runs at
@@ -134,3 +135,23 @@ honouring the identity contract its own reasoning establishes.
   nDCG per unit, and breaks recall down by symbol df. The two open B5 notes are closed: CI's
   subset by ADR-0003's third addendum, nDCG by `unit_ndcg_at_k`. Next: B5b, which fixes BM25's
   identifier queries first, then adds dense retrieval and RRF.
+- **2026-11-08 — slice B5b closed, so B5 is done.** `lexical_search` now writes an identifier out
+  as its parts plus its joined form instead of letting the parser read it as a phrase.
+  `bm25_phrase`, the old reading, returns exactly what B5a's own code returns (the same top 10 on
+  all 4,206 records, on one index), and the fix moved recall@10 from 0.044 to 0.136: +0.092
+  (interval +0.083 to +0.101, D = 456, MDE 0.010). The pool's 69,769 documents are embedded with
+  bge-small-en-v1.5 (qdrant/bge-small-en-v1.5-onnx-q) in 62 minutes on this laptop; 2,447 (3.5%)
+  ran past the 512-token window and were cut. Recall@10 on the 4,206 retained dev records: grep
+  0.102, `bm25_ident` 0.140 (the reference), dense 0.141, `rrf` 0.159. `rrf` against `bm25`, what
+  dense adds: +0.023 (interval +0.014 to +0.032, D = 387, MDE 0.009); `rrf` against dense, what
+  BM25 adds: +0.018 (interval +0.010 to +0.027, D = 373, MDE 0.009). On the df = 0 stratum (705
+  records): `bm25_ident` 0.121, `bm25` 0.132, dense 0.150, `rrf` 0.170. Fusion's k = 60 was fixed
+  in the spec; across k = 10 to 200 the fused recall@10 runs from 0.158 to 0.164. Every check
+  passed, and the table is byte-identical across two runs. BM25's scores had drifted since B5a
+  with no code change: pg_search computes its statistics over every document in its segments, and
+  the test runs, which write to the same database, had left 1,484 dead rows and 2,162 deleted
+  documents in the index, so by that afternoon 12 of 4,206 ranks had moved. The table was measured
+  after `VACUUM chunks` and `REINDEX INDEX chunks_bm25_idx`, on an index holding exactly the
+  69,769 live rows, and records that state. B5a's own index had held such documents too, so
+  against its committed row 4,117 of 4,206 records keep their rank. Next: the audit's re-label
+  (from 14 Nov) closes checkpoint B; then checkpoint C.
