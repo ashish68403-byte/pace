@@ -77,7 +77,8 @@ def test_loose_identifiers_find_a_document_that_names_only_some_parts(pooled, te
     assert move not in found("phrase")  # no "move pkg core" phrase in "move pkg into core/src"
 
 
-def test_the_index_state_counts_what_bm25s_statistics_are_computed_over(migrated_database):
+def test_the_index_state_counts_what_bm25s_statistics_are_computed_over(pooled, migrated_database):
+    # `pooled` puts rows in the table: CI's database is fresh, so without it there are none.
     state = index_state(migrated_database)
     (rows,) = migrated_database.execute("SELECT count(*) FROM chunks").fetchone()
     assert state["rows"] == rows > 0
