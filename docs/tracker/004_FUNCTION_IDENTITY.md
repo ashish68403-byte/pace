@@ -3,7 +3,7 @@
 **Task(s):** [docs/tasks/function-identity/](../tasks/function-identity/) — 001 (checkpoint C, slice C1, the pre-registration) written 2026-11-08
 **Decision records:** [ADR-0005](../ADR-0005-lineage-vs-blame.md) — the lineage-against-blame experiment; [PREREGISTRATION.md](../PREREGISTRATION.md)
 **Priority:** P0
-**Status:** ⬜ Not started
+**Status:** 🚧 In progress — slice C1 done; C2, the blame arm, next
 **Date:** 2026-10-06
 
 ---
@@ -20,8 +20,8 @@ implemented dependent variable, and a ground truth that may not exist.
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 1 | [Control arms, dependent variable, pre-registration](../tasks/review-remediation/003_control_arms_and_preregistration.md) (finding 3) | ⬜ | `provenance/eval/metrics.py`, `docs/PREREGISTRATION.md` |
-| 2 | One-hour spike: confirm CodeShovel's Python oracle exists (file, method count, source projects, label scheme); record the no-oracle fallback in an ADR (finding 9) | ⬜ | new ADR |
+| 1 | [Control arms, dependent variable, pre-registration](../tasks/review-remediation/003_control_arms_and_preregistration.md) (finding 3) | 🚧 | `provenance/eval/metrics.py`, `preregistration.py`, `docs/PREREGISTRATION.md`: [function-identity/001](../tasks/function-identity/001_preregistration.md) done; the three-arm run is slice C4 |
+| 2 | One-hour spike: confirm CodeShovel's Python oracle exists (file, method count, source projects, label scheme); record the no-oracle fallback in an ADR (finding 9) | ✅ | [ADR-0005](../ADR-0005-lineage-vs-blame.md), Context: the oracle exists; no fallback needed |
 | 3 | Promote ROADMAP:195's own 100-stratified-function comparison to checkpoint C's oracle; re-measure the identity-breaking-event rate on Airflow at n≥300 using the `243fe86d4b` fixture | ⬜ | `symbol_lineage`, `lineage_edges` |
 | 4 | Two hash tiers (`h1` token stream, `h3` alpha-renamed AST); forward pass, same-file bucketing; one cross-file rule | ⬜ | identity layer |
 
@@ -44,3 +44,8 @@ implemented dependent variable, and a ground truth that may not exist.
 - **2026-10-06.** The "40% of oracle methods contain an identity-breaking event" figure is 16/40,
   Wilson 95% [26.4%, 55.4%]. §7 holds every other author to exactly this standard; quote it with
   its n and interval, or re-measure it on Airflow and make it yours.
+- **2026-11-08 — slice C1 closed.** The experiment was fixed in ADR-0005 and PREREGISTRATION.md
+  (`27205d76a8`) before any number. `metrics.py` computes a chain hit and the equal-size
+  control's exact chance. `preregistration.py` holds the thresholds and the decision rules, which
+  return the pre-registered words, and a test keeps them equal to the committed file. The tests
+  run in `pace_test` and refuse `pace`. Next: slice C2, the blame arm.

@@ -129,7 +129,7 @@ and a new sample is needed (ADR-0004 §9).
 ### Before pushing
 
 ```bash
-make lint && make typecheck && uv run pytest -q   # db tests skip if pace-db is down
+make lint && make typecheck && uv run pytest      # in pace_test, never pace; db tests skip if pace-db is down
 uv run pace leakage --from-db                     # or --pool <committed pool>.jsonl
 ```
 

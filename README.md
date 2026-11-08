@@ -76,6 +76,9 @@ make leakage-probe               # substring baseline; must read below 0.35 reca
 
 Everyday loop: `make fmt`, `make lint`, `make typecheck`, `make test`.
 
+The tests run in their own database, `pace_test` on the same server, created on first use. They
+refuse to start in `pace` itself; `PACE_TEST_DATABASE_URL` picks another.
+
 The corpus lives **outside** the repo:
 
 ```bash

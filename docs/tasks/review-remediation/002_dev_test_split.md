@@ -1,7 +1,7 @@
 # Task 002: Add a dev/test split before CI has seen the whole golden set
 
 **Tracker:** [000_REVIEW_REMEDIATION](../../tracker/000_REVIEW_REMEDIATION.md) · finding 2
-**Priority:** P0 · **Severity:** major · **Status:** ⬜ Not started
+**Priority:** P0 · **Severity:** major · **Status:** ✅ Done (2026-11-08) — the split in [eval-harness/001](../eval-harness/001_benchmark_definition.md); the runner's `--split` and its refusal to update a baseline from test in [eval-harness/006](../eval-harness/006_lexical_baselines.md)
 **Deadline:** before the week-3 generator produces records at scale. Not repairable afterwards.
 
 ## User Story

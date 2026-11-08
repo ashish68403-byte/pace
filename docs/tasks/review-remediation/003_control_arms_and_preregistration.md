@@ -1,7 +1,7 @@
 # Task 003: Give the week-8 comparison a control, a defined dependent variable, and a falsifier
 
 **Tracker:** [000_REVIEW_REMEDIATION](../../tracker/000_REVIEW_REMEDIATION.md) · finding 3
-**Priority:** P0 · **Severity:** critical · **Status:** ⬜ Not started
+**Priority:** P0 · **Severity:** critical · **Status:** 🚧 In progress — designed in [ADR-0005](../../ADR-0005-lineage-vs-blame.md) and [PREREGISTRATION.md](../../PREREGISTRATION.md), measure and rules in code ([function-identity/001](../function-identity/001_preregistration.md)); closes with slice C4
 **Deadline:** before week 8 runs. A control arm is an experiment, not a paragraph.
 
 ## User Story

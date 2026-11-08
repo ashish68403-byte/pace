@@ -2,7 +2,7 @@
 
 **Task(s):** [docs/tasks/review-remediation/](../tasks/review-remediation/)
 **Priority:** P0
-**Status:** 🚧 In progress (4 of 20 closed)
+**Status:** 🚧 In progress (10 of 20 closed)
 **Date:** 2026-10-06
 
 ---
@@ -43,14 +43,14 @@ Severity is the audited severity. "Before checkpoint B" means it gates B's work 
 | # | Finding | Sev | Status | File |
 |---|---|---|---|---|
 | 1 | [§5 is not an executable schedule; §6 cannot rescue it](../tasks/review-remediation/001_executable_schedule.md) | critical | ✅ | `docs/ROADMAP.md` §5, §6; `docs/ADR-0002` header |
-| 2 | [No dev/test split; optimistic bias ≈ the claimed lift](../tasks/review-remediation/002_dev_test_split.md) | major | ⬜ | `provenance/eval/schema.py`, `runner.py`, `retrieve/fusion.py` |
-| 3 | [Week-8 comparison has no control, no dependent variable, no falsifier](../tasks/review-remediation/003_control_arms_and_preregistration.md) | critical | ⬜ | `provenance/eval/metrics.py`, `docs/PREREGISTRATION.md` (new) |
+| 2 | [No dev/test split; optimistic bias ≈ the claimed lift](../tasks/review-remediation/002_dev_test_split.md) | major | ✅ | `provenance/eval/schema.py`, `runner.py`, `retrieve/fusion.py`: done in B1 and B5a ([006](006_EVAL_HARNESS.md) row 1); ADR-0003 limits the test split to two dated openings |
+| 3 | [Week-8 comparison has no control, no dependent variable, no falsifier](../tasks/review-remediation/003_control_arms_and_preregistration.md) | critical | 🚧 | `provenance/eval/metrics.py`, `preregistration.py`, `docs/PREREGISTRATION.md`: fixed in [ADR-0005](../ADR-0005-lineage-vs-blame.md) and the pre-registration (`27205d76a8`), measure and rules in code ([function-identity/001](../tasks/function-identity/001_preregistration.md)); closes when slice C4's three-arm run reports |
 | 4 | [Corpus is 480 files / 112,259 lines; `scope.txt` never committed](../tasks/review-remediation/004_scope_freeze.md) | critical | ✅ | `provenance/ingest/scope.py`, `skeleton.py`, `scope.txt`, `scope_stats.json` |
 | 5 | No writing scheduled before week 15; the graded artifact is on no week and no cut list | critical | ✅ | `docs/ROADMAP.md` §5, §6 |
 | 6 | The load-bearing premise ("a merged PR that closed an issue IS the rationale") has no measurement | critical | ⬜ | gold-validity audit, new ADR |
-| 7 | CI gate cannot detect 2 points; its denominator moves with the chunker | major | ⬜ | `provenance/eval/runner.py`, `metrics.py`, `anchors.py` |
-| 8 | Leakage gate has three ways to pass green; the thesis stratum is dropped before aggregation | major | 🚧 | `provenance/eval/leakage.py` (closed in B3: [006](006_EVAL_HARNESS.md) row 4), `runner.py` (B5: 006 row 5) |
-| 9 | The week-8 oracle may not exist; the most-quoted number is n=40 with no interval | critical | ⬜ | `docs/ROADMAP.md` §7, new ADR |
+| 7 | CI gate cannot detect 2 points; its denominator moves with the chunker | major | ✅ | `provenance/eval/runner.py`, `metrics.py`, `anchors.py`: done in B1 and B5a ([006](006_EVAL_HARNESS.md) rows 2-3) |
+| 8 | Leakage gate has three ways to pass green; the thesis stratum is dropped before aggregation | major | ✅ | `provenance/eval/leakage.py` (closed in B3: [006](006_EVAL_HARNESS.md) row 4), `runner.py` (closed in B5a: 006 row 5) |
+| 9 | The week-8 oracle may not exist; the most-quoted number is n=40 with no interval | critical | ✅ | `docs/ROADMAP.md` §7 and [ADR-0005](../ADR-0005-lineage-vs-blame.md), Context: the oracle exists (40 functions, 327 labelled commits, MIT), and §7 quotes 16 of 40 with its Wilson interval |
 | 10 | Weeks 4-5 spend ~29 h of rate-limited fetching for ~25 min of work; no request budget | major | ✅ | `provenance/ingest/github_backfill.py` ([eval-harness/004](../tasks/eval-harness/004_github_backfill.md)): 13,435 requests for 5,962 PRs (2.25/PR) |
 | 11 | Ethics self-assessment has no date; weeks 4-5 are first processing of human text | major | ✅ | `docs/DATA-PROTECTION.md` §7, dated 2026-10-29, committed (e2e1c4e) before the first fetch (2026-10-30) |
 | 12 | The laptop is the only copy of derived state; nothing in 16 weeks produces a dump | major | ⬜ | `Makefile`, `docs/RUNBOOK.md` |

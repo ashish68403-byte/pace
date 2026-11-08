@@ -13,7 +13,7 @@ so that wherever time runs out the submission is still complete, measured and de
 
 | | |
 |---|---|
-| Last updated | 2026-10-27 |
+| Last updated | 2026-11-08 |
 | Current checkpoint | **B** — the GitHub backfill and the leakage-checked benchmark |
 | Last completed | Phase 0 (`7951158`), scope freeze (`81f121b`), **checkpoint A** (history graph + truncation measurement, [tasks/ingest/001-003](tasks/ingest/)) |
 | Deadline | final submission mid-to-late December 2026 |
@@ -40,6 +40,9 @@ retained (87.3%), 4,206 dev; leakage verdict **PASS**
 ([results/ablation.json](../results/ablation.json)): recall@10 on dev is grep 0.102, `bm25_ident`
 0.140, BM25 0.044 before its identifier fix and 0.136 after, dense 0.141, and their RRF 0.159.
 Checkpoint B closes when the gold-validity audit's re-label (from 14 Nov) is in; then checkpoint C.
+Checkpoint C's experiment was fixed before any of its numbers ([ADR-0005](ADR-0005-lineage-vs-blame.md)
+and [PREREGISTRATION.md](PREREGISTRATION.md), `27205d76a8`), and its first slice is done: the
+measure and the decision rules in code, and a test suite that runs in its own database.
 
 ---
 
@@ -296,11 +299,12 @@ is the contribution. Title the chapter for the question, not the algorithm.
 Two hash tiers (`h1` token stream with comments and layout dropped — this absorbs the Black commit
 for free; `h3` alpha-renamed AST). A forward pass, same-file only, bucketing on each tier — that
 alone covers 63% of the oracle's entries. Then **one** cross-file rule: an exact structural match in
-any file touched by the same commit, which covers renames and moves and with them most of the **40%
-of oracle methods containing an identity-breaking event**.
+any file touched by the same commit, which covers renames and moves and with them most of the **16
+of the oracle's 40 methods that hold an identity-breaking event**.
 
-That 40% is the most quotable number available: *a path-anchored baseline truncates 40% of Python
-function histories.*
+Quoted with its n and interval, that is the most quotable number available: *a path-anchored
+baseline truncates 16 of CodeShovel's 40 Python function histories* — 40%, Wilson 95% interval
+26.4% to 55.4% ([ADR-0005](ADR-0005-lineage-vs-blame.md), Context).
 
 **One free figure:** Flask's `full_dispatch_request`. `git log -L` returns 21 commits in 0.29 s, of
 which **eight pre-date the function's introduction** (~62% precision, pure line-range drift), and it

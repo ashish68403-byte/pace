@@ -2,7 +2,7 @@
 
 **Tracker:** [004_FUNCTION_IDENTITY](../../tracker/004_FUNCTION_IDENTITY.md) row 1 (finding 3) and
 [006_EVAL_HARNESS](../../tracker/006_EVAL_HARNESS.md) row 9 · **checkpoint C**, slice C1 of four
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-11-08)
 **Decision records:** [ADR-0005](../../ADR-0005-lineage-vs-blame.md) and
 [`PREREGISTRATION.md`](../../PREREGISTRATION.md), both in this spec's commit;
 [ADR-0004](../../ADR-0004-gold-validity-audit.md) §8
