@@ -55,6 +55,13 @@ line per stored artifact, with no text and no login. It makes the corpus *reprod
 anyone re-running `pace github backfill` can prove they obtained the same bytes, or count how
 many were edited since — without the repository being a *copy*.
 
+The same rule covers anything computed from the pool's text. Document embeddings
+([tasks/eval-harness/007](tasks/eval-harness/007_dense_and_fusion.md)) are derived from it, so
+they live only in `pace-db` and are rebuilt with `pace pool embed`; the repository commits
+their fingerprint, in `results/pool_embedding.json`, never the vectors. The frozen query
+vectors in `eval/fixtures/` are a different case: they are computed from the benchmark's
+generated questions, which are already committed and quote no discussion text.
+
 GitHub's Acceptable Use Policies permit collecting information via the API for research
 purposes **on the condition that any resulting publications are open access**. This
 project is submitted as an open-access dissertation, and the code and manifest are
