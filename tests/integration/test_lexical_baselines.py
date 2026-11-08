@@ -91,3 +91,25 @@ def test_the_ablation_runs_end_to_end_and_reproduces_its_bytes(
     assert (table["records"], table["validity"]["status"]) == (3, "missing")
     assert set(table["rows"]) == {"grep", "bm25_ident", "bm25"}
     assert len(written[0][1].splitlines()) == 3
+
+
+def test_loose_identifiers_find_a_document_that_names_only_some_parts(pooled, test_repo_id, query):
+    (move,) = [
+        cid
+        for (cid,) in query(
+            "SELECT chunk_id FROM chunks "
+            "WHERE repo_id = %s AND kind = 'commit' AND content LIKE %s",
+            test_repo_id,
+            "move pkg into core%",
+        )
+    ]
+    question = "Why did `move_pkg_core` change?"
+
+    def found(identifiers):
+        hits = lexical_search(
+            question, limit=10, repo_id=test_repo_id, kinds=RATIONALE_KINDS, identifiers=identifiers
+        )
+        return [hit.chunk_id for hit in hits]
+
+    assert found("loose")[0] == move
+    assert move not in found("phrase")  # no "move pkg core" phrase in "move pkg into core/src"

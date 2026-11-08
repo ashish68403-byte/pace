@@ -47,7 +47,26 @@ Hence three DISTINCT columns, each with the tokenizer that suits its shape:
     qualified_name::pdb.literal    the whole symbol    -> exact identifier match
     lexical_blob::pdb.source_code  augmented token bag -> the underscore-free
         joined form ('_normalise_url' -> 'normaliseurl') that source_code
-        tokenization destroys and that a user typing a bare identifier produces.
+        tokenization destroys. A question never produces it by itself: the
+        query side writes it out (`_loosen`, below).
+
+--------------------------------------------------------------------------
+AN IDENTIFIER IN A QUERY IS A PHRASE UNLESS IT IS WRITTEN OUT (slice B5b)
+--------------------------------------------------------------------------
+The parser reads one word that pdb.source_code splits into several tokens as a
+PHRASE: every part, adjacent, in order. Measured on pace, 2026-11-08:
+
+    content @@@ '_schedule_dag_run'              -> 22 documents
+    content @@@ '"schedule dag run"'             -> the same 22
+    content @@@ 'schedule dag run'               -> 12,093
+    content @@@ 'TaskInstance.refresh_from_db'   -> 2, its five-word phrase's 2
+
+So a question naming a dotted symbol matched only documents holding every part
+in order, and the joined form above was never reached. Slice B5a measured the
+cost: recall@10 0.044, below grep's 0.102. `_loosen` writes each identifier out
+as its parts plus its joined form; on a 600-record dev sample that took hits@10
+from 24 to 91 (the probe's bm25_ident: 95). `identifiers="phrase"` keeps the old
+reading, for the ablation's before-and-after row only.
 
 Two consequences that are easy to get wrong and impossible to notice:
 
@@ -73,7 +92,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Literal
+from typing import Final, Literal
 
 import psycopg
 
@@ -92,9 +111,12 @@ from provenance.graph.tables import (
     COL_TOMBSTONE,
     RATIONALE_KINDS,
 )
+from provenance.parse.chunker import split_identifier
 
 __all__ = [
+    "IDENTIFIER_MODES",
     "Bm25Retriever",
+    "IdentifierMode",
     "LexicalForm",
     "LexicalResult",
     "lexical_search",
@@ -104,6 +126,11 @@ __all__ = [
 #: Which indexed field produced the winning score. "merged" means more than one
 #: did, which is the strongest signal the lexical side can produce.
 LexicalForm = Literal["content", "qualname", "lexical", "merged"]
+
+#: How `lexical_search` reads an identifier in a query (slice B5b): "loose" writes it out as
+#: its parts and its joined form; "phrase" is the reading before B5b, kept for the ablation.
+IdentifierMode = Literal["loose", "phrase"]
+IDENTIFIER_MODES: Final = ("loose", "phrase")
 
 
 @dataclass(frozen=True, slots=True)
@@ -143,6 +170,41 @@ _QUERY_META = re.compile(r"""[+\-!(){}\[\]:^~*?\\/"'`|&<>=,;#@$%]""")
 
 def _sanitise(query: str) -> str:
     return " ".join(_QUERY_META.sub(" ", query).split())
+
+
+# The pattern `chunker._IDENT_RE` uses to find the identifiers it writes into lexical_blob,
+# so the query side finds exactly the words the index side split.
+_IDENTIFIER = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+
+
+def _loosen(query: str) -> str:
+    """Write each identifier of two or more parts out as its parts and its joined form.
+
+    `TaskInstance.refresh_from_db` becomes `task instance taskinstance refresh from db
+    refreshfromdb`. The parser would read the identifier as one phrase (module docstring);
+    as separate words each part counts on its own, and the joined form reaches
+    `lexical_blob`, which stores it for exactly this. Dots are split first: the sanitiser
+    keeps them, so `a.b` would otherwise reach the parser as one word.
+    """
+
+    def written_out(match: re.Match[str]) -> str:
+        parts = split_identifier(match.group(0))
+        return " ".join([*parts, "".join(parts)]) if len(parts) > 1 else match.group(0)
+
+    return " ".join(_IDENTIFIER.sub(written_out, query.replace(".", " ")).split())
+
+
+def _query_forms(query: str, identifiers: IdentifierMode) -> tuple[str, str]:
+    """(the exact sanitised query, the query the content and lexical fields search).
+
+    The qualified-name field always gets the exact form: a one-word query like
+    `_normalise_url` must stay one token there, and that lookup runs only on a query
+    with no space in it.
+    """
+    if identifiers not in IDENTIFIER_MODES:
+        raise ValueError(f"identifiers must be one of {IDENTIFIER_MODES}, got {identifiers!r}")
+    exact = _sanitise(query)
+    return exact, _loosen(exact) if identifiers == "loose" else exact
 
 
 def _resolve_repo(
@@ -257,6 +319,7 @@ def lexical_search(
     include_tombstoned: bool = False,
     kinds: Sequence[str] | None = None,
     qualname_boost: float = 1.25,
+    identifiers: IdentifierMode = "loose",
 ) -> list[LexicalResult]:
     """BM25 over the three indexed fields, merged.
 
@@ -265,6 +328,11 @@ def lexical_search(
     constant -- not a constant with any theory behind it. Set it to 1.0 to
     disable.
 
+    ``identifiers="loose"`` (the default since slice B5b) writes each multi-part
+    identifier out as its parts and its joined form; ``"phrase"`` is the reading
+    before B5b, which the parser turns into an in-order phrase. See the module
+    docstring.
+
     ``repo`` takes the ``owner/name`` slug and is resolved to the bigint
     ``repo_id`` here; pass ``repo_id`` directly if you already have it.
 
@@ -272,7 +340,7 @@ def lexical_search(
     the same snapshot yields byte-identical output. The ingest gate depends on
     that (T5).
     """
-    q = _sanitise(query)
+    exact, q = _query_forms(query, identifiers)
     if not q:
         return []
 
@@ -299,8 +367,8 @@ def lexical_search(
         # therefore cannot match it, and issuing the statement would burn a
         # round trip to prove it. Quoted so the parser treats the dots as part
         # of one term rather than as syntax.
-        if " " not in q:
-            hits["qualname"] = _run(conn, BM25_FIELD_QUALNAME, f'"{q}"', fetch, filters)
+        if " " not in exact:
+            hits["qualname"] = _run(conn, BM25_FIELD_QUALNAME, f'"{exact}"', fetch, filters)
 
     return _merge(hits, {"qualname": qualname_boost}, limit)
 
@@ -400,20 +468,36 @@ def default_repo_id(conn: psycopg.Connection) -> int:
 
 
 class Bm25Retriever:
-    """The production BM25 index over the benchmark's pool, as a runner retriever (B5a).
+    """The production BM25 index over the benchmark's pool, as a runner retriever.
 
-    Restricted to the pool's kinds, so the row keeps searching rationale text once
-    checkpoint C adds code chunks to the same table.
+    Restricted to the pool's kinds (B5a), so the row keeps searching rationale text once
+    checkpoint C adds code chunks to the same table. `identifiers` picks how an identifier
+    in the question is read (B5b): the row is `bm25` when loose and `bm25_phrase` when not.
     """
 
     name = "bm25"
 
-    def __init__(self, repo_id: int | None = None) -> None:
+    def __init__(
+        self, repo_id: int | None = None, *, identifiers: IdentifierMode = "loose"
+    ) -> None:
+        if identifiers not in IDENTIFIER_MODES:
+            raise ValueError(f"identifiers must be one of {IDENTIFIER_MODES}, got {identifiers!r}")
         self._repo_id = repo_id
+        self.identifiers: IdentifierMode = identifiers
+        self.name = "bm25" if identifiers == "loose" else "bm25_phrase"
 
-    def retrieve(self, question: str, qvec: object, k: int) -> list[str]:
+    def _search(self, question: str, limit: int) -> list[str]:
         if self._repo_id is None:
             with connection() as conn:
                 self._repo_id = default_repo_id(conn)
-        hits = lexical_search(question, limit=k, repo_id=self._repo_id, kinds=RATIONALE_KINDS)
+        hits = lexical_search(
+            question,
+            limit=limit,
+            repo_id=self._repo_id,
+            kinds=RATIONALE_KINDS,
+            identifiers=self.identifiers,
+        )
         return [hit.chunk_id for hit in hits]
+
+    def retrieve(self, question: str, qvec: object, k: int) -> list[str]:
+        return self._search(question, k)
