@@ -85,6 +85,7 @@ from provenance.config import settings
 
 __all__ = [
     "BGE_QUERY_PREFIX",
+    "EMBED_THREADS",
     "FIXTURE_PATH_TEMPLATE",
     "ApiEmbedder",
     "Embedder",
@@ -108,6 +109,19 @@ BGE_QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
 #: probe all resolve through `fixture_path()` so a renamed directory cannot
 #: leave two of them reading different files and both reporting "no misses".
 FIXTURE_PATH_TEMPLATE: Final = "eval/fixtures/qvecs_{model_id}.npz"
+
+#: ONNX Runtime threads for LocalEmbedder: this laptop's two physical cores (an
+#: i3-1115G4, two threads each). A fixed count also keeps the arithmetic, and so the
+#: vectors, the same from run to run.
+EMBED_THREADS: Final = 2
+
+
+def _sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for block in iter(lambda: handle.read(1 << 20), b""):
+            digest.update(block)
+    return digest.hexdigest()
 
 
 def embedding_key(model_id: str, text: str) -> str:
@@ -197,6 +211,9 @@ class LocalEmbedder:
     retrieval gate) on an install that never took the "ml" extra.
     """
 
+    #: bge-small's window, in its own tokens, special tokens included. fastembed cuts beyond it.
+    max_tokens = 512
+
     def __init__(self, model_id: str | None = None, dim: int | None = None) -> None:
         self.model_id = model_id or settings.embedding_model_version
         self.dim = dim or settings.embedding_dim
@@ -221,11 +238,17 @@ class LocalEmbedder:
                             "LocalEmbedder requires `fastembed` (module not importable). "
                             "It must be declared in pyproject.toml under "
                             "[project.optional-dependencies] ml, then installed with "
-                            "`uv sync --extra ml`. If `uv sync --extra ml` has already "
-                            "been run, the extra is missing the fastembed entry."
+                            "`uv sync --extra dev --extra ml` (both: either alone "
+                            "uninstalls the other). If that has already been run, the "
+                            "extra is missing the fastembed entry."
                         ) from exc
-                    # 2 physical cores. More threads than that is contention.
-                    self._model = TextEmbedding(model_name=f"BAAI/{self.model_id}", threads=2)
+                    # 2 physical cores (EMBED_THREADS); the model kept where a reboot
+                    # cannot empty it (settings.embedding_cache_dir).
+                    self._model = TextEmbedding(
+                        model_name=f"BAAI/{self.model_id}",
+                        threads=EMBED_THREADS,
+                        cache_dir=str(settings.embedding_cache_dir),
+                    )
         return self._model
 
     def encode_documents(self, texts: Sequence[str]) -> np.ndarray:
@@ -240,6 +263,30 @@ class LocalEmbedder:
         vecs = list(self._ensure().query_embed([query_text(text)]))
         row: np.ndarray = _l2_normalise(np.asarray(vecs[0]))[0]
         return row
+
+    def describe(self) -> dict[str, Any]:
+        """What produces the vectors: the model's source and file, its SHA-256, the library."""
+        import fastembed  # noqa: PLC0415 -- the "ml" extra
+
+        inner = self._ensure().model  # fastembed's OnnxTextEmbedding
+        description = inner.model_description
+        return {
+            "model": self.model_id,
+            "source": description.sources.hf,
+            "model_file": description.model_file,
+            "model_file_sha256": _sha256_file(Path(inner._model_dir) / description.model_file),
+            "fastembed": fastembed.__version__,
+            "threads": EMBED_THREADS,
+        }
+
+    def token_lengths(self, texts: Sequence[str]) -> list[int]:
+        """Each text's length in the model's own tokens, before the window cuts it."""
+        from tokenizers import Tokenizer  # noqa: PLC0415 -- arrives with fastembed
+
+        counter = Tokenizer.from_str(self._ensure().model.tokenizer.to_str())
+        counter.no_truncation()
+        counter.no_padding()
+        return [len(encoding.ids) for encoding in counter.encode_batch(list(texts))]
 
 
 class FrozenEmbeddingMiss(RuntimeError):

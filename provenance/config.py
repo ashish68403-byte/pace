@@ -72,6 +72,11 @@ class Settings(BaseSettings):
     # and each finding the other's empty (audit #16).
     frozen_embeddings_path: Path | None = None
 
+    # Where fastembed keeps the model it downloads (slice B5b). Its own default is a folder
+    # under the system's temp directory, which a reboot may empty, and then the model
+    # downloads again. This one persists.
+    embedding_cache_dir: Path = Path.home() / ".cache" / "pace" / "fastembed"
+
     # Derivation provenance. These are COLUMNS, never inputs to chunk_id -
     # see provenance/graph/ids.py for why folding them into the hash would
     # invalidate every golden-set anchor on the first chunker change.

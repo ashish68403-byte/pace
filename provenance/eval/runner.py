@@ -85,6 +85,8 @@ from provenance.retrieve.embedder import (
 
 PACKAGE_DIR = Path(__file__).resolve().parent
 DEFAULT_GOLDEN = PACKAGE_DIR / "golden" / "ci_subset.jsonl"
+#: Every generated question (slice B3): what `pace eval bake` embeds by default.
+FULL_GOLDEN = PACKAGE_DIR / "golden" / "auto_full.jsonl"
 BASELINE_PATH = PACKAGE_DIR / "baselines" / "retrieval.json"
 INVARIANT_BASELINE_PATH = PACKAGE_DIR / "baselines" / "invariants.json"
 
@@ -1191,6 +1193,32 @@ def fixtures(
     for qid in missing:
         typer.echo(f"  MISS {qid} key={query_fixture_key(model_id, by_qid[qid].question)}")
     raise typer.Exit(1 if missing else 0)
+
+
+@app.command("bake")
+def bake_cmd(
+    golden: Annotated[Path, typer.Option(help="Golden set .jsonl.")] = FULL_GOLDEN,
+    model: Annotated[str | None, typer.Option(help="Embedding model id.")] = None,
+    out: Annotated[Path | None, typer.Option(help="The .npz to write.")] = None,
+) -> None:
+    """Embed every golden question, offline, into the committed query-vector file (B5b).
+
+    The one place a model embeds queries, run by hand and never in CI: everything else reads
+    the file through FrozenEmbedder. Needs the "ml" extra.
+    """
+    from provenance.eval.query_vectors import bake, write_npz  # noqa: PLC0415
+    from provenance.retrieve.embedder import LocalEmbedder  # noqa: PLC0415
+
+    model_id = model or settings.embedding_model_version
+    records = load_golden_set(golden)
+    path = out or fixture_path(model_id)
+    started = time.monotonic()
+    vectors = bake([r.question for r in records], LocalEmbedder(model_id), model_id)
+    write_npz(path, vectors)
+    typer.echo(
+        f"[eval] baked {len(vectors):,} question vectors for {len(records):,} records into "
+        f"{path} in {time.monotonic() - started:.0f}s"
+    )
 
 
 @app.command("invariants")
