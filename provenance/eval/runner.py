@@ -1255,8 +1255,15 @@ def ablation_cmd(
     per_query_out: Annotated[Path | None, typer.Option(help="One line per record.")] = None,
     verdict: Annotated[Path | None, typer.Option(help="The verdict to cross-check.")] = None,
     audit: Annotated[Path | None, typer.Option(help="The gold-validity report.")] = None,
+    embedding_record: Annotated[
+        Path | None, typer.Option(help="The record `pace pool embed` wrote.")
+    ] = None,
+    fixture: Annotated[
+        Path | None, typer.Option(help="The question vectors; the committed file by default.")
+    ] = None,
+    model: Annotated[str | None, typer.Option(help="Embedding model id.")] = None,
 ) -> None:
-    """The ablation table's lexical rows on the retained dev records (slice B5a)."""
+    """The ablation table's six rows on the retained dev records (slices B5a and B5b)."""
     from provenance.eval import ablation  # noqa: PLC0415 -- keeps --help DB-free
 
     raise typer.Exit(
@@ -1266,6 +1273,9 @@ def ablation_cmd(
             per_query_out=per_query_out or ablation.DEFAULT_PER_QUERY,
             verdict=verdict or ablation.DEFAULT_VERDICT,
             audit=audit or ablation.DEFAULT_AUDIT,
+            embedding_record=embedding_record or ablation.DEFAULT_EMBEDDING_RECORD,
+            fixture=fixture,
+            model_version=model,
         )
     )
 

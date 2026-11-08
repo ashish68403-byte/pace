@@ -15,6 +15,7 @@ scored question has a frozen vector.
 from __future__ import annotations
 
 import gc
+import hashlib
 import json
 import sys
 from collections.abc import Mapping, Sequence
@@ -314,6 +315,10 @@ def render_summary(table: Mapping[str, Any], out: Path, per_query_out: Path) -> 
     return "\n".join(lines)
 
 
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def run_ablation(
     *,
     golden: Path = DEFAULT_GOLDEN,
@@ -321,52 +326,73 @@ def run_ablation(
     per_query_out: Path = DEFAULT_PER_QUERY,
     verdict: Path = DEFAULT_VERDICT,
     audit: Path = DEFAULT_AUDIT,
+    embedding_record: Path = DEFAULT_EMBEDDING_RECORD,
+    fixture: Path | None = None,
+    model_version: str | None = None,
     repo_id: int | None = None,
 ) -> int:
-    """Score the three rows, check them against the verdict, and write both files."""
+    """Score the six rows, run every check, and write both files, or nothing."""
+    from provenance.config import settings
     from provenance.eval.generator import pool_version
     from provenance.eval.leakage import PoolIndex, load_pool_from_db
     from provenance.eval.lexical_baselines import Bm25IdentRetriever, GrepRetriever
     from provenance.eval.schema import load_golden_set
     from provenance.graph.db import connection
+    from provenance.ingest.pool_embedding import count_missing, fingerprint
+    from provenance.retrieve.dense import DenseRetriever
+    from provenance.retrieve.embedder import FrozenEmbedder, FrozenEmbeddingMiss
+    from provenance.retrieve.fusion import RrfRetriever
     from provenance.retrieve.lexical import Bm25Retriever
 
+    model = model_version or settings.embedding_model_version
     records, _ = runner.select_records(load_golden_set(golden), SPLIT)
     if not records:
         print(f"nothing to score: {golden} has no retained {SPLIT} records", file=sys.stderr)
         return 2
-    with connection() as conn:
-        repo = repo_id if repo_id is not None else runner._repo_id(conn)
-        if repo is None:
-            print("nothing to score: the corpus is not in `repositories`", file=sys.stderr)
-            return 2
-        version = pool_version(conn, repo)
-        resolved = runner._resolve_gold(conn, records, repo)
-        runner._fail_on_unresolved(resolved, allow_unresolved=False)
-        pool = load_pool_from_db(conn, repo)
-        conn.rollback()
-    pool_size = len(pool)
-    index = PoolIndex(pool)
-    retrievers: tuple[runner.Retriever, ...] = (
-        GrepRetriever(index),
-        Bm25IdentRetriever(index),
-        Bm25Retriever(repo),
-    )
-    rows = {
-        retriever.name: runner._score_records(
+    try:
+        if fixture is not None:
+            frozen = FrozenEmbedder(fixture, model_id=model)
+        else:
+            frozen = runner.load_frozen_queries(model)
+        check_query_vectors(runner.missing_query_vectors(frozen, records))
+        with connection() as conn:
+            repo = repo_id if repo_id is not None else runner._repo_id(conn)
+            if repo is None:
+                print("nothing to score: the corpus is not in `repositories`", file=sys.stderr)
+                return 2
+            version = pool_version(conn, repo)
+            embedding = check_embedding(
+                embedding_record,
+                model=model,
+                fingerprint=fingerprint(conn, repo, model)[0],
+                missing=count_missing(conn, repo, model),
+            )
+            resolved = runner._resolve_gold(conn, records, repo)
+            runner._fail_on_unresolved(resolved, allow_unresolved=False)
+            pool = load_pool_from_db(conn, repo)
+            conn.rollback()
+    except (AblationCheckFailed, FrozenEmbeddingMiss) as exc:
+        print(f"ABLATION CHECK FAILED: {exc}. Nothing was written.", file=sys.stderr)
+        return 1
+
+    def score(retriever: runner.Retriever) -> list[dict[str, Any]]:
+        return runner._score_records(
             records,
             resolved,
             retriever,
-            None,
+            frozen,
             k=K,
             rid="ablation",
-            model_id="none",
+            model_id=model,
             index_version=version,
         )
-        for retriever in retrievers
-    }
-    # The probe's index holds the whole pool in memory; the bootstraps below need the room.
-    del index, retrievers, pool
+
+    pool_size = len(pool)
+    index = PoolIndex(pool)
+    probe_rows: tuple[runner.Retriever, ...] = (GrepRetriever(index), Bm25IdentRetriever(index))
+    rows = {retriever.name: score(retriever) for retriever in probe_rows}
+    # The probe's index holds the whole pool in memory; every later row reads the database.
+    del index, pool, probe_rows
     gc.collect()
     try:
         checked = cross_check(
@@ -378,14 +404,35 @@ def run_ablation(
     except AblationCheckFailed as exc:
         print(f"ABLATION CHECK FAILED: {exc}. Nothing was written.", file=sys.stderr)
         return 1
+    lexical = Bm25Retriever(repo)
+    dense = DenseRetriever(repo, model_version=model)
+    later: tuple[runner.Retriever, ...] = (
+        Bm25Retriever(repo, identifiers="phrase"),
+        lexical,
+        dense,
+        RrfRetriever(lexical, dense),
+    )
+    rows.update({retriever.name: score(retriever) for retriever in later})
+    # Each fused list here reads the two sources' kept top 100s: no query reaches the database.
+    sensitivity = [
+        sensitivity_point(k, score(RrfRetriever(lexical, dense, k=k))) for k in SENSITIVITY_K
+    ]
     commits = sorted({str(r.corpus_commit) for r in records})
     meta = {
         "corpus_commit": commits[0] if len(commits) == 1 else commits,
         "pool_version": version,
         "golden_path": golden.as_posix(),
         "records": len(records),
+        "embedding": embedding,
+        "fixture_sha256": _sha256(frozen.path),
     }
-    table = build_table(rows, meta=meta, validity=read_validity(audit, version), checked=checked)
+    table = build_table(
+        rows,
+        meta=meta,
+        validity=read_validity(audit, version),
+        checked=checked,
+        sensitivity=sensitivity,
+    )
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_json(table), encoding="utf-8")
     per_query_out.parent.mkdir(parents=True, exist_ok=True)
