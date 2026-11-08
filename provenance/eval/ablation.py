@@ -1,13 +1,15 @@
-"""Slice B5a: the ablation table's lexical rows, through the runner's own scoring.
+"""Checkpoint B's ablation table, through the runner's own scoring (slices B5a and B5b).
 
-`pace eval ablation` scores three retrievers on the retained dev records -- grep, the
-leakage probe's identifier-aware BM25 (`bm25_ident`, the reference every lift is quoted
-against, ADR-0003 §6) and the production BM25 index (`bm25`) -- and writes
-`results/ablation.json` and `results/ablation_per_query.jsonl`. Every row goes through
-`runner._score_records` and `runner.aggregate`, so the CI check and this table share one
-definition of recall. Each difference against the reference is quoted twice, raw and
-divided by the gold's validity (ADR-0004 §8). Before anything is written, grep's and
-bm25_ident's hits must equal the leakage verdict's: two computations of one number.
+`pace eval ablation` scores six rows on the retained dev records: grep and the leakage
+probe's identifier-aware BM25 (`bm25_ident`, the reference every lift is quoted against,
+ADR-0003 §6); the production BM25 index as it read identifiers before B5b
+(`bm25_phrase`) and after (`bm25`); exact dense retrieval (`dense`); and their reciprocal
+rank fusion (`rrf`) at the settings tasks/eval-harness/007 fixed before any dense number.
+Every row goes through `runner._score_records` and `runner.aggregate`. Each difference is
+quoted twice, raw and divided by the gold's validity (ADR-0004 §8). Nothing is written
+unless grep's and bm25_ident's hits equal the leakage verdict's, every pool document has
+its stored vector and those vectors are the ones `pace pool embed` recorded, and every
+scored question has a frozen vector.
 """
 
 from __future__ import annotations
@@ -21,13 +23,23 @@ from typing import Any, Final
 
 from provenance.eval import runner
 from provenance.eval.metrics import discordant, mde, paired_bootstrap
+from provenance.retrieve.fusion import DEFAULT_RRF_K
 
-SCHEMA: Final = "pace.ablation/v1"
+SCHEMA: Final = "pace.ablation/v2"
 K: Final = 10
 SPLIT: Final = "dev"
 REFERENCE: Final = "bm25_ident"
 #: The rows the leakage verdict also measured, which the cross-check compares.
 CHECKED: Final = ("grep", "bm25_ident")
+#: The table's rows, in the order the summary prints them.
+ROWS: Final = ("grep", "bm25_ident", "bm25_phrase", "bm25", "dense", "rrf")
+#: The paired comparisons B5b asks for, beside every row against the reference: the fix,
+#: what dense adds to BM25, and what BM25 adds to dense.
+PAIRS: Final = (("bm25", "bm25_phrase"), ("rrf", "bm25"), ("rrf", "dense"))
+#: rrf's k, swept for sensitivity only: tasks/eval-harness/007 fixed k = 60 in advance.
+SENSITIVITY_K: Final = (10, 20, 30, 60, 100, 200)
+SENSITIVITY_NOTE: Final = "sensitivity only; k = 60 was fixed in the spec"
+DEFAULT_EMBEDDING_RECORD: Final = Path("results") / "pool_embedding.json"
 DEFAULT_GOLDEN: Final = Path("provenance") / "eval" / "golden" / "auto_full.jsonl"
 DEFAULT_OUT: Final = Path("results") / "ablation.json"
 DEFAULT_PER_QUERY: Final = Path("results") / "ablation_per_query.jsonl"
@@ -44,6 +56,12 @@ class AblationCheckFailed(RuntimeError):
 def hits_at_k(rows: Sequence[Mapping[str, Any]]) -> int:
     """Records with any gold document in the top k: the probe's hit, counted from rows."""
     return sum(1 for row in rows if row.get("first_gold_rank") is not None)
+
+
+def sensitivity_point(k: int, rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """The fused row's hits and recall@10 at one k, through the runner's own aggregate."""
+    agg = runner.aggregate([dict(row) for row in rows])
+    return {"k": k, "hits@10": hits_at_k(rows), "recall@10": agg[f"recall@{K}_ci"]["point"]}
 
 
 def row_summary(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
@@ -142,17 +160,49 @@ def cross_check(
     return checked
 
 
+def check_query_vectors(missing: Sequence[str]) -> None:
+    """Every scored question needs its frozen vector: a miss would rank dense on nothing."""
+    if missing:
+        raise AblationCheckFailed(
+            f"{len(missing):,} scored questions have no frozen vector (first: "
+            f"{', '.join(missing[:3])}): run `pace eval bake`"
+        )
+
+
+def check_embedding(
+    record_path: Path, *, model: str, fingerprint: str, missing: int
+) -> dict[str, Any]:
+    """The stored vectors must be complete, and the ones `pace pool embed` recorded."""
+    if missing:
+        raise AblationCheckFailed(
+            f"{missing:,} pool documents have no current vector for {model}: run `pace pool embed`"
+        )
+    if not record_path.exists():
+        raise AblationCheckFailed(f"{record_path} does not exist: run `pace pool embed` first")
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    recorded = record.get("model", {}).get("model")
+    if recorded != model:
+        raise AblationCheckFailed(f"{record_path} describes {recorded}, not {model}")
+    if record.get("fingerprint") != fingerprint:
+        raise AblationCheckFailed(
+            f"the stored vectors' fingerprint is not the one {record_path} recorded: they "
+            "changed after `pace pool embed` wrote it"
+        )
+    return {"source": record_path.as_posix(), "model": model, "fingerprint": fingerprint}
+
+
 def build_table(
     rows: Rows,
     *,
     meta: Mapping[str, Any],
     validity: Mapping[str, Any],
     checked: Mapping[str, Any],
+    sensitivity: Sequence[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """`results/ablation.json`: every row, and every comparison with the reference."""
+    """`results/ablation.json`: every row, every comparison with the reference, the pairs."""
     if REFERENCE not in rows:
         raise ValueError(f"the reference row {REFERENCE} is missing")
-    return {
+    table: dict[str, Any] = {
         "schema": SCHEMA,
         **meta,
         "k": K,
@@ -164,9 +214,25 @@ def build_table(
             for name in rows
             if name != REFERENCE
         },
+        "pairs": {
+            f"{system}_vs_{baseline}": {
+                "system": system,
+                "baseline": baseline,
+                **compare(rows[system], rows[baseline], validity),
+            }
+            for system, baseline in PAIRS
+            if system in rows and baseline in rows
+        },
         "validity": dict(validity),
         "cross_check": dict(checked),
     }
+    if sensitivity is not None:
+        table["rrf_k_sensitivity"] = {
+            "note": SENSITIVITY_NOTE,
+            "fixed_k": DEFAULT_RRF_K,
+            "points": [dict(point) for point in sensitivity],
+        }
+    return table
 
 
 def per_query_lines(rows: Rows) -> list[str]:
@@ -193,28 +259,37 @@ def render_json(table: Mapping[str, Any]) -> str:
     return json.dumps(table, indent=2, sort_keys=True, allow_nan=False) + "\n"
 
 
+def _versus(c: Mapping[str, Any]) -> str:
+    mde_text = "n/a" if c["mde"] is None else f"{c['mde']:.3f}"
+    interval = f"{c['delta']:+.3f} [{c['lo']:+.3f}, {c['hi']:+.3f}]"
+    return f"{interval}, D={c['discordant']}, MDE={mde_text}"
+
+
 def render_summary(table: Mapping[str, Any], out: Path, per_query_out: Path) -> str:
     lines = [
         f"ablation on {table['pool_version']}: {table['records']:,} retained {table['split']} "
         f"records, k = {table['k']}, reference {table['reference']}",
         f"  {'row':<12} {'recall@10 [95% CI]':<22} {'MRR@10':>7} {'nDCG@10':>8}   versus reference",
     ]
-    for name, row in table["rows"].items():
+    names = [n for n in ROWS if n in table["rows"]] + sorted(set(table["rows"]) - set(ROWS))
+    for name in names:
+        row = table["rows"][name]
         recall = row["recall@10"]
         ci = f"{recall['point']:.3f} [{recall['lo']:.3f}, {recall['hi']:.3f}]"
         if name == table["reference"]:
             versus = "(reference)"
         else:
-            c = table["comparisons"][name]
-            mde_text = "n/a" if c["mde"] is None else f"{c['mde']:.3f}"
-            versus = (
-                f"{c['delta']:+.3f} [{c['lo']:+.3f}, {c['hi']:+.3f}], "
-                f"D={c['discordant']}, MDE={mde_text}"
-            )
+            versus = _versus(table["comparisons"][name])
         lines.append(
             f"  {name:<12} {ci:<22} {row['mrr@10']['point']:>7.3f} "
             f"{row['ndcg@10']['point']:>8.3f}   {versus}"
         )
+    for pair in table.get("pairs", {}).values():
+        lines.append(f"  {pair['system']} vs {pair['baseline']}: {_versus(pair)}")
+    sweep = table.get("rrf_k_sensitivity")
+    if sweep is not None:
+        points = ", ".join(f"{p['k']}: {p['recall@10']:.3f}" for p in sweep["points"])
+        lines.append(f"  rrf recall@10 by k ({sweep['note']}): {points}")
     validity = table["validity"]
     if validity["status"] == "current":
         low, high = validity["ci95"]
@@ -229,6 +304,12 @@ def render_summary(table: Mapping[str, Any], out: Path, per_query_out: Path) -> 
         f"  cross-check: grep {checked['grep']} and bm25_ident {checked['bm25_ident']} hits, "
         "as the verdict found"
     )
+    embedding = table.get("embedding")
+    if embedding is not None:
+        lines.append(
+            f"  vectors: {embedding['model']}, fingerprint {embedding['fingerprint'][:12]}, "
+            f"as {embedding['source']} records"
+        )
     lines.append(f"  wrote {out} and {per_query_out}")
     return "\n".join(lines)
 
