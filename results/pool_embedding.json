@@ -1,0 +1,31 @@
+{
+  "documents": {
+    "commit": 6810,
+    "issue_comment": 18972,
+    "pull_request": 5961,
+    "review_comment": 38026
+  },
+  "fingerprint": "83b7b521d26eccc165a2465a0498d60c5e45a664918c5939be30de5bd4edacc1",
+  "max_tokens": 512,
+  "model": {
+    "fastembed": "0.8.0",
+    "model": "bge-small-en-v1.5",
+    "model_file": "model_optimized.onnx",
+    "model_file_sha256": "51f1bd0addd6e859e42c2c8021a5e5461385bb676a649f4b269aa445449f2431",
+    "source": "qdrant/bge-small-en-v1.5-onnx-q",
+    "threads": 2
+  },
+  "pool_version": "rationale-v1:commit=6810,issue_comment=18972,pull_request=5961,review_comment=38026",
+  "schema": "pace.pool_embedding/v1",
+  "this_run": {
+    "embedded": 69769,
+    "seconds": 3707.8
+  },
+  "truncated": {
+    "commit": 123,
+    "issue_comment": 1061,
+    "pull_request": 1092,
+    "review_comment": 171
+  },
+  "vectors": 69769
+}
