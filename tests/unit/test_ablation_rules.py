@@ -208,3 +208,17 @@ def test_the_summary_names_the_pairs_the_sweep_and_the_vectors(tmp_path):
     assert "bm25 vs bm25_phrase" in text and "rrf vs dense" in text
     assert "sensitivity only" in text and "fingerprint ffffffffffff" in text
     assert text.index("bm25_phrase ") < text.index("rrf ")  # rows print in ROWS order
+
+
+def test_the_summary_says_whether_bm25_was_measured_on_a_clean_index(tmp_path):
+    def summary(state):
+        meta = {**META, "bm25_index": state}
+        rows = {"grep": SYS, "bm25_ident": REF}
+        table = build_table(rows, meta=meta, validity=CURRENT, checked=CHECKED)
+        return render_summary(table, tmp_path / "a.json", tmp_path / "p.jsonl")
+
+    clean = summary({"documents": 6, "deleted": 0, "rows": 6, "clean": True})
+    assert "BM25 index: 6 documents for 6 rows, 0 deleted: clean" in clean
+    dirty = summary({"documents": 9, "deleted": 2, "rows": 6, "clean": False})
+    assert "BM25 index: 9 documents for 6 rows, 2 deleted: NOT clean" in dirty
+    assert "REINDEX" in dirty

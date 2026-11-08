@@ -92,7 +92,7 @@ from __future__ import annotations
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Final, Literal
+from typing import Any, Final, Literal
 
 import psycopg
 
@@ -103,6 +103,7 @@ from provenance.graph.tables import (
     BM25_FIELD_CONTENT,
     BM25_FIELD_LEXICAL,
     BM25_FIELD_QUALNAME,
+    BM25_INDEX,
     BM25_KEY_FIELD,
     CHUNKS,
     COL_CHUNK_ID,
@@ -120,6 +121,8 @@ __all__ = [
     "IdentifierMode",
     "LexicalForm",
     "LexicalResult",
+    "describe_index_state",
+    "index_state",
     "lexical_search",
     "lexical_search_tsvector",
 ]
@@ -466,6 +469,37 @@ def lexical_search_tsvector(
 def default_repo_id(conn: psycopg.Connection) -> int:
     """The configured corpus as a bigint. Convenience for callers holding a conn."""
     return resolve_repo_id(conn, settings.repo_owner, settings.repo_name)
+
+
+def describe_index_state(documents: int, deleted: int, rows: int) -> dict[str, Any]:
+    """Clean when the index holds exactly the table's rows and no deleted document."""
+    return {
+        "documents": documents,
+        "deleted": deleted,
+        "rows": rows,
+        "clean": documents == rows and deleted == 0,
+    }
+
+
+def index_state(conn: psycopg.Connection) -> dict[str, Any]:
+    """What pg_search computes BM25's term statistics over, against the rows of `chunks`.
+
+    pg_search counts every document in its segments: rows deleted but not yet vacuumed still
+    count as documents, and vacuumed ones stay counted, as deleted, until their segment
+    merges. Integration tests write to this same table, so the scores drift with that history:
+    12 of 4,206 ranks moved between slice B5a's run and B5b's with no code change (measured
+    2026-11-08). After `VACUUM chunks` and `REINDEX INDEX chunks_bm25_idx` the state is
+    clean, and the scores depend on the live rows alone.
+    """
+    stats = conn.execute(
+        "SELECT coalesce(sum(num_docs), 0), coalesce(sum(num_deleted), 0) "
+        "FROM paradedb.index_info(%s::regclass)",
+        (BM25_INDEX,),
+    ).fetchone()
+    count = conn.execute(f"SELECT count(*) FROM {CHUNKS}").fetchone()
+    if stats is None or count is None:  # aggregates always return a row
+        raise RuntimeError(f"no statistics for {BM25_INDEX}")
+    return describe_index_state(int(stats[0]), int(stats[1]), int(count[0]))
 
 
 class Bm25Retriever:

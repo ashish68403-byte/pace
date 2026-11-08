@@ -311,6 +311,18 @@ def render_summary(table: Mapping[str, Any], out: Path, per_query_out: Path) -> 
             f"  vectors: {embedding['model']}, fingerprint {embedding['fingerprint'][:12]}, "
             f"as {embedding['source']} records"
         )
+    state = table.get("bm25_index")
+    if state is not None:
+        lines.append(
+            f"  BM25 index: {state['documents']:,} documents for {state['rows']:,} rows, "
+            f"{state['deleted']:,} deleted: "
+            + (
+                "clean"
+                if state["clean"]
+                else "NOT clean, so BM25's statistics count documents the table no longer "
+                "holds (VACUUM chunks, then REINDEX INDEX chunks_bm25_idx)"
+            )
+        )
     lines.append(f"  wrote {out} and {per_query_out}")
     return "\n".join(lines)
 
@@ -342,7 +354,7 @@ def run_ablation(
     from provenance.retrieve.dense import DenseRetriever
     from provenance.retrieve.embedder import FrozenEmbedder, FrozenEmbeddingMiss
     from provenance.retrieve.fusion import RrfRetriever
-    from provenance.retrieve.lexical import Bm25Retriever
+    from provenance.retrieve.lexical import Bm25Retriever, index_state
 
     model = model_version or settings.embedding_model_version
     records, _ = runner.select_records(load_golden_set(golden), SPLIT)
@@ -361,6 +373,9 @@ def run_ablation(
                 print("nothing to score: the corpus is not in `repositories`", file=sys.stderr)
                 return 2
             version = pool_version(conn, repo)
+            # What BM25's statistics are computed over, recorded beside the vectors' fingerprint:
+            # dead and deleted documents in the index move its scores (found 2026-11-08).
+            bm25_index = index_state(conn)
             embedding = check_embedding(
                 embedding_record,
                 model=model,
@@ -425,6 +440,7 @@ def run_ablation(
         "records": len(records),
         "embedding": embedding,
         "fixture_sha256": _sha256(frozen.path),
+        "bm25_index": bm25_index,
     }
     table = build_table(
         rows,

@@ -63,6 +63,8 @@ def test_the_ablation_writes_six_rows_and_the_same_bytes_twice(
     at_60 = next(p for p in sweep["points"] if p["k"] == 60)
     assert at_60["hits@10"] == table["rows"]["rrf"]["hits@10"]  # the sweep's k = 60 is the row
     assert table["embedding"]["fingerprint"] == record["fingerprint"]
+    state = table["bm25_index"]  # what BM25's statistics were computed over
+    assert set(state) == {"documents", "deleted", "rows", "clean"} and state["rows"] > 0
     lines = [json.loads(line) for line in written[0][1].splitlines()]
     assert len(lines) == len(records) and set(lines[0]["first_gold_rank"]) == ROWS
 

@@ -7,7 +7,7 @@ import pytest
 from provenance.eval.leakage import PoolIndex, load_pool_from_db
 from provenance.eval.lexical_baselines import Bm25IdentRetriever, GrepRetriever
 from provenance.graph.tables import RATIONALE_KINDS
-from provenance.retrieve.lexical import Bm25Retriever, lexical_search
+from provenance.retrieve.lexical import Bm25Retriever, index_state, lexical_search
 
 pytestmark = pytest.mark.db
 
@@ -75,3 +75,10 @@ def test_loose_identifiers_find_a_document_that_names_only_some_parts(pooled, te
 
     assert found("loose")[0] == move
     assert move not in found("phrase")  # no "move pkg core" phrase in "move pkg into core/src"
+
+
+def test_the_index_state_counts_what_bm25s_statistics_are_computed_over(migrated_database):
+    state = index_state(migrated_database)
+    (rows,) = migrated_database.execute("SELECT count(*) FROM chunks").fetchone()
+    assert state["rows"] == rows > 0
+    assert state["clean"] == (state["documents"] == rows and state["deleted"] == 0)
