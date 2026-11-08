@@ -41,9 +41,20 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Protocol, runtime_checkable
+from typing import Final, Protocol, runtime_checkable
 
-__all__ = ["DEFAULT_RRF_K", "FusedResult", "HasChunkId", "reciprocal_rank_fusion", "tune_k"]
+import numpy as np
+
+__all__ = [
+    "DEFAULT_RRF_K",
+    "FUSION_DEPTH",
+    "FusedResult",
+    "HasChunkId",
+    "RankedSource",
+    "RrfRetriever",
+    "reciprocal_rank_fusion",
+    "tune_k",
+]
 
 
 @runtime_checkable
@@ -59,6 +70,11 @@ class HasChunkId(Protocol):
 
 
 DEFAULT_RRF_K = 60
+
+#: Fixed by tasks/eval-harness/007 before any dense number existed: how deep each list
+#: goes into the fusion. With DEFAULT_RRF_K and equal weights, the fused row's three
+#: settings; a sweep over k is reported beside it as sensitivity, never used to choose.
+FUSION_DEPTH: Final = 100
 
 
 @dataclass(frozen=True, slots=True)
@@ -158,3 +174,50 @@ def tune_k(
             total += len({r.chunk_id for r in fused} & gold) / len(gold)
         out.append((k, total / scored if scored else 0.0))
     return sorted(out, key=lambda kv: (-kv[1], kv[0]))
+
+
+class RankedSource(Protocol):
+    """A retriever that can hand fusion its top FUSION_DEPTH for a question."""
+
+    def ranked(self, question: str, qvec: np.ndarray | None) -> list[str]: ...
+
+
+class RrfRetriever:
+    """BM25 and dense, fused by reciprocal rank: the ablation's `rrf` row (slice B5b).
+
+    Built with no arguments, as `pace eval run --retriever` builds it, it fuses the
+    production BM25 index and exact dense search over the pool. Each source is asked
+    once per question for its kept top FUSION_DEPTH, so a sweep over k costs no query.
+    """
+
+    name = "rrf"
+
+    def __init__(
+        self,
+        lexical: RankedSource | None = None,
+        dense: RankedSource | None = None,
+        *,
+        k: int = DEFAULT_RRF_K,
+    ) -> None:
+        if lexical is None:
+            from provenance.retrieve.lexical import Bm25Retriever  # noqa: PLC0415 -- DB module
+
+            lexical = Bm25Retriever()
+        if dense is None:
+            from provenance.retrieve.dense import DenseRetriever  # noqa: PLC0415 -- DB module
+
+            dense = DenseRetriever()
+        self.lexical = lexical
+        self.dense = dense
+        self.k = k
+
+    def retrieve(self, question: str, qvec: np.ndarray | None, k: int) -> list[str]:
+        fused = reciprocal_rank_fusion(
+            {
+                "lexical": self.lexical.ranked(question, qvec),
+                "dense": self.dense.ranked(question, qvec),
+            },
+            k=self.k,
+            limit=k,
+        )
+        return [result.chunk_id for result in fused]

@@ -112,6 +112,7 @@ from provenance.graph.tables import (
     RATIONALE_KINDS,
 )
 from provenance.parse.chunker import split_identifier
+from provenance.retrieve.fusion import FUSION_DEPTH
 
 __all__ = [
     "IDENTIFIER_MODES",
@@ -478,13 +479,19 @@ class Bm25Retriever:
     name = "bm25"
 
     def __init__(
-        self, repo_id: int | None = None, *, identifiers: IdentifierMode = "loose"
+        self,
+        repo_id: int | None = None,
+        *,
+        identifiers: IdentifierMode = "loose",
+        depth: int = FUSION_DEPTH,
     ) -> None:
         if identifiers not in IDENTIFIER_MODES:
             raise ValueError(f"identifiers must be one of {IDENTIFIER_MODES}, got {identifiers!r}")
         self._repo_id = repo_id
         self.identifiers: IdentifierMode = identifiers
         self.name = "bm25" if identifiers == "loose" else "bm25_phrase"
+        self.depth = depth
+        self._ranked: dict[str, list[str]] = {}
 
     def _search(self, question: str, limit: int) -> list[str]:
         if self._repo_id is None:
@@ -498,6 +505,17 @@ class Bm25Retriever:
             identifiers=self.identifiers,
         )
         return [hit.chunk_id for hit in hits]
+
+    def ranked(self, question: str, qvec: object = None) -> list[str]:
+        """The top `depth`, once per question: what the fused row reads (B5b).
+
+        Not the `bm25` row's own list. `lexical_search` over-fetches and max-merges its
+        fields, so a deeper call can reorder the top 10; `retrieve` keeps its own call.
+        """
+        cached = self._ranked.get(question)
+        if cached is None:
+            cached = self._ranked[question] = self._search(question, self.depth)
+        return cached
 
     def retrieve(self, question: str, qvec: object, k: int) -> list[str]:
         return self._search(question, k)

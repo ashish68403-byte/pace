@@ -252,3 +252,28 @@ def pooled(
     ingest()
     write_pool(migrated_database, test_repo_id, numbering_starts=history_repo.sha["c1"])
     return history_repo
+
+
+@pytest.fixture
+def fake_model(migrated_database: Any) -> Iterator[str]:
+    """Registers the fake embedder's model; afterwards deletes every vector written under it.
+
+    The embedding tables have no foreign key to `chunks`, so deleting a test's repository
+    leaves its vectors behind. Tests write them under this name instead (slice B5b).
+    """
+    from vector_fakes import FAKE_MODEL
+
+    from provenance.graph.tables import EMBED_CODE_TABLES
+
+    migrated_database.execute(
+        "INSERT INTO embedding_models (model_version, provider, dim, max_tokens, notes) "
+        "VALUES (%s, 'tests', 384, 3, 'the fake embedder; tests only') "
+        "ON CONFLICT (model_version) DO NOTHING",
+        (FAKE_MODEL,),
+    )
+    yield FAKE_MODEL
+    for table in EMBED_CODE_TABLES:
+        migrated_database.execute(f"DELETE FROM {table} WHERE model_version = %s", (FAKE_MODEL,))
+    migrated_database.execute(
+        "DELETE FROM embedding_models WHERE model_version = %s", (FAKE_MODEL,)
+    )

@@ -105,12 +105,15 @@ from provenance.graph.tables import (
     COL_TOMBSTONE,
     EMBED_CODE_TABLES,
     INDEX_ALIASES,
+    RATIONALE_KINDS,
     halfvec_probe,
 )
+from provenance.retrieve.fusion import FUSION_DEPTH
 
 __all__ = [
     "DEFAULT_EF_SEARCH",
     "DenseResult",
+    "DenseRetriever",
     "NoCurrentEmbeddingIndex",
     "RecallPoint",
     "dense_search",
@@ -209,6 +212,7 @@ def _filters(
     model_version: str | None,
     visibility_group: str | None,
     include_tombstoned: bool,
+    kinds: Sequence[str] | None = None,
 ) -> tuple[str, list[object]]:
     """Build the WHERE tail plus its POSITIONAL parameters, in SQL order.
 
@@ -248,6 +252,11 @@ def _filters(
         # the default retrieval surface: chunks_live_idx is partial on exactly
         # this predicate.
         clauses.append(f"AND c.{COL_TOMBSTONE} IS NULL")
+    if kinds is not None:
+        # The benchmark searches its pool only (ADR-0003 §1), as lexical_search does since
+        # B5a: once checkpoint C embeds code chunks into this table, they must stay out.
+        clauses.append("AND c.kind = ANY(%s::artifact_kind[])")
+        params.append(list(kinds))
     return "\n  ".join(clauses), params
 
 
@@ -346,6 +355,7 @@ def exact_search(
     model_version: str | None = None,
     visibility_group: str | None = "public",
     include_tombstoned: bool = False,
+    kinds: Sequence[str] | None = None,
 ) -> list[DenseResult]:
     """Brute-force k-NN. Ground truth, and the determinism invariant.
 
@@ -364,6 +374,9 @@ def exact_search(
     ground truth is computed in the SAME arithmetic as the thing it is ground
     truth FOR. Comparing an fp32 baseline against an fp16 index would fold the
     precision difference into the reported recall number.
+
+    ``kinds`` restricts the search to those chunk kinds -- the benchmark's pool
+    passes RATIONALE_KINDS (slice B5b).
     """
     dim = settings.embedding_dim
     probe = halfvec_probe(dim)
@@ -379,6 +392,7 @@ def exact_search(
             model_version=model_version or settings.embedding_model_version,
             visibility_group=visibility_group,
             include_tombstoned=include_tombstoned,
+            kinds=kinds,
         )
         # ORDER BY the output name, not a second copy of the probe: in exact
         # mode we do NOT want the index, so there is nothing to keep the
@@ -468,3 +482,52 @@ def format_recall_table(points: Sequence[RecallPoint]) -> str:
         bar = "#" * round(p.recall_at_k * 20)
         lines.append(f"{p.ef_search:>10}  {p.recall_at_k:>9.3f}  {p.mean_latency_ms:>8.1f}  {bar}")
     return "\n".join(lines)
+
+
+class DenseRetriever:
+    """Exact k-NN over the benchmark's pool, as a runner retriever (slice B5b).
+
+    `exact_search` orders by distance, then chunk_id: deterministic, so the ablation's
+    bytes repeat, and the top 10 is the head of the top `depth`. Each question's top
+    `depth` is kept, so the fused row reads it without a second scan.
+    """
+
+    name = "dense"
+
+    def __init__(
+        self,
+        repo_id: int | None = None,
+        *,
+        model_version: str | None = None,
+        depth: int = FUSION_DEPTH,
+    ) -> None:
+        self._repo_id = repo_id
+        self.model_version = model_version or settings.embedding_model_version
+        self.depth = depth
+        self._ranked: dict[str, list[str]] = {}
+
+    def ranked(self, question: str, qvec: np.ndarray | None) -> list[str]:
+        """The top `depth` pool documents for this question's frozen vector."""
+        if qvec is None:
+            raise ValueError(
+                "dense retrieval needs the question's frozen vector; refusing to return nothing"
+            )
+        cached = self._ranked.get(question)
+        if cached is None:
+            if self._repo_id is None:
+                with connection() as conn:
+                    self._repo_id = resolve_repo_id(conn, settings.repo_owner, settings.repo_name)
+            hits = exact_search(
+                qvec,
+                limit=self.depth,
+                repo_id=self._repo_id,
+                model_version=self.model_version,
+                kinds=RATIONALE_KINDS,
+            )
+            cached = self._ranked[question] = [hit.chunk_id for hit in hits]
+        return cached
+
+    def retrieve(self, question: str, qvec: np.ndarray | None, k: int) -> list[str]:
+        if k > self.depth:
+            raise ValueError(f"k = {k} is deeper than this retriever's depth, {self.depth}")
+        return self.ranked(question, qvec)[:k]
