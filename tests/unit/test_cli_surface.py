@@ -92,3 +92,9 @@ def test_pace_eval_lists_bake():
     result = CliRunner().invoke(app, ["eval", "--help"])
     assert result.exit_code == 0
     assert "bake" in result.output
+
+
+def test_pace_pool_lists_embed():
+    result = CliRunner().invoke(app, ["pool", "--help"])
+    assert result.exit_code == 0
+    assert "embed" in result.output

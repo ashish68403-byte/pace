@@ -7,7 +7,7 @@ Canonical commands, and nothing else claims to exist:
     pace scope        select/freeze the ~60-80k-line subset under study
     pace history      one file's history vs a current-path view
     pace measure      truncation | pool: the measurements the write-up quotes
-    pace pool         build: the benchmark's document pool (ADR-0003)
+    pace pool         build | embed: the benchmark's document pool and its vectors (ADR-0003)
     pace golden       generate: the benchmark's questions, from the code diff (ADR-0003)
     pace github       backfill: the pool's PR text, under a request budget (ADR-0003)
     pace eval         run | fixtures | invariants
@@ -185,6 +185,12 @@ def _pool() -> None:
 def build(ctx: typer.Context) -> None:
     """Write every in-scope commit message as a document, with its commit and PR evidence."""
     _call(_load("provenance.ingest.message_pool", "main"), ctx.args)
+
+
+@pool_app.command(context_settings=PASSTHROUGH)
+def embed(ctx: typer.Context) -> None:
+    """Embed every pool document into the table dense retrieval reads (slice B5b)."""
+    _call(_load("provenance.ingest.pool_embedding", "main"), ctx.args)
 
 
 app.add_typer(pool_app, name="pool")
