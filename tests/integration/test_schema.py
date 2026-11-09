@@ -58,7 +58,7 @@ from provenance.graph.tables import (
 
 pytestmark = pytest.mark.db
 
-HEAD_REVISION = "0010_line_log"
+HEAD_REVISION = "0011_lineage_stages"
 
 CORE_TABLES = (
     REPOSITORIES,
@@ -403,6 +403,16 @@ def test_line_log_commits_keys_a_function_and_one_listed_commit(migrated_databas
         "algo": "text",
         "computed_at": "timestamp with time zone",
     }
+
+
+def test_symbol_versions_admit_the_lineage_engines_stages(migrated_database: Any) -> None:
+    """Migration 0011 (slice C3a): how each version kept its identity."""
+    (definition,) = migrated_database.execute(
+        "SELECT pg_get_constraintdef(oid) FROM pg_constraint "
+        "WHERE conname = 'symbol_versions_stage_known'"
+    ).fetchone()
+    for stage in ("birth", "name", "h1", "h3", "move"):
+        assert f"'{stage}'" in definition
 
 
 def test_required_extensions_are_installed(migrated_database: Any) -> None:

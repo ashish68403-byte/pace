@@ -27,6 +27,11 @@ FILE_REVISIONS: Final = "file_revisions"
 BLAME_RANGES: Final = "blame_ranges"
 LINE_LOG_COMMITS: Final = "line_log_commits"
 
+# --- the lineage layer (0002, 0011; slice C3a) -------------------------------
+SYMBOL_LINEAGE: Final = "symbol_lineage"
+SYMBOL_VERSIONS: Final = "symbol_versions"
+LINEAGE_EDGES: Final = "lineage_edges"
+
 # --- ingest bookkeeping ---------------------------------------------------
 INGEST_RUNS: Final = "ingest_runs"
 DEAD_LETTERS: Final = "dead_letters"
