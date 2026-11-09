@@ -3,7 +3,7 @@
 **Tracker:** [004_FUNCTION_IDENTITY](../../tracker/004_FUNCTION_IDENTITY.md) row 1 and
 verification step 1; [000_REVIEW_REMEDIATION](../../tracker/000_REVIEW_REMEDIATION.md) finding 3 ·
 **checkpoint C**, slice C4
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-11-09)
 **Decision records:** [ADR-0005](../../ADR-0005-lineage-vs-blame.md) §1–§5 and §9, and its
 Addenda; [`PREREGISTRATION.md`](../../PREREGISTRATION.md) claims 1 and 2. Nothing in them changes.
 **Depends on:** [function-identity/001](001_preregistration.md) (the measure and the decision

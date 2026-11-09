@@ -49,7 +49,9 @@ lineage gives Airflow's functions 5,023 identities across renames and moves, and
 with `git log -L` misses the pre-registered 0.90 at 0.771 ([results/lineage.json](../results/lineage.json)).
 Slice C3b ran the frozen engine once on CodeShovel's oracle: claim 3 failed, a mean F1 difference
 of 0.0631 [-0.0242, 0.1487] over `git log -L` ([results/oracle.json](../results/oracle.json)).
-Next, C4 runs the comparison.
+Slice C4 scored the comparison once: claim 1 holds, C − A 0.3134 [0.2993, 0.3274], and claim 2
+reads "blame is more precise per commit, and lineage's gain is coverage alone"
+([results/provenance.json](../results/provenance.json)). Checkpoint C's measurements are in.
 
 ---
 

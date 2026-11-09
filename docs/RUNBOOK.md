@@ -167,6 +167,20 @@ It writes nothing while a tracked file is modified, unless CodeShovel is at `0d2
 40 oracle files unmodified, and unless every label is an ancestor of its start commit and every
 function resolves. It was run once, on `2671da966b`; a rerun writes the same bytes.
 
+### The comparison (claims 1 and 2)
+
+Slice C4's single run ([tasks/function-identity/004](tasks/function-identity/004_comparison.md)).
+It reads the stored arms, the golden set, both censuses and the gold-validity audit, and writes
+only `results/provenance.json` and `results/provenance_per_question.jsonl`.
+
+```bash
+uv run pace eval provenance      # about 30 seconds
+```
+
+It writes nothing while a tracked file is modified, unless every question's function has its
+stored arms, the arms' sizes equal the censuses' and the gold's validity is current. It was run
+once, on `dfcba182e9`; a rerun writes the same bytes.
+
 ### Before pushing
 
 ```bash

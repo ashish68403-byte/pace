@@ -323,6 +323,17 @@ the same bytes.
   log -L on CodeShovel's oracle." The 16 rename-or-move functions, reported apart and deciding
   nothing, score 0.8803 against 0.7434. The oracle measured the engine with every file its
   chains need; Airflow's lineage walks only the 303 in-scope files.
+- **2026-11-09 — claims 1 and 2, measured (slice C4).** The comparison ran once on the 4,206
+  retained dev questions, on `dfcba182e9`; a repeat wrote the same bytes
+  ([results/provenance.json](../results/provenance.json)). Its arms are the ones slices C2 and
+  C3a reported: their per-function sizes equal the censuses'. Provenance-chain recall is 0.6795
+  for blame (A), 0.6529 for the equal-size control (B), 0.9929 for lineage (C) and 0.9258 for
+  `git log -L` (L). C − A is 0.3134, 95% paired interval 0.2993 to 0.3274, and divided by the
+  gold's validity 0.328 (0.317 to 0.369), so claim 1 holds. B − A is -0.0266 (-0.0397 to
+  -0.0134), so claim 2 reads, as §5 fixed: blame is more precise per commit, and lineage's gain
+  is coverage alone, as the tilt predicted. The split: C − A = (C − B) 0.34 + (B − A) -0.0266.
+  The agreement check missed (0.771 against 0.90), and as the pre-registration says, that
+  qualifies both claims.
 
 ## References
 

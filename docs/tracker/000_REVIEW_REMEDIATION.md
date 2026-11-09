@@ -2,7 +2,7 @@
 
 **Task(s):** [docs/tasks/review-remediation/](../tasks/review-remediation/)
 **Priority:** P0
-**Status:** 🚧 In progress (10 of 20 closed)
+**Status:** 🚧 In progress (11 of 20 closed)
 **Date:** 2026-10-06
 
 ---
@@ -44,7 +44,7 @@ Severity is the audited severity. "Before checkpoint B" means it gates B's work 
 |---|---|---|---|---|
 | 1 | [§5 is not an executable schedule; §6 cannot rescue it](../tasks/review-remediation/001_executable_schedule.md) | critical | ✅ | `docs/ROADMAP.md` §5, §6; `docs/ADR-0002` header |
 | 2 | [No dev/test split; optimistic bias ≈ the claimed lift](../tasks/review-remediation/002_dev_test_split.md) | major | ✅ | `provenance/eval/schema.py`, `runner.py`, `retrieve/fusion.py`: done in B1 and B5a ([006](006_EVAL_HARNESS.md) row 1); ADR-0003 limits the test split to two dated openings |
-| 3 | [Week-8 comparison has no control, no dependent variable, no falsifier](../tasks/review-remediation/003_control_arms_and_preregistration.md) | critical | 🚧 | `provenance/eval/metrics.py`, `preregistration.py`, `docs/PREREGISTRATION.md`: fixed in [ADR-0005](../ADR-0005-lineage-vs-blame.md) and the pre-registration (`27205d76a8`), measure and rules in code ([function-identity/001](../tasks/function-identity/001_preregistration.md)); closes when slice C4's three-arm run reports |
+| 3 | [Week-8 comparison has no control, no dependent variable, no falsifier](../tasks/review-remediation/003_control_arms_and_preregistration.md) | critical | ✅ | `provenance/eval/metrics.py`, `preregistration.py`, `docs/PREREGISTRATION.md`: fixed in [ADR-0005](../ADR-0005-lineage-vs-blame.md) and the pre-registration (`27205d76a8`), measure and rules in code ([function-identity/001](../tasks/function-identity/001_preregistration.md)); closed by slice C4's three-arm run ([function-identity/004](../tasks/function-identity/004_comparison.md), [results/provenance.json](../../results/provenance.json)): claim 1 holds, and claim 2 reads "blame is more precise per commit, and lineage's gain is coverage alone" |
 | 4 | [Corpus is 480 files / 112,259 lines; `scope.txt` never committed](../tasks/review-remediation/004_scope_freeze.md) | critical | ✅ | `provenance/ingest/scope.py`, `skeleton.py`, `scope.txt`, `scope_stats.json` |
 | 5 | No writing scheduled before week 15; the graded artifact is on no week and no cut list | critical | ✅ | `docs/ROADMAP.md` §5, §6 |
 | 6 | The load-bearing premise ("a merged PR that closed an issue IS the rationale") has no measurement | critical | ⬜ | gold-validity audit, new ADR |
@@ -129,3 +129,9 @@ Populated as tasks close.
   Finding 10 is scheduled inside B, before the backfill, and finding 11's ethics self-assessment
   before B's first fetch. The subsystem trackers' "ROADMAP §5 weeks N" pointers now name
   checkpoints; dated notes keep the week numbers they were written with.
+- **2026-11-09 — finding 3 closed.** The comparison it asked for ran once, its control and its
+  falsifier fixed before any number (ADR-0005 and PREREGISTRATION.md, `27205d76a8`). Lineage
+  against blame: C − A 0.3134 [0.2993, 0.3274], so claim 1 holds. The volume-matched control:
+  B − A -0.0266 [-0.0397, -0.0134], so lineage's gain is coverage, not better commits. Claim 3
+  failed on CodeShovel's oracle (slice C3b), and the agreement check's miss qualifies all three
+  ([results/provenance.json](../../results/provenance.json)).
