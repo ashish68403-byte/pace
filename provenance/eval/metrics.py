@@ -190,6 +190,18 @@ def equal_size_chance(blame_count: int, lineage: Collection[str], gold: Collecti
     return 1.0 - math.comb(n - golds, k) / math.comb(n, k)
 
 
+def set_f1(found: Collection[str], expected: Collection[str]) -> float:
+    """F1 of one commit set against another; 1.0 when both are empty (slice C3a's agreement)."""
+    found_set, expected_set = set(found), set(expected)
+    if not found_set and not expected_set:
+        return 1.0
+    hits = len(found_set & expected_set)
+    if hits == 0:
+        return 0.0
+    precision, recall = hits / len(found_set), hits / len(expected_set)
+    return 2 * precision * recall / (precision + recall)
+
+
 def citation_precision(cited: Sequence[str], supported: Collection[str]) -> float:
     """Fraction of emitted citations that are actually in the gold evidence.
 

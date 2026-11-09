@@ -176,6 +176,12 @@ def blame_census(ctx: typer.Context) -> None:
     _call(_load("provenance.analysis.blame_census", "main"), ctx.args)
 
 
+@measure_app.command(name="lineage", context_settings=PASSTHROUGH)
+def lineage_census(ctx: typer.Context) -> None:
+    """Slice C3a's identities, counted, and their agreement with git log -L."""
+    _call(_load("provenance.analysis.lineage_census", "main"), ctx.args)
+
+
 app.add_typer(measure_app, name="measure")
 
 
