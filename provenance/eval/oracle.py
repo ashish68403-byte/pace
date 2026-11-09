@@ -18,13 +18,23 @@ committed, the oracle is CodeShovel's at its pinned commit, and every function r
 from __future__ import annotations
 
 import json
+import os
 import re
-from collections.abc import Callable, Collection, Iterable, Mapping
+import subprocess
+import sys
+from collections.abc import Callable, Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from functools import partial
 from pathlib import Path
-from typing import TYPE_CHECKING, Final
+from typing import TYPE_CHECKING, Any, Final
 
-from provenance.eval.metrics import set_f1
+from provenance.eval.metrics import paired_bootstrap, set_f1
+from provenance.eval.preregistration import IDENTITY_MIN_F1_GAIN, identity
+from provenance.ingest.blame import line_log, show
+from provenance.ingest.git_walk import CatFileBatch
+from provenance.lineage.build import Cache
+from provenance.lineage.history import read_history, revisions_reader
+from provenance.lineage.scope import follow_chain
 from provenance.parse import parse_source
 from provenance.parse.symbols import symbol_spans
 
@@ -33,6 +43,7 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 
 #: The pre-registered 16 hold one of these, a Ymultichange's parts included.
 RENAME_OR_MOVE: Final = frozenset({"Yrename", "Yfilerename", "Ymovefromfile"})
+ARMS: Final = ("lineage", "git_log_l")
 _KIND = re.compile(r"Y[a-z]+")
 
 
@@ -185,3 +196,193 @@ def scores(found: Collection[str], expected: Collection[str]) -> dict[str, float
         "recall": hits / len(expected) if expected else 0.0,
         "f1": set_f1(found, expected),
     }
+
+
+@dataclass(frozen=True)
+class Scored:
+    """One function's three commit sets."""
+
+    function: OracleFunction
+    resolved: Resolved
+    oracle: frozenset[str]
+    projected: int
+    lineage: frozenset[str]
+    git_log: frozenset[str]
+    files_walked: int
+    rounds: int
+
+
+def _git(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    """git in `repo` with global and system config switched off, as `blame._git` runs it."""
+    env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+    return subprocess.run(
+        ["git", "-C", str(repo), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
+        check=False,
+    )
+
+
+def _out(repo: Path, *args: str) -> str:
+    done = _git(repo, *args)
+    if done.returncode != 0:
+        raise OracleRefused(f"git {args[0]} failed in {repo}: {done.stderr.strip()[:300]}")
+    return done.stdout
+
+
+def first_parent_positions(repo: Path, start: str) -> dict[str, int]:
+    """The start commit's first-parent line, numbered from its root."""
+    line = _out(repo, "rev-list", "--first-parent", "--reverse", start).split()
+    return {commit: index for index, commit in enumerate(line)}
+
+
+def _descendants(repo: Path, start: str, label: str) -> list[str]:
+    return _out(repo, "rev-list", "--ancestry-path", f"{label}..{start}").split()
+
+
+def evaluate(
+    functions: Sequence[OracleFunction], clones: Path, *, progress: bool = False
+) -> list[Scored]:
+    """Every function's three commit sets; one history walk per project and start commit."""
+    cache: Cache = {}
+    groups: dict[tuple[str, str], list[OracleFunction]] = {}
+    for function in functions:
+        groups.setdefault((function.project, function.start), []).append(function)
+    scored: list[Scored] = []
+    for (project, start), members in sorted(groups.items()):
+        repo = clones / f"{project}.git"
+        history = read_history(repo, start)
+        position = first_parent_positions(repo, start)
+        descendants = partial(_descendants, repo, start)
+        with CatFileBatch(repo) as cat:
+            read = revisions_reader(history, cat, cache)
+            for function in members:
+                if function.path not in history.files:
+                    raise OracleRefused(f"{function.oracle}: {function.path} has no history")
+                text = show(repo, start, function.path)
+                resolved = resolve(text, function.path, function.line)
+                followed = follow_chain(
+                    function.path, resolved.symbol, read, history.python_touched
+                )
+                scored.append(
+                    Scored(
+                        function=function,
+                        resolved=resolved,
+                        oracle=project_labels(function.labels, position, descendants),
+                        projected=sum(1 for label in function.labels if label not in position),
+                        lineage=frozenset(v.commit for v in followed.lineage.versions),
+                        git_log=frozenset(line_log(repo, start, function.path, [resolved.span])),
+                        files_walked=len(followed.files),
+                        rounds=followed.rounds,
+                    )
+                )
+                if progress:
+                    print(
+                        f"oracle: {function.oracle}: {len(followed.files)} files walked in "
+                        f"{followed.rounds} rounds",
+                        file=sys.stderr,
+                    )
+    return sorted(scored, key=lambda item: item.function.oracle)
+
+
+def _arm(item: Scored, arm: str) -> frozenset[str]:
+    return item.lineage if arm == "lineage" else item.git_log
+
+
+def _means(items: Sequence[Scored]) -> dict[str, Any]:
+    found: dict[str, Any] = {"n": len(items)}
+    for arm in ARMS:
+        rows = [scores(_arm(item, arm), item.oracle) for item in items]
+        found[arm] = {
+            metric: round(sum(row[metric] for row in rows) / len(rows), 4) if rows else 0.0
+            for metric in ("precision", "recall", "f1")
+        }
+    return found
+
+
+def _row(item: Scored) -> dict[str, Any]:
+    function, resolved = item.function, item.resolved
+    row: dict[str, Any] = {
+        "oracle": function.oracle,
+        "project": function.project,
+        "path": function.path,
+        "name": function.name,
+        "line": function.line,
+        "start": function.start,
+        "symbol": resolved.symbol,
+        "span": list(resolved.span),
+        "kind": resolved.kind,
+        "property_part": resolved.property_part,
+        "rename_or_move": rename_or_move(function),
+        "files_walked": item.files_walked,
+        "rounds": item.rounds,
+        "projected_labels": item.projected,
+        "oracle_commits": sorted(item.oracle),
+    }
+    for arm in ARMS:
+        found = _arm(item, arm)
+        entry: dict[str, Any] = {"commits": sorted(found)}
+        for metric, value in scores(found, item.oracle).items():
+            entry[metric] = round(value, 4)
+        row[arm] = entry
+    return row
+
+
+def report(scored: Sequence[Scored], inputs: Mapping[str, Any]) -> dict[str, Any]:
+    """The run's results: per function, per arm and group, and claim 3's verdict."""
+    lineage_f1 = [scores(item.lineage, item.oracle)["f1"] for item in scored]
+    git_f1 = [scores(item.git_log, item.oracle)["f1"] for item in scored]
+    paired = paired_bootstrap(lineage_f1, git_f1)
+    groups = {
+        "all": list(scored),
+        "rename_or_move": [item for item in scored if rename_or_move(item.function)],
+        "nested_or_property": [
+            item for item in scored if item.resolved.kind == "nested" or item.resolved.property_part
+        ],
+    }
+    return {
+        "schema": 1,
+        "inputs": dict(inputs),
+        "oracle": {
+            "functions": len(scored),
+            "labels": sum(len(item.function.labels) for item in scored),
+            "projected_labels": sum(item.projected for item in scored),
+            "commits": sum(len(item.oracle) for item in scored),
+        },
+        "functions": [_row(item) for item in scored],
+        "means": {name: _means(items) for name, items in groups.items()},
+        "claim_3": {
+            "difference": round(paired.delta, 4),
+            "interval": [round(paired.lo, 4), round(paired.hi, 4)],
+            "n": paired.n,
+            "prob_not_better": round(paired.prob_not_better, 4),
+            "threshold": IDENTITY_MIN_F1_GAIN,
+            "verdict": identity(paired.delta, paired.lo),
+        },
+    }
+
+
+def render_json(found: Mapping[str, Any]) -> str:
+    """Sorted keys and no timestamps: the same run always renders the same bytes."""
+    return json.dumps(found, indent=2, sort_keys=True) + "\n"
+
+
+def render_summary(found: Mapping[str, Any], out: Path) -> str:
+    oracle, means, claim = found["oracle"], found["means"], found["claim_3"]
+    lo, hi = claim["interval"]
+    moved = means["rename_or_move"]
+    return "\n".join(
+        [
+            f"oracle: {oracle['functions']} functions, {oracle['labels']} labels "
+            f"({oracle['projected_labels']} moved to their merge), {oracle['commits']} commits",
+            f"mean F1: lineage {means['all']['lineage']['f1']}, git log -L "
+            f"{means['all']['git_log_l']['f1']}; the {moved['n']} rename-or-move functions: "
+            f"{moved['lineage']['f1']} against {moved['git_log_l']['f1']}",
+            f"claim 3: difference {claim['difference']} [{lo}, {hi}], n = {claim['n']}: "
+            f"{claim['verdict']}",
+            f"wrote {out}",
+        ]
+    )
