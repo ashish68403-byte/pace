@@ -16,7 +16,7 @@ import sys
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Final
+from typing import Any, Final, NamedTuple
 
 from provenance.analysis.blame_census import MOVE_COMMIT
 from provenance.config import settings
@@ -43,13 +43,13 @@ _KINDS: Final = ("function_rename", "cross_file_move", "file_rename", "any")
 _DETECTORS: Final = f"SELECT DISTINCT detector_version FROM {SYMBOL_LINEAGE} WHERE repo_id = %s"
 _COMMITS: Final = f"SELECT commit_sha, topo_order, is_mechanical FROM {COMMITS} WHERE repo_id = %s"
 _VERSIONS: Final = (
-    "SELECT v.lineage_id, v.commit_sha, v.match_stage, v.is_rename, v.is_move "
-    f"FROM {SYMBOL_VERSIONS} v JOIN {SYMBOL_LINEAGE} l USING (lineage_id) "
-    "WHERE l.repo_id = %s ORDER BY v.lineage_id, v.commit_topo_order"
+    "SELECT v.lineage_id, v.commit_sha, v.match_stage, v.is_rename, v.is_move, "
+    f"v.is_body_change, v.path FROM {SYMBOL_VERSIONS} v JOIN {SYMBOL_LINEAGE} l "
+    "USING (lineage_id) WHERE l.repo_id = %s ORDER BY v.lineage_id, v.commit_topo_order"
 )
 _LINEAGES: Final = (
-    "SELECT lineage_id, death_commit, current_path, current_qualified_name "
-    f"FROM {SYMBOL_LINEAGE} WHERE repo_id = %s"
+    "SELECT lineage_id, death_commit, current_path, current_qualified_name, birth_commit, "
+    f"birth_topo_order FROM {SYMBOL_LINEAGE} WHERE repo_id = %s"
 )
 _AMBIGUOUS: Final = (
     f"SELECT count(DISTINCT (at_commit, evidence->>'key')) FROM {LINEAGE_EDGES} "
@@ -64,6 +64,17 @@ _LOGS: Final = (
 
 class CensusRefused(RuntimeError):
     """The census needs rows the builds have not stored; nothing was written."""
+
+
+class _Row(NamedTuple):
+    """One stored version, as the census reads it."""
+
+    commit: str
+    stage: str
+    is_rename: bool
+    is_move: bool
+    is_body_change: bool
+    path: str
 
 
 def agreement_sample(
@@ -134,30 +145,38 @@ def census(
         order[str(sha)] = int(topo)
         if is_mechanical:
             mechanical.add(str(sha))
-    versions: dict[int, list[tuple[str, str, bool, bool]]] = defaultdict(list)
+    versions: dict[int, list[_Row]] = defaultdict(list)
     stages: Counter[str] = Counter()
-    for lineage_id, commit, stage, is_rename, is_move in conn.execute(_VERSIONS, (repo_id,)):
-        versions[int(lineage_id)].append((str(commit), str(stage), bool(is_rename), bool(is_move)))
+    for lineage_id, commit, stage, is_rename, is_move, body, path in conn.execute(
+        _VERSIONS, (repo_id,)
+    ):
+        versions[int(lineage_id)].append(
+            _Row(str(commit), str(stage), bool(is_rename), bool(is_move), bool(body), str(path))
+        )
         stages[str(stage)] += 1
     alive: dict[tuple[str, str], int] = {}
+    births: dict[int, tuple[str, int]] = {}
+    died_in: set[tuple[str, str]] = set()  # (death commit, the file it died in)
     deaths = total = 0
-    for lineage_id, death, path, name in conn.execute(_LINEAGES, (repo_id,)):
+    for lineage_id, death, path, name, born, born_topo in conn.execute(_LINEAGES, (repo_id,)):
         total += 1
+        births[int(lineage_id)] = (str(born), int(born_topo))
         if death is None:
             alive[(str(path), str(name))] = int(lineage_id)
         else:
             deaths += 1
+            died_in.add((str(death), versions[int(lineage_id)][-1].path))
     (ambiguous,) = conn.execute(_AMBIGUOUS, (repo_id,)).fetchone()
     (refused,) = conn.execute(_REFUSED, (repo_id, STAGE)).fetchone()
 
     def breaks(skip: str | None) -> dict[str, Any]:
         counts = dict.fromkeys(_KINDS, 0)
         for lineage_id in alive.values():
-            rows = [row for row in versions[lineage_id] if row[0] != skip]
+            rows = [row for row in versions[lineage_id] if row.commit != skip]
             found = {
-                "function_rename": any(is_rename for _, _, is_rename, _ in rows),
-                "cross_file_move": any(stage == "move" for _, stage, _, _ in rows),
-                "file_rename": any(is_move and stage != "move" for _, stage, _, is_move in rows),
+                "function_rename": any(row.is_rename for row in rows),
+                "cross_file_move": any(row.stage == "move" for row in rows),
+                "file_rename": any(row.is_move and row.stage != "move" for row in rows),
             }
             found["any"] = any(found.values())
             for kind, hit in found.items():
@@ -169,7 +188,7 @@ def census(
             raise CensusRefused(
                 f"{function[0]}::{function[1]} has no identity alive at {target.pinned[:10]}"
             )
-        return {commit for commit, _, _, _ in versions[alive[function]]} - mechanical
+        return {row.commit for row in versions[alive[function]]} - mechanical
 
     arm_c = [len(lineage_commits(function)) for function in target.functions]
 
@@ -200,9 +219,38 @@ def census(
             found_commits = lineage_commits(function)
             scores[group].append(set_f1(found_commits, logs[function] - mechanical))
     overall = _ci([score for group in sample for score in scores[group]])
-    renames_count = sum(1 for rows in versions.values() for row in rows if row[2])
+    # Not pre-registered: added after the check missed, to say where the two sets differ.
+    both = 0
+    only_log = Counter(dict.fromkeys(("before_the_birth", "no_version_there"), 0))
+    only_lineage = Counter(
+        dict.fromkeys(("a_path_only_version", "a_token_or_name_change", "the_birth"), 0)
+    )
+    early_kinds = ("another_function_died_in_the_file_there", "nothing_died_there")
+    before_birth = Counter(dict.fromkeys(early_kinds, 0))
+    for functions in sample.values():
+        for function in functions:
+            lineage_id = alive[function]
+            rows = {row.commit: row for row in versions[lineage_id]}
+            mine, theirs = set(rows) - mechanical, logs[function] - mechanical
+            both += len(mine & theirs)
+            born, born_topo = births[lineage_id]
+            early = [commit for commit in theirs - mine if order[commit] < born_topo]
+            only_log["before_the_birth"] += len(early)
+            only_log["no_version_there"] += len(theirs - mine) - len(early)
+            for commit in mine - theirs:
+                row = rows[commit]
+                if row.stage == "birth":
+                    only_lineage["the_birth"] += 1
+                elif row.is_move and not row.is_body_change and not row.is_rename:
+                    only_lineage["a_path_only_version"] += 1
+                else:
+                    only_lineage["a_token_or_name_change"] += 1
+            if early:
+                died = (born, versions[lineage_id][0].path) in died_in
+                before_birth[early_kinds[0] if died else early_kinds[1]] += 1
+    renames_count = sum(1 for rows in versions.values() for row in rows if row.is_rename)
     file_renames = sum(
-        1 for rows in versions.values() for row in rows if row[3] and row[1] != "move"
+        1 for rows in versions.values() for row in rows if row.is_move and row.stage != "move"
     )
     return {
         "schema": 1,
@@ -234,6 +282,12 @@ def census(
             "mean_f1": overall,
             "groups": {group: _ci(values) for group, values in scores.items() if values},
             "verdict": "meets" if overall["point"] >= AGREEMENT_MIN_F1 else "misses",
+            "breakdown_not_preregistered": {
+                "commits_both_list": both,
+                "only_git_log_l": dict(sorted(only_log.items())),
+                "only_lineage": dict(sorted(only_lineage.items())),
+                "functions_with_commits_before_their_birth": dict(sorted(before_birth.items())),
+            },
         },
     }
 

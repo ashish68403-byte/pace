@@ -69,6 +69,19 @@ def test_the_census_counts_identities_breaks_and_agreement(
     assert agreement["mean_f1"]["n"] == 4
     assert agreement["verdict"] in {"meets", "misses"}
     assert agreement["threshold"] == 0.9
+    breakdown = agreement["breakdown_not_preregistered"]
+    assert set(breakdown["only_git_log_l"]) == {"before_the_birth", "no_version_there"}
+    assert set(breakdown["only_lineage"]) == {
+        "a_path_only_version",
+        "a_token_or_name_change",
+        "the_birth",
+    }
+    assert set(breakdown["functions_with_commits_before_their_birth"]) == {
+        "another_function_died_in_the_file_there",
+        "nothing_died_there",
+    }
+    counts = [breakdown["commits_both_list"], *breakdown["only_lineage"].values()]
+    assert all(isinstance(count, int) and count >= 0 for count in counts)
 
 
 def test_the_census_renders_the_same_bytes_twice(lineage_graph, writer_conn, test_repo_id):
