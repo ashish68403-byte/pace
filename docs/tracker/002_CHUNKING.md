@@ -2,7 +2,7 @@
 
 **Task(s):** `docs/tasks/chunking/` — created as tasks are written
 **Priority:** P1
-**Status:** ⬜ Not started
+**Status:** ➖ Future work — HEAD code chunks left checkpoint D when it was designed refusal first ([ADR-0006](../ADR-0006-refusal-first-checkpoint-d.md), 2026-11-09)
 **Date:** 2026-10-06
 
 ---
@@ -55,3 +55,6 @@ to be believed.
   chunks: its comparison needs only the stored blame, `git log -L` and lineage
   ([tasks/symbols-blame/001](../tasks/symbols-blame/001_blame_arms.md), "Not in this slice"). The
   chunker work here is D's.
+- **2026-11-09 — future work.** Checkpoint D was designed refusal first
+  ([ADR-0006](../ADR-0006-refusal-first-checkpoint-d.md)): its questions are answered from the
+  rationale pool, so HEAD code chunks leave D, their design kept here.

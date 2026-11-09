@@ -1,8 +1,9 @@
 # Tracker: Agent loop and refusal
 
-**Task(s):** `docs/tasks/agent-refusal/` — created as tasks are written
+**Task(s):** [docs/tasks/agent-refusal/](../tasks/agent-refusal/) — 001 (checkpoint D, slice D1, the unanswerable questions) written 2026-11-09
+**Decision records:** [ADR-0006](../ADR-0006-refusal-first-checkpoint-d.md) — refusal-first D; [PREREGISTRATION.md](../PREREGISTRATION.md) claim 5
 **Priority:** P1
-**Status:** ⬜ Not started
+**Status:** 🚧 In progress — D designed refusal first (ADR-0006); D1, the unanswerable questions, next
 **Date:** 2026-10-06
 
 ---
@@ -23,9 +24,9 @@ grounding verification is dead weight in the thesis rather than a contribution.
 |---|------|--------|------|
 | 1 | **Hard deadline — D's first agent run.** Log per query, including refused ones: fused top-1 and top-10 scores, verifier score, citation-precision/correctness outcome (finding 15) | ⬜ | `provenance/eval/runner.py` `PER_QUERY_COLUMNS` |
 | 2 | Risk-coverage curve over answerables, plus the same curve for two trivial abstainers (fused-score threshold; empty-evidence rule); quote the coverage level at which headline citation precision is stated | ⬜ | `provenance/eval/metrics.py` |
-| 3 | Oversample unanswerables; report refusal recall and false-refusal rate (prevalence-free), derive precision analytically at the 20% base rate (finding 14) | ⬜ | golden-set generator |
-| 4 | Publish counts per `UnanswerableStrategy` — with ~40 negatives across five strategies, no per-strategy claim is possible | ⬜ | `provenance/eval/runner.py` |
-| 5 | Five tools, enforced budgets, replayable runs; `budget_exceeded` recorded as a trajectory outcome | ⬜ | agent loop |
+| 3 | Oversample unanswerables; report refusal recall and false-refusal rate (prevalence-free), derive precision analytically at the 20% base rate (finding 14) | 🚧 | the questions: [agent-refusal/001](../tasks/agent-refusal/001_unanswerable_questions.md) (slice D1), 300 dev and 214 test of each of S3, S4 and S5; the rates are slice D3's |
+| 4 | Publish counts per `UnanswerableStrategy` — with ~40 negatives across five strategies, no per-strategy claim is possible | 🚧 | `results/unanswerable_census.json` (slice D1); every rate reported per kind in D3 |
+| 5 | Five tools, enforced budgets, replayable runs; `budget_exceeded` recorded as a trajectory outcome | ➖ | the five-tool loop is future work ([ADR-0006](../ADR-0006-refusal-first-checkpoint-d.md) §1); D2's single-pass answerer keeps the budgets, the replays and `budget_exceeded` |
 
 ## Dependencies
 - **Task 1 cannot be done retrospectively.** If D's first agent runs do not log it, finding 15 is
@@ -46,3 +47,10 @@ grounding verification is dead weight in the thesis rather than a contribution.
 - **2026-10-06.** The S1-S5 unanswerable taxonomy pre-empts the easy criticism by making negatives
   diverse — but diversity shows refusals are not trivially detectable, not that abstaining is useful.
   Those are different claims; task 2 is the one that tests the second.
+- **2026-11-09 — D designed refusal first** ([ADR-0006](../ADR-0006-refusal-first-checkpoint-d.md)).
+  Three slices: D1, unanswerable questions (S3 held out, S4 after the pin, S5 nonexistent, 300 dev
+  and 214 test each); D2, one warm process that retrieves, reranks, answers with citations or
+  declines, verifies grounding and logs every query (task 1 lands there, before the first run);
+  D3, claim 5's run. Claim 5's trivial abstainers are the pre-registration's, always answering and
+  abstaining at random; task 2's fused-score threshold is reported beside them as finding 15's
+  null. The five-tool loop is future work.
