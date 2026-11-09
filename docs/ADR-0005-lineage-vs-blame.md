@@ -286,6 +286,33 @@ the same bytes.
   The engine is frozen as built (`lineage-mvp-1`). Slice C3b runs it on CodeShovel's oracle with
   this limit stated in advance. Similarity matching, which could link a rename made with an edit,
   is future work.
+- **2026-11-09 — the oracle run, fixed before it (slice C3b).** Designing slice C3b
+  ([tasks/function-identity/003](tasks/function-identity/003_oracle_run.md)) found that §7's
+  "over the oracle functions' file histories" leaves the cross-file rule nothing to link, and
+  that §8 leaves the units and the side-branch labels open. The rules, committed before the
+  oracle is run:
+  - **The files walked.** For each function: its own rename-aware file, then every Python file
+    touched by a commit where a piece of its tracked identity begins, until nothing is added. The
+    cross-file rule links a birth and a death at one commit, both in files that commit touched,
+    so this gives the identity a walk over the whole project would. File histories are rebuilt in
+    memory with checkpoint A's own walk, and nothing is written to the database.
+  - **The units.** Lineage is scored through the identity whose span holds the oracle function's
+    `def` line at its start commit: the function itself, the enclosing function for the 3 nested
+    ones, and the property for the 2 property parts. `git log -L` gets the function's own lines,
+    decorators included, as it would be used. Any bias from the coarser unit falls on lineage.
+  - **The labels.** A label off the start commit's first-parent line counts at the merge that
+    brought it in, where a first-parent walk first sees the change: 61 labels in 22 functions.
+    Both arms walk first parents.
+  - **No mechanical filter:** these projects have no mechanical list, and CodeShovel labels a
+    reformat that changes tokens.
+  - **The 16** rename-or-move functions are those with a `Yrename`, `Yfilerename` or
+    `Ymovefromfile` label, counting those inside a `Ymultichange`.
+  - **One run,** on the frozen engine, repeated once unchanged to show the same bytes. A defect
+    found afterwards in the run's own code is fixed and the run repeated, and both runs are
+    reported.
+  - **The transfer.** On Airflow the engine walks only the 303 in-scope files, so a function moved
+    in from any other file is a birth there. The oracle measures the engine with every file its
+    chains need, and claim 3's result is quoted with that difference.
 
 ## References
 

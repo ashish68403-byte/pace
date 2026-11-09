@@ -97,3 +97,9 @@ reported beside.
   [ADR-0005](ADR-0005-lineage-vs-blame.md)'s Errata of this date record: that is what CodeShovel's
   labels count as a change. Committed before any lineage number. No claim, threshold or reading
   changes.
+- **2026-11-09.** Claim 3 is measured as the addendum of this date on the oracle run, in
+  [ADR-0005](ADR-0005-lineage-vs-blame.md), records. Lineage walks each function's file and every
+  Python file touched where a piece of its identity begins, and is scored through the identity
+  that holds the function's `def` line; `git log -L` gets the function's own lines; a label off
+  the first-parent line counts at the merge that brought it in; no mechanical filter applies.
+  Committed before the oracle is run. No claim, threshold or reading changes.
