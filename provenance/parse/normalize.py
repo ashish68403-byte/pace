@@ -49,10 +49,13 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 
 __all__ = [
     "NORM_ALGO_VERSION",
+    "OWN_NAME",
     "HashLadder",
+    "IdentityHashes",
     "MatchConfidence",
     "ast_norm_version",
     "hash_ladder",
+    "identity_hashes",
     "token_stream",
     "shape_sexp",
     "alpha_sexp",
@@ -155,11 +158,12 @@ def _canonical_string(text: str) -> str:
     return f"STR:{prefix}:{body}"
 
 
-def token_stream(node: Node, source: bytes) -> list[str]:
+def token_stream(node: Node, source: bytes, *, own_name: str | None = None) -> list[str]:
     """Leaf tokens with comments dropped and strings canonicalised.
 
     Layout disappears because tree-sitter leaves carry no whitespace, which is
-    exactly what makes h1 immune to a reformat.
+    exactly what makes h1 immune to a reformat. With `own_name`, every identifier
+    equal to it becomes `OWN_NAME`.
     """
     tokens: list[str] = []
     stack = [node]
@@ -172,7 +176,9 @@ def token_stream(node: Node, source: bytes) -> list[str]:
             continue
         if current.child_count == 0:
             text = node_text(current, source)
-            if text:
+            if own_name is not None and current.type == "identifier" and text == own_name:
+                tokens.append(OWN_NAME)
+            elif text:
                 tokens.append(text)
             continue
         stack.extend(reversed(current.children))
@@ -392,3 +398,50 @@ def match_confidence(left: HashLadder, right: HashLadder) -> MatchConfidence:
     if left.h3 == right.h3:
         return "alpha"
     return "none"
+
+
+#: What a definition's own name becomes in its name-blind hashes.
+OWN_NAME = "<own-name>"
+
+
+@dataclass(frozen=True, slots=True)
+class IdentityHashes:
+    """Name-blind h1 and h3, for matching a function across a rename (slice C3a)."""
+
+    h1: str
+    h3: str
+
+
+def _own_name(node: Node, source: bytes) -> str | None:
+    """The definition's name: of `node`, or of the first definition a module node holds."""
+    candidates = list(node.named_children) if node.type == "module" else [node]
+    for candidate in candidates:
+        definition = candidate
+        if definition.type == "decorated_definition":
+            definition = definition.child_by_field_name("definition") or definition
+        if definition.type in {"function_definition", "class_definition"}:
+            name = definition.child_by_field_name("name")
+            if name is not None:
+                return node_text(name, source)
+    return None
+
+
+def identity_hashes(source: str) -> IdentityHashes:
+    """h1 and h3 with every identifier equal to the definition's own name replaced first.
+
+    ADR-0005's Errata of 2026-11-09: a rename alone -- a recursive call renamed with it --
+    keeps both, so §7's "an equal h1" and "an equal h3" can find it.
+    """
+    canonical = normalize_content(source)
+    node, data = _target_node(canonical)
+    own = _own_name(node, data)
+    rename = _rename_map(node, data)
+    if own is not None:
+        rename = {**rename, own: OWN_NAME}
+    return IdentityHashes(
+        h1=_digest("h1-blind", "\x00".join(token_stream(node, data, own_name=own))),
+        h3=_digest(
+            "h3-blind",
+            _sexp(node, data, rename=rename, drop_annotations=True, collapse_consts=True),
+        ),
+    )
