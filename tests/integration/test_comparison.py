@@ -9,7 +9,13 @@ import pytest
 from lineage_fixture import SCOPE
 
 from provenance.analysis import blame_census, lineage_census
-from provenance.eval.comparison import ComparisonRefused, compare, per_question_jsonl, render_json
+from provenance.eval.comparison import (
+    ComparisonRefused,
+    compare,
+    per_question_jsonl,
+    render_json,
+    run_comparison,
+)
 from provenance.eval.generator import pool_version
 from provenance.eval.preregistration import coverage, selection
 from provenance.ingest.blame import build as blame_build
@@ -222,3 +228,18 @@ def test_a_stale_or_incomplete_validity_refuses(lineage_graph, writer_conn, test
     _write_audit(setup["audit"], pool_version(writer_conn, test_repo_id), status="partial")
     with pytest.raises(ComparisonRefused, match="validity is incomplete"):
         _compare(setup, writer_conn)
+
+
+def test_the_command_writes_nothing_without_the_ingested_repository(
+    migrated_database, tmp_path, capsys
+):
+    out, per_question = tmp_path / "provenance.json", tmp_path / "provenance.jsonl"
+    code = run_comparison(
+        golden=tmp_path / "golden.jsonl",
+        corpus=tmp_path,
+        out=out,
+        per_question_out=per_question,
+    )
+    assert code == 1
+    assert not out.exists() and not per_question.exists()
+    assert "nothing written" in capsys.readouterr().err

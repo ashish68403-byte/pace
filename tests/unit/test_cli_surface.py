@@ -94,6 +94,12 @@ def test_pace_eval_lists_oracle():
     assert "oracle" in result.output
 
 
+def test_pace_eval_lists_provenance():
+    result = CliRunner().invoke(app, ["eval", "--help"])
+    assert result.exit_code == 0
+    assert "provenance" in result.output
+
+
 def test_pace_eval_lists_bake():
     result = CliRunner().invoke(app, ["eval", "--help"])
     assert result.exit_code == 0

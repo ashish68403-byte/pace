@@ -1298,6 +1298,27 @@ def oracle_cmd(
     )
 
 
+@app.command("provenance")
+def provenance_cmd(
+    golden: Annotated[Path | None, typer.Option(help="Golden set .jsonl.")] = None,
+    corpus: Annotated[Path | None, typer.Option(help="The corpus clone.")] = None,
+    out: Annotated[Path | None, typer.Option(help="The report.")] = None,
+    per_question_out: Annotated[Path | None, typer.Option(help="One line per question.")] = None,
+) -> None:
+    """Claims 1 and 2: lineage against blame on the retained dev questions (slice C4)."""
+    from provenance.config import settings  # noqa: PLC0415
+    from provenance.eval import comparison  # noqa: PLC0415 -- keeps --help light
+
+    raise typer.Exit(
+        comparison.run_comparison(
+            golden=golden or FULL_GOLDEN,
+            corpus=corpus or Path(settings.corpus_path),
+            out=out or comparison.DEFAULT_OUT,
+            per_question_out=per_question_out or comparison.DEFAULT_PER_QUESTION,
+        )
+    )
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}

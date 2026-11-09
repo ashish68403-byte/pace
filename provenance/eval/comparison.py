@@ -18,6 +18,7 @@ split of C - A, and the agreement check's qualification beside them.
 from __future__ import annotations
 
 import json
+import sys
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -37,7 +38,7 @@ from provenance.eval.metrics import (
     mde,
     paired_bootstrap,
 )
-from provenance.eval.oracle import repository_state
+from provenance.eval.oracle import REPOSITORY_ROOT, repository_state
 from provenance.eval.preregistration import COVERAGE_MIN_GAIN, coverage, selection
 from provenance.eval.schema import load_golden_set, passes_leakage_filter
 from provenance.graph.tables import (
@@ -77,6 +78,11 @@ _LOGS: Final = (
     f"SELECT qualified_name, commit_sha FROM {LINE_LOG_COMMITS} "
     "WHERE repo_id = %s AND file_id = %s AND snapshot_sha = %s"
 )
+DEFAULT_OUT: Final = Path("results") / "provenance.json"
+DEFAULT_PER_QUESTION: Final = Path("results") / "provenance_per_question.jsonl"
+DEFAULT_BLAME_ARMS: Final = Path("results") / "blame_arms.json"
+DEFAULT_LINEAGE: Final = Path("results") / "lineage.json"
+DEFAULT_AUDIT: Final = Path("results") / "gold_validity_audit.json"
 
 
 class ComparisonRefused(RuntimeError):
@@ -394,3 +400,56 @@ def compare(
         qualification=qualification(lineage_census),
     )
     return found, rows
+
+
+def render_summary(found: Mapping[str, Any], out: Path) -> str:
+    recall, claim_1, claim_2 = found["recall"], found["claim_1"], found["claim_2"]
+    arms = ", ".join(f"{arm} {recall[arm]['all']['point']}" for arm in ("A", "B", "C", "L"))
+    return "\n".join(
+        [
+            f"provenance: {found['inputs']['questions']} questions, "
+            f"{found['inputs']['functions']} functions; recall {arms}",
+            f"claim 1: C - A = {claim_1['difference']} {claim_1['interval']}: {claim_1['verdict']}",
+            f"claim 2: B - A = {claim_2['difference']} {claim_2['interval']}: {claim_2['reading']}",
+            f"wrote {out}",
+        ]
+    )
+
+
+def run_comparison(
+    *,
+    golden: Path,
+    corpus: Path,
+    out: Path,
+    per_question_out: Path,
+    blame_arms: Path = DEFAULT_BLAME_ARMS,
+    lineage_results: Path = DEFAULT_LINEAGE,
+    audit: Path = DEFAULT_AUDIT,
+    root: Path = REPOSITORY_ROOT,
+) -> int:
+    """`pace eval provenance`: both files written only when every check passes."""
+    from provenance.config import settings
+    from provenance.graph.db import connection
+    from provenance.graph.repos import resolve_repo_id
+
+    try:
+        with connection() as conn:
+            repo_id = resolve_repo_id(conn, settings.repo_owner, settings.repo_name)
+            found, rows = compare(
+                conn,
+                repo=corpus,
+                repo_id=repo_id,
+                golden=golden,
+                blame_arms=blame_arms,
+                lineage_results=lineage_results,
+                audit=audit,
+                root=root,
+            )
+    except (RuntimeError, KeyError, ValueError, OSError) as exc:
+        print(f"nothing written: {exc}", file=sys.stderr)
+        return 1
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render_json(found), encoding="utf-8")
+    per_question_out.write_text(per_question_jsonl(rows), encoding="utf-8")
+    print(render_summary(found, out))
+    return 0
