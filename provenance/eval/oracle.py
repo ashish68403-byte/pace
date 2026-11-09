@@ -17,6 +17,7 @@ committed, the oracle is CodeShovel's at its pinned commit, and every function r
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -30,9 +31,9 @@ from typing import TYPE_CHECKING, Any, Final
 
 from provenance.eval.metrics import paired_bootstrap, set_f1
 from provenance.eval.preregistration import IDENTITY_MIN_F1_GAIN, identity
-from provenance.ingest.blame import line_log, show
+from provenance.ingest.blame import git_version, line_log, log_algo, show
 from provenance.ingest.git_walk import CatFileBatch
-from provenance.lineage.build import Cache
+from provenance.lineage.build import DETECTOR, Cache
 from provenance.lineage.history import read_history, revisions_reader
 from provenance.lineage.scope import follow_chain
 from provenance.parse import parse_source
@@ -45,6 +46,15 @@ if TYPE_CHECKING:  # pragma: no cover - typing only
 RENAME_OR_MOVE: Final = frozenset({"Yrename", "Yfilerename", "Ymovefromfile"})
 ARMS: Final = ("lineage", "git_log_l")
 _KIND = re.compile(r"Y[a-z]+")
+CODESHOVEL_COMMIT: Final = "0d29f498cc619078aaac61aa6132a153664fe123"
+ORACLE_FILES: Final = 40
+ORACLE_DIR: Final = Path("src") / "test" / "resources" / "oracles" / "python"
+PREREGISTRATION: Final = "docs/PREREGISTRATION.md"
+DEFAULT_CODESHOVEL: Final = Path.home() / "corpus" / "codeshovel"
+DEFAULT_CLONES: Final = Path.home() / "corpus" / "oracle"
+DEFAULT_OUT: Final = Path("results") / "oracle.json"
+#: This repository: the code that runs, and the pre-registration it runs under.
+REPOSITORY_ROOT: Final = Path(__file__).resolve().parents[2]
 
 
 class OracleRefused(RuntimeError):
@@ -386,3 +396,85 @@ def render_summary(found: Mapping[str, Any], out: Path) -> str:
             f"wrote {out}",
         ]
     )
+
+
+def repository_state(root: Path) -> tuple[str, str]:
+    """This repository's commit and the pre-registration's, if no tracked file is modified."""
+    if _out(root, "status", "--porcelain", "--untracked-files=no").strip():
+        raise OracleRefused(
+            "tracked files are modified: commit them first, so the recorded commit is the code "
+            "that runs"
+        )
+    preregistration = _out(root, "log", "-1", "--format=%H", "--", PREREGISTRATION).strip()
+    if not preregistration:
+        raise OracleRefused(f"{PREREGISTRATION} is not committed")
+    return _out(root, "rev-parse", "HEAD").strip(), preregistration
+
+
+def oracle_files(codeshovel: Path, pinned: str, expected: int) -> tuple[list[Path], str]:
+    """The oracle files as CodeShovel's pinned commit holds them, and a SHA-256 over them."""
+    head = _out(codeshovel, "rev-parse", "HEAD").strip()
+    if head != pinned:
+        raise OracleRefused(f"CodeShovel is at {head[:10]}, not the pinned {pinned[:10]}")
+    if _out(codeshovel, "status", "--porcelain", "--", str(ORACLE_DIR)).strip():
+        raise OracleRefused("the oracle files differ from CodeShovel's commit")
+    files = sorted((codeshovel / ORACLE_DIR).glob("*.json"))
+    if len(files) != expected:
+        raise OracleRefused(f"{len(files)} oracle files, not {expected}")
+    digest = hashlib.sha256()
+    for file in files:
+        digest.update(file.name.encode("utf-8") + b"\0" + file.read_bytes() + b"\0")
+    return files, digest.hexdigest()
+
+
+def check_labels(function: OracleFunction, clones: Path) -> None:
+    """The start commit and every label are in the clone, and each label is an ancestor."""
+    repo = clones / f"{function.project}.git"
+    if not repo.is_dir():
+        raise OracleRefused(f"{function.oracle}: no clone at {repo}")
+    for commit in (function.start, *sorted(function.labels)):
+        if _git(repo, "cat-file", "-e", f"{commit}^{{commit}}").returncode != 0:
+            raise OracleRefused(f"{function.oracle}: {commit} is not in {repo.name}")
+    for label in sorted(function.labels):
+        if _git(repo, "merge-base", "--is-ancestor", label, function.start).returncode != 0:
+            raise OracleRefused(f"{function.oracle}: {label} is not an ancestor of its start")
+
+
+def run_oracle(
+    *,
+    codeshovel: Path,
+    clones: Path,
+    out: Path,
+    root: Path = REPOSITORY_ROOT,
+    pinned: str = CODESHOVEL_COMMIT,
+    expected_files: int = ORACLE_FILES,
+) -> int:
+    """`pace eval oracle`: claim 3, written to `out` only when every check passes."""
+    try:
+        commit, preregistration = repository_state(root)
+        files, digest = oracle_files(codeshovel, pinned, expected_files)
+        functions = read_oracle(files)
+        for function in functions:
+            check_labels(function, clones)
+        scored = evaluate(functions, clones, progress=True)
+        version = git_version()
+        found = report(
+            scored,
+            {
+                "repository_commit": commit,
+                "preregistration_commit": preregistration,
+                "codeshovel_commit": pinned,
+                "oracle_files": len(files),
+                "oracle_sha256": digest,
+                "git": version,
+                "git_log_l": log_algo(version),
+                "detector": DETECTOR,
+            },
+        )
+    except (RuntimeError, subprocess.CalledProcessError, KeyError, ValueError) as exc:
+        print(f"nothing written: {exc}", file=sys.stderr)
+        return 1
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(render_json(found), encoding="utf-8")
+    print(render_summary(found, out))
+    return 0

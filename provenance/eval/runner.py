@@ -1280,6 +1280,24 @@ def ablation_cmd(
     )
 
 
+@app.command("oracle")
+def oracle_cmd(
+    codeshovel: Annotated[Path | None, typer.Option(help="CodeShovel's clone.")] = None,
+    clones: Annotated[Path | None, typer.Option(help="The ten projects' bare clones.")] = None,
+    out: Annotated[Path | None, typer.Option(help="The report.")] = None,
+) -> None:
+    """Claim 3 on CodeShovel's Python oracle: lineage against git log -L, once (slice C3b)."""
+    from provenance.eval import oracle  # noqa: PLC0415 -- keeps --help light
+
+    raise typer.Exit(
+        oracle.run_oracle(
+            codeshovel=codeshovel or oracle.DEFAULT_CODESHOVEL,
+            clones=clones or oracle.DEFAULT_CLONES,
+            out=out or oracle.DEFAULT_OUT,
+        )
+    )
+
+
 def _load_json(path: Path) -> dict[str, Any]:
     if not path.exists():
         return {}
