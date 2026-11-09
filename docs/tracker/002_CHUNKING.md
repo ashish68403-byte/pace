@@ -8,7 +8,7 @@
 ---
 
 ## Summary
-tree-sitter AST chunking of Python, the token budget, and chunk identity. ROADMAP §5 checkpoint C: [ADR-0003](../ADR-0003-rationale-pool-benchmark.md) moved code chunks out of B, whose benchmark searches rationale text ([eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md)).
+tree-sitter AST chunking of Python, the token budget, and chunk identity. ROADMAP §5 checkpoint D: [ADR-0003](../ADR-0003-rationale-pool-benchmark.md) moved code chunks out of B, whose benchmark searches rationale text ([eval-harness/001](../tasks/eval-harness/001_benchmark_definition.md)), and checkpoint C's design moved them on to D (2026-11-08).
 
 ## Problem Statement
 Measured on the in-scope corpus (5,601 chunks): **338 chunks (6.0%) exceed bge-small's 512-token
@@ -51,3 +51,7 @@ to be believed.
   checkpoint C's work (ADR-0003).
 - **2026-10-27 — the dependency on 006's set-valued relevance is met.** Recall now counts one unit per
   evidence key (slice B1), so the chunker's grouping decision no longer moves its denominator.
+- **2026-11-09 — moved to checkpoint D.** Checkpoint C was designed on 2026-11-08 without HEAD code
+  chunks: its comparison needs only the stored blame, `git log -L` and lineage
+  ([tasks/symbols-blame/001](../tasks/symbols-blame/001_blame_arms.md), "Not in this slice"). The
+  chunker work here is D's.
