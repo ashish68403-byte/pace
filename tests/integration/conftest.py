@@ -272,6 +272,35 @@ def blame_graph(blame_repo: Any, test_repo_id: int, writer_conn: Any) -> Any:
 
 
 @pytest.fixture
+def lineage_repo(tmp_path: Path, hermetic_git: None) -> Any:
+    """Slice C3a's fixture repository (tests/integration/lineage_fixture.py)."""
+    from lineage_fixture import make_lineage_repo
+
+    return make_lineage_repo(tmp_path / "lineage-repo")
+
+
+@pytest.fixture
+def lineage_graph(lineage_repo: Any, test_repo_id: int, writer_conn: Any) -> Any:
+    """The lineage fixture repository, walked into the test repository row."""
+    from lineage_fixture import SCOPE
+
+    from provenance.ingest.git_walk import walk_history
+    from provenance.ingest.graph_writer import GraphWriter
+
+    writer = GraphWriter(writer_conn, repo_id=test_repo_id, scope=list(SCOPE), batch_size=3)
+    walk_history(
+        lineage_repo.root,
+        rev="HEAD",
+        scope=list(SCOPE),
+        repo_id=test_repo_id,
+        writer=writer,
+        checkpoint_every=3,
+        max_commits=None,
+    )
+    return lineage_repo
+
+
+@pytest.fixture
 def pooled(
     history_repo: HistoryRepo, test_repo_id: int, ingest: Callable[..., Any], migrated_database: Any
 ) -> HistoryRepo:

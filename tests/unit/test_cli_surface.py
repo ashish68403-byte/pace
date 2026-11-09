@@ -110,3 +110,9 @@ def test_pace_measure_lists_blame():
     result = CliRunner().invoke(app, ["measure", "--help"])
     assert result.exit_code == 0
     assert "blame" in result.output
+
+
+def test_pace_lineage_lists_build():
+    result = CliRunner().invoke(app, ["lineage", "--help"])
+    assert result.exit_code == 0
+    assert "build" in result.output

@@ -219,6 +219,23 @@ def blame_build(ctx: typer.Context) -> None:
 app.add_typer(blame_app, name="blame")
 
 
+lineage_app = typer.Typer(no_args_is_help=True, add_completion=False)
+
+
+@lineage_app.callback()
+def _lineage() -> None:
+    """Function identities across renames and moves, and their versions (slice C3a)."""
+
+
+@lineage_app.command(name="build", context_settings=PASSTHROUGH)
+def lineage_build(ctx: typer.Context) -> None:
+    """Walk every in-scope file's history and store each function's identity and versions."""
+    _call(_load("provenance.lineage.build", "main"), ctx.args)
+
+
+app.add_typer(lineage_app, name="lineage")
+
+
 golden_app = typer.Typer(no_args_is_help=True, add_completion=False)
 
 
