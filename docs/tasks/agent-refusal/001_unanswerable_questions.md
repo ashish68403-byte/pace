@@ -53,7 +53,8 @@ Only retained records, one split at a time. Each kind ranks its split's retained
 SHA-256 of `"pace-unanswerable-v1:<kind>:" + qid` and takes them in that order:
 - **S3:** the first 300 on dev and the first 214 on test. These are held back from slice D3's
   answerable sample.
-- **S4:** the records whose function is not yet used, until 300 and 214 distinct functions.
+- **S4:** the records whose function no earlier S4 question uses, dev before test, until 300
+  and 214 functions: each function is asked about after the pin once in the file.
 - **S5:** the records in order, one name each, until 300 and 214 names pass the check.
 
 ### The three kinds
@@ -69,9 +70,11 @@ SHA-256 of `"pace-unanswerable-v1:<kind>:" + qid` and takes them in that order:
     source function's short name and a partner's are split at underscores. The new name is the
     first half of the source's parts (rounded up) joined to the second half of the partner's
     (rounded down, at least one), a leading underscore kept: `_get_dag_runs` and `update_state`
-    give `_get_dag_state`. A method keeps its class: `Class.<new name>`.
-  - **The check.** A name is used only if lineage has never seen the qualified name, no name
-    lineage has seen ends with the new short name, and no rationale document contains the short
+    give `_get_dag_state`. A method keeps its class: `Class.<new name>`. A name of underscores
+    alone, such as `_`, has no parts, and a pair with one is not spliced.
+  - **The check.** A name is used only if no name lineage has seen ends in the new short name
+    (as its whole last part, so neither the name nor a namesake in another class exists), no
+    earlier S5 question uses it, dev before test, and no rationale document contains the short
     name, ignoring case. Otherwise the next partner is tried, then the next source record.
   - The supporting anchor is the file, with no qualified name.
 
@@ -89,7 +92,8 @@ SHA-256 of `"pace-unanswerable-v1:<kind>:" + qid` and takes them in that order:
 `results/unanswerable_census.json` holds:
 - **inputs:** the golden set's SHA-256, the pin, the pool version and the salt;
 - **per split and kind:** the count, the template mix, and how many source records were read;
-- **for S5:** splices tried, rejected as seen by lineage, and rejected as found in the pool.
+- **for S5:** pairs not spliced, splices tried, and splices rejected as seen by lineage, as
+  already used and as found in the pool.
 
 Two runs write the same bytes. It holds no question text.
 
