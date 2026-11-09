@@ -15,19 +15,29 @@ and test share no negative.
 
 from __future__ import annotations
 
+import argparse
 import hashlib
+import json
 import re
-from collections import Counter
+import sys
+from collections import Counter, defaultdict
 from collections.abc import Callable, Mapping, Sequence
-from typing import Final
+from pathlib import Path
+from typing import Any, Final
 
+from provenance.config import settings
+from provenance.eval.generator import pool_version
 from provenance.eval.schema import (
     GoldenRecord,
     GoldEvidence,
     QueryClass,
     SymbolAnchor,
     UnanswerableStrategy,
+    load_golden_set,
+    passes_leakage_filter,
+    write_golden_set,
 )
+from provenance.graph.tables import CHUNKS, RATIONALE_KINDS, SYMBOL_LINEAGE, SYMBOL_VERSIONS
 
 SALT: Final = "pace-unanswerable-v1:"
 GENERATION_STRATEGY: Final = "unanswerable_v0"
@@ -51,6 +61,22 @@ S5_TALLY: Final = (
 )
 _CHANGED: Final = re.compile(r"^Why did `[^`]+` change in (?P<month>[A-Z][a-z]+ \d{4})\?$")
 _ADDED: Final = re.compile(r"^Why was `[^`]+` added to `[^`]+`\?$")
+DEFAULT_GOLDEN: Final = Path("provenance") / "eval" / "golden" / "auto_full.jsonl"
+DEFAULT_OUT: Final = DEFAULT_GOLDEN.with_name("unanswerable.jsonl")
+DEFAULT_CENSUS: Final = Path("results") / "unanswerable_census.json"
+_NAMES: Final = (
+    f"SELECT DISTINCT qualified_name FROM {SYMBOL_VERSIONS} "
+    "WHERE repo_id = %s AND qualified_name IS NOT NULL"
+)
+_ALIVE: Final = (
+    f"SELECT current_path, current_qualified_name FROM {SYMBOL_LINEAGE} "
+    "WHERE repo_id = %s AND death_commit IS NULL AND current_qualified_name IS NOT NULL"
+)
+#: Any rationale document, retired or not, that contains the name, ignoring case.
+_IN_POOL: Final = (
+    f"SELECT 1 FROM {CHUNKS} WHERE repo_id = %s AND kind = ANY(%s::artifact_kind[]) "
+    "AND strpos(lower(content), lower(%s)) > 0 LIMIT 1"
+)
 
 
 class UnanswerableRefused(RuntimeError):
@@ -239,3 +265,119 @@ def choose_s5(
                 chosen.append(s5(record, name))
                 break
     return chosen, tally
+
+
+def build(
+    conn: Any, *, repo_id: int, golden: Path, counts: Mapping[str, int] = COUNTS
+) -> tuple[list[GoldenRecord], dict[str, Any]]:
+    """Every kind for every split, dev first, in qid order, with the census; or a refusal."""
+    retained = [
+        record
+        for record in load_golden_set(golden)
+        if passes_leakage_filter(record) and not record.expected_refusal
+    ]
+    if not retained:
+        raise UnanswerableRefused(f"{golden} holds no retained answerable question")
+    pins = {record.corpus_commit for record in retained}
+    if len(pins) != 1 or None in pins:
+        raise UnanswerableRefused(f"the retained questions name {len(pins)} pins, not one")
+    seen = {str(name) for (name,) in conn.execute(_NAMES, (repo_id,))}
+    if not seen:
+        raise UnanswerableRefused("lineage has seen no name: run `pace lineage build` first")
+    partners: dict[str, list[str]] = defaultdict(list)
+    for path, name in conn.execute(_ALIVE, (repo_id,)):
+        partners[str(path)].append(str(name))
+    kinds = list(RATIONALE_KINDS)
+
+    def in_pool(short: str) -> bool:
+        return conn.execute(_IN_POOL, (repo_id, kinds, short)).fetchone() is not None
+
+    negatives: list[GoldenRecord] = []
+    splits: dict[str, Any] = {}
+    functions: set[tuple[str, str]] = set()
+    names: set[str] = set()
+    for split, need in sorted(counts.items()):
+        mine = [record for record in retained if record.split == split]
+        made = {
+            "s3": choose_s3(mine, need),
+            "s4": choose_s4(mine, need, used=functions),
+            "s5": choose_s5(mine, need, partners=partners, seen=seen, used=names, in_pool=in_pool),
+        }
+        splits[split] = {"retained": len(mine)}
+        for kind, (found, tally) in made.items():
+            if len(found) < need:
+                raise UnanswerableRefused(f"{split} {kind}: only {len(found)} of {need} questions")
+            templates = Counter(template_of(record) for record in found)
+            splits[split][kind] = {
+                "count": len(found),
+                **tally,
+                "templates": dict(sorted(templates.items())),
+            }
+            negatives.extend(found)
+    census = {
+        "schema": 1,
+        "inputs": {
+            "golden_sha256": hashlib.sha256(golden.read_bytes()).hexdigest(),
+            "pinned": pins.pop(),
+            "pool_version": pool_version(conn, repo_id),
+            "lineage": {
+                "names_seen": len(seen),
+                "alive": sum(len(alive) for alive in partners.values()),
+            },
+            "generation_strategy": GENERATION_STRATEGY,
+            "salt": SALT,
+            "counts": dict(sorted(counts.items())),
+        },
+        "splits": splits,
+    }
+    return sorted(negatives, key=lambda record: record.qid), census
+
+
+def render_census(census: Mapping[str, Any]) -> str:
+    """Sorted keys and no timestamps: the same build always renders the same bytes."""
+    return json.dumps(census, indent=2, sort_keys=True) + "\n"
+
+
+def _header(negatives: Sequence[GoldenRecord], census: Mapping[str, Any]) -> str:
+    inputs = census["inputs"]
+    return "\n".join(
+        [
+            f"PACE unanswerable questions: {len(negatives):,} from `pace golden unanswerable` "
+            f"({GENERATION_STRATEGY}).",
+            "S3 held out, S4 after the pin, S5 nonexistent, each from a retained question of "
+            "auto_full.jsonl (ADR-0006 §2).",
+            f"Corpus {inputs['pinned']}, pool {inputs['pool_version']}.",
+            "Generated, not curated: regenerate rather than edit. "
+            "Census: results/unanswerable_census.json.",
+        ]
+    )
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """`pace golden unanswerable`: write the negatives and their census, or nothing."""
+    parser = argparse.ArgumentParser(
+        prog="pace golden unanswerable",
+        description="Checkpoint D's unanswerable questions (ADR-0006 §2).",
+    )
+    parser.add_argument("--golden", default=str(DEFAULT_GOLDEN), help=f"default: {DEFAULT_GOLDEN}")
+    parser.add_argument("--out", default=str(DEFAULT_OUT), help=f"default: {DEFAULT_OUT}")
+    parser.add_argument("--census", default=str(DEFAULT_CENSUS), help=f"default: {DEFAULT_CENSUS}")
+    args = parser.parse_args(list(argv) if argv is not None else None)
+
+    from provenance.graph.db import connection
+    from provenance.graph.repos import resolve_repo_id
+
+    try:
+        with connection() as conn:
+            repo_id = resolve_repo_id(conn, settings.repo_owner, settings.repo_name)
+            negatives, census = build(conn, repo_id=repo_id, golden=Path(args.golden))
+    except (RuntimeError, ValueError, OSError) as exc:
+        print(f"nothing written: {exc}", file=sys.stderr)
+        return 1
+    out, census_path = Path(args.out), Path(args.census)
+    write_golden_set(negatives, out, header=_header(negatives, census))
+    census_path.parent.mkdir(parents=True, exist_ok=True)
+    census_path.write_text(render_census(census), encoding="utf-8")
+    kinds = dict(sorted(Counter(record.qid[:2] for record in negatives).items()))
+    print(f"unanswerable: {len(negatives):,} questions {kinds}; wrote {out} and {census_path}")
+    return 0

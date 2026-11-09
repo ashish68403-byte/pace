@@ -256,6 +256,12 @@ def generate(ctx: typer.Context) -> None:
     _call(_load("provenance.eval.generator", "main"), ctx.args)
 
 
+@golden_app.command(name="unanswerable", context_settings=PASSTHROUGH)
+def golden_unanswerable(ctx: typer.Context) -> None:
+    """Checkpoint D's unanswerable questions: S3 held out, S4 after the pin, S5 nonexistent."""
+    _call(_load("provenance.eval.unanswerable", "main"), ctx.args)
+
+
 app.add_typer(golden_app, name="golden")
 
 
