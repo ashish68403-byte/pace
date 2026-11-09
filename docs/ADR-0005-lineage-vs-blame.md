@@ -192,6 +192,35 @@ the same bytes.
 - **`git blame -C -C -C`.** Rejected for cost, above.
 - **500 hand-labelled functions** as tracker 004's fallback. Not needed: the oracle exists.
 
+## Addenda
+
+- **2026-11-09 — blame and `git log -L` follow first parents, and how slice C2 runs and stores
+  them. Committed before any blame number.** Designing slice C2
+  ([tasks/symbols-blame/001](tasks/symbols-blame/001_blame_arms.md)) found that §6's command can
+  name commits checkpoint A never stored. The changes:
+  - **`--first-parent` on both commands.** The corpus has 40,995 commits; checkpoint A's graph
+    holds the 38,888 on the first-parent line, and every gold commit is one of them. Plain blame
+    can name any of the other 2,107: `blame_ranges` rejects them, and no question can reach them.
+    With `--first-parent`, a change made on a side branch is credited to the merge commit that
+    brought it in, as the gold is. Arm A runs `git blame --porcelain -w -M --first-parent -L
+    <s>,<e> --ignore-revs-file <list> <pinned> -- <path>`. Arm L runs `git log --first-parent -L
+    <s>,<e>:<path> --format=%H -s <pinned>`, and drops mechanical commits afterwards.
+  - **One blame call per file,** with one `-L` per function. Each line gets the owner a call per
+    function would give it: in the three files with the most functions, none of 4,573 lines
+    differ.
+  - **Both owners are stored.** Each file is blamed once without the list and once with it.
+    `orig_commit_sha` holds the plain owner. `effective_commit_sha` holds the filtered one, or
+    NULL when git can only name a mechanical commit: `--ignore-revs-file` cannot re-attribute a
+    line the ignored commit added. Arm A reads the filtered owner. The plain one gives a
+    labelled row that is not pre-registered (tracker 003 row 2), and re-measures trap 3.
+  - **A function's lines** run from its first decorator to its last line. A getter and a setter
+    under one name give two ranges.
+  - **What was measured before this addendum:** timings and owner counts on six sampled
+    functions, the one-call-per-file check, and the 2025 move on one function, where both tools
+    followed `243fe86d4b`. Nothing was scored against gold.
+
+  §1's questions, §3's measure, §4's statistics and §5's claims are unchanged.
+
 ## References
 
 - Grund, Chowdhury, Bradley, Hall, Holmes. *CodeShovel: Constructing Method-Level Source Code

@@ -88,4 +88,7 @@ reported beside.
 
 ## Amendments
 
-None.
+- **2026-11-09.** Arms A and L follow first parents (`--first-parent`), as the addendum of this
+  date to [ADR-0005](ADR-0005-lineage-vs-blame.md) records: checkpoint A's commit graph is the
+  first-parent line, and every gold commit is on it. Committed before any blame number. No claim,
+  threshold or reading changes.

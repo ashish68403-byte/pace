@@ -1,6 +1,7 @@
 # Tracker: Symbols and blame
 
-**Task(s):** `docs/tasks/symbols-blame/` — created as tasks are written
+**Task(s):** [docs/tasks/symbols-blame/](../tasks/symbols-blame/) — 001 (checkpoint C, slice C2, blame and `git log -L`) written 2026-11-09
+**Decision records:** [ADR-0005](../ADR-0005-lineage-vs-blame.md) §6 and its 2026-11-09 addendum; [PREREGISTRATION.md](../PREREGISTRATION.md)'s amendment of the same date
 **Priority:** P1
 **Status:** ⬜ Not started
 **Date:** 2026-10-06
