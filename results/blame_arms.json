@@ -1,0 +1,51 @@
+{
+  "commits_per_function": {
+    "arm_a": {
+      "max": 62,
+      "median": 3.0,
+      "p90": 10.0,
+      "zero": 0
+    },
+    "arm_l": {
+      "max": 153,
+      "median": 4.0,
+      "p90": 17.0,
+      "zero": 0
+    },
+    "blame_unfiltered": {
+      "max": 65,
+      "median": 3.0,
+      "p90": 11.0,
+      "zero": 0
+    }
+  },
+  "inputs": {
+    "blame": "git 2.43.0 blame --porcelain -w -M --first-parent; filtered with --ignore-revs-file: 2223 mechanical commits, sha256 d6ecef8da2574401f262336f2f0361eea3e8090e9ba008bd06213cec97080216",
+    "files": 215,
+    "functions": 1777,
+    "golden_sha256": "a6ffb590fad4d590ed0e0349e9517c19d158d7d7b26c9477387447bcd455d990",
+    "line_log": "git 2.43.0 log --first-parent --format=%H -s -L <span>:<path>",
+    "pinned": "1e2ad803f74eadb5fb28d4504ca06b008c48b63e",
+    "questions": 4206
+  },
+  "lines": {
+    "filtered_owner_null": 149,
+    "filtered_owner_null_share": 0.0037,
+    "plain_owner_mechanical": 1899,
+    "plain_owner_mechanical_share": 0.0474,
+    "total": 40071
+  },
+  "move": {
+    "blame_owner_at_the_old_path": 1035,
+    "commit": "243fe86d4b3e59bb12977b3e36ca3f2ed27ca0f8",
+    "existed_before_the_move": 1061,
+    "functions_in_those_files": 1334,
+    "line_log_reaches_before_the_move": 1049,
+    "question_files_the_move_renamed": 149
+  },
+  "schema": 1,
+  "stored": {
+    "blame_ranges": 18857,
+    "line_log_commits": 15001
+  }
+}
