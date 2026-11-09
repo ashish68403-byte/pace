@@ -52,12 +52,13 @@ from provenance.graph.tables import (
     EMBED_CODE_TABLES,
     EMBED_PROSE_TABLES,
     INDEX_ALIASES,
+    LINE_LOG_COMMITS,
     REPOSITORIES,
 )
 
 pytestmark = pytest.mark.db
 
-HEAD_REVISION = "0009_github_bots"
+HEAD_REVISION = "0010_line_log"
 
 CORE_TABLES = (
     REPOSITORIES,
@@ -69,7 +70,13 @@ CORE_TABLES = (
     "file_revisions",
     CHUNKS,
 )
-LINEAGE_TABLES = ("symbol_lineage", "symbol_versions", "lineage_edges", "blame_ranges")
+LINEAGE_TABLES = (
+    "symbol_lineage",
+    "symbol_versions",
+    "lineage_edges",
+    "blame_ranges",
+    LINE_LOG_COMMITS,
+)
 GITHUB_TABLES = (
     "pull_requests",
     "issues",
@@ -383,6 +390,19 @@ def test_blame_ranges_has_a_gist_exclusion_constraint(migrated_database: Any) ->
     contype, amname = row
     assert contype == "x"  # exclusion
     assert amname == "gist"
+
+
+def test_line_log_commits_keys_a_function_and_one_listed_commit(migrated_database: Any) -> None:
+    """Migration 0010: arm L's rows (slice C2), one per function and listed commit."""
+    assert _column_types(migrated_database, LINE_LOG_COMMITS) == {
+        "repo_id": "bigint",
+        "file_id": "bigint",
+        "snapshot_sha": "text",
+        "qualified_name": "text",
+        "commit_sha": "text",
+        "algo": "text",
+        "computed_at": "timestamp with time zone",
+    }
 
 
 def test_required_extensions_are_installed(migrated_database: Any) -> None:

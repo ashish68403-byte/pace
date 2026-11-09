@@ -23,6 +23,10 @@ FILES: Final = "files"
 COMMIT_PARENTS: Final = "commit_parents"
 FILE_REVISIONS: Final = "file_revisions"
 
+# --- line ownership and `git log -L` at a snapshot (0002, 0010; slice C2) -------
+BLAME_RANGES: Final = "blame_ranges"
+LINE_LOG_COMMITS: Final = "line_log_commits"
+
 # --- ingest bookkeeping ---------------------------------------------------
 INGEST_RUNS: Final = "ingest_runs"
 DEAD_LETTERS: Final = "dead_letters"
