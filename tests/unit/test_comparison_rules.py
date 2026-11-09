@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from provenance.eval.comparison import (
     Arms,
     ComparisonRefused,
+    Question,
     cross_check,
     question_values,
+    read_questions,
     report,
     summaries,
 )
@@ -117,3 +121,33 @@ def test_the_decisions_are_the_pre_registered_words_and_the_split_adds_up():
     assert differences["C-A"]["over_validity"]["at_point"] == pytest.approx(0.5 / 0.8, abs=1e-4)
     assert found["recall"]["C"]["all"]["point"] == 0.75
     assert found["qualification"] == QUALIFICATION
+
+
+def test_a_question_needs_one_function_and_one_full_gold_commit(tmp_path):
+    base = {
+        "qid": "q1",
+        "query_class": "provenance",
+        "split": "dev",
+        "question": "Why did f change here?",
+        "required_evidence": {"commit_shas": ["a" * 40]},
+        "supporting_evidence": {"symbol_anchors": [{"path": "p.py", "qualified_name": "f"}]},
+        "generation_strategy": "handwritten_c4_rules",
+        "corpus_commit": "b" * 40,
+    }
+    path = tmp_path / "golden.jsonl"
+    path.write_text(json.dumps(base) + "\n", encoding="utf-8")
+    assert read_questions(path) == [Question("q1", "provenance", ("p.py", "f"), "a" * 40)]
+    short = {**base, "required_evidence": {"commit_shas": ["a" * 12]}}
+    two = {
+        **base,
+        "supporting_evidence": {
+            "symbol_anchors": [
+                {"path": "p.py", "qualified_name": "f"},
+                {"path": "p.py", "qualified_name": "g"},
+            ]
+        },
+    }
+    for record in (short, two):
+        path.write_text(json.dumps(record) + "\n", encoding="utf-8")
+        with pytest.raises(ComparisonRefused, match="not one function and one full gold commit"):
+            read_questions(path)
