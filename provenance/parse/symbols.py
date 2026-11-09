@@ -13,6 +13,10 @@ so a symbol here is exactly what the chunker indexes:
 *Changed* means the comment- and layout-blind token stream differs
 (`normalize.hash_ladder(...).h1`): a new comment or a re-indent is not a change, a new
 return value or docstring is.
+
+Slice C2 (docs/tasks/symbols-blame/001_blame_arms.md) blames each symbol's lines, so
+`symbol_spans` gives the same symbols as line spans: each part's whole definition,
+decorators included.
 """
 
 from __future__ import annotations
@@ -22,20 +26,27 @@ from typing import Final
 
 from provenance.graph.ids import normalize_content
 from provenance.ingest.scope import strip_licence_header
-from provenance.parse.chunker import ChunkParseError, chunk_source
+from provenance.parse.chunker import Chunk, ChunkParseError, chunk_source
 from provenance.parse.normalize import hash_ladder
 
-__all__ = ["SYMBOL_KINDS", "SymbolDiff", "diff_symbols", "symbols", "tokens_differ"]
+__all__ = [
+    "SYMBOL_KINDS",
+    "SymbolDiff",
+    "diff_symbols",
+    "symbol_spans",
+    "symbols",
+    "tokens_differ",
+]
 
 #: The chunk kinds that are a symbol's own text. "class" (a synthesized card) and
 #: "module" are not.
 SYMBOL_KINDS: Final = frozenset({"function", "method", "fragment"})
 
 
-def symbols(text: str, path: str) -> dict[str, str] | None:
-    """`{qualified_name: text}` for every function and method in one file's text.
+def _symbol_chunks(text: str, path: str) -> list[tuple[str, Chunk]] | None:
+    """`(qualified_name, chunk)` for every function and method chunk, in chunk order.
 
-    `{}` when the file holds no code (empty, or a licence header alone). `None` when the
+    `[]` when the file holds no code (empty, or a licence header alone). `None` when the
     chunker refuses the text (Python 2, or mostly parse errors), so a caller can tell
     "no symbols" from "unknown". The chunker raises the same error for all three.
     """
@@ -43,13 +54,44 @@ def symbols(text: str, path: str) -> dict[str, str] | None:
         chunks = chunk_source(text, path)
     except ChunkParseError:
         body, _ = strip_licence_header(text)
-        return {} if not body.strip() else None
-    parts: dict[str, list[str]] = {}
+        return [] if not body.strip() else None
+    found: list[tuple[str, Chunk]] = []
     for chunk in chunks:
         name = chunk.qualified_name
         if chunk.kind in SYMBOL_KINDS and name and "<anonymous>" not in name:
-            parts.setdefault(name, []).append(chunk.content)
+            found.append((name, chunk))
+    return found
+
+
+def symbols(text: str, path: str) -> dict[str, str] | None:
+    """`{qualified_name: text}` for every function and method in one file's text.
+
+    `{}` when the file holds no code, `None` when the chunker refuses it.
+    """
+    found = _symbol_chunks(text, path)
+    if found is None:
+        return None
+    parts: dict[str, list[str]] = {}
+    for name, chunk in found:
+        parts.setdefault(name, []).append(chunk.content)
     return {name: "\n".join(texts) for name, texts in parts.items()}
+
+
+def symbol_spans(text: str, path: str) -> dict[str, tuple[tuple[int, int], ...]] | None:
+    """`{qualified_name: ((first_line, last_line), ...)}` for the functions `symbols()` names.
+
+    Lines are 1-based and inclusive, and address the real file. Each span is one part's whole
+    definition, first decorator to last line: a split function's fragments share one span,
+    and a getter and a setter under one name give two. `{}` and `None` as `symbols()`.
+    """
+    found = _symbol_chunks(text, path)
+    if found is None:
+        return None
+    spans: dict[str, set[tuple[int, int]]] = {}
+    for name, chunk in found:
+        lines = chunk.definition_lines or (chunk.start_line, chunk.end_line)
+        spans.setdefault(name, set()).add(lines)
+    return {name: tuple(sorted(found_lines)) for name, found_lines in spans.items()}
 
 
 def tokens_differ(before: str, after: str) -> bool:

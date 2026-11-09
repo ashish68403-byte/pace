@@ -97,6 +97,10 @@ class Chunk:
     chunking_strategy_version: str = settings.chunking_strategy_version
     parse_degraded: bool = False
     synthesized: bool = False  # class cards are assembled, not a verbatim byte range
+    #: A function's, method's or fragment's whole definition, first decorator to last line.
+    #: A fragment's own lines leave out the signature and docstring, which blame must see
+    #: (slice C2). None for module and class chunks.
+    definition_lines: tuple[int, int] | None = None
 
     @property
     def is_fragment(self) -> bool:
@@ -464,6 +468,7 @@ def _chunk_function(
                 end_line=end,
                 imports=scope_imports,
                 degraded=degraded,
+                definition_lines=(start, end),
             )
         ]
 
@@ -503,6 +508,7 @@ def _split_oversize(
     definition = _definition(node)
     body = definition.child_by_field_name("body")
     prelude = _prelude(node, data)
+    whole = (node.start_point[0] + 1 + header_lines, node.end_point[0] + 1 + header_lines)
     if body is None or not body.named_children:
         return [
             _make_chunk(
@@ -512,10 +518,11 @@ def _split_oversize(
                 enclosing_scope=enclosing_scope,
                 kind="function",
                 content=node_text(node, data),
-                start_line=node.start_point[0] + 1 + header_lines,
-                end_line=node.end_point[0] + 1 + header_lines,
+                start_line=whole[0],
+                end_line=whole[1],
                 imports=imports,
                 degraded=degraded,
+                definition_lines=whole,
             )
         ]
 
@@ -547,6 +554,7 @@ def _split_oversize(
                 part_index=index,
                 part_total=total,
                 synthesized=True,
+                definition_lines=whole,
             )
         )
     return chunks
@@ -642,6 +650,7 @@ def _make_chunk(
     part_index: int = 0,
     part_total: int = 1,
     synthesized: bool = False,
+    definition_lines: tuple[int, int] | None = None,
 ) -> Chunk:
     # Fragments of the same function share a qualified_name, so the part index has
     # to reach the id or every fragment after the first would collapse onto it.
@@ -666,6 +675,7 @@ def _make_chunk(
         part_total=part_total,
         parse_degraded=degraded,
         synthesized=synthesized,
+        definition_lines=definition_lines,
     )
 
 
