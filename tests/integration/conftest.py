@@ -243,6 +243,14 @@ def ingest(history_repo: HistoryRepo, test_repo_id: int, writer_conn: Any) -> Ca
 
 
 @pytest.fixture
+def blame_repo(tmp_path: Path, hermetic_git: None) -> Any:
+    """Slice C2's fixture repository (tests/integration/blame_fixture.py)."""
+    from blame_fixture import make_blame_repo
+
+    return make_blame_repo(tmp_path / "blame-repo")
+
+
+@pytest.fixture
 def pooled(
     history_repo: HistoryRepo, test_repo_id: int, ingest: Callable[..., Any], migrated_database: Any
 ) -> HistoryRepo:

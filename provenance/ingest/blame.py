@@ -17,9 +17,12 @@ Three layers:
 
 from __future__ import annotations
 
+import os
 import re
+import subprocess
 from collections.abc import Collection, Sequence
 from dataclasses import dataclass, replace
+from pathlib import Path
 from typing import Final
 
 #: Plain blame. `--first-parent`: a side branch's change belongs to its merge, as the gold
@@ -28,6 +31,10 @@ from typing import Final
 BLAME_FLAGS: Final = ("--porcelain", "-w", "-M", "--first-parent")
 #: `git log -L`, one SHA per listed commit and no patch.
 LOG_FLAGS: Final = ("--first-parent", "--format=%H", "-s")
+#: `--ignore-revs-file ""` empties the list read so far, including one the repository's own
+#: config sets (git-blame(1)), so plain blame stays plain. `-c blame.ignoreRevsFile=` does
+#: not clear it (checked 2026-11-09).
+_NO_CONFIGURED_IGNORES: Final = ("--ignore-revs-file", "")
 
 _HEADER = re.compile(r"([0-9a-f]{40}) (\d+) (\d+)(?: \d+)?")
 _SHA = re.compile(r"[0-9a-f]{40}")
@@ -144,3 +151,74 @@ def blame_algo(git_version: str, mechanical: int, digest: str) -> str:
 def log_algo(git_version: str) -> str:
     """What made a `line_log_commits` row."""
     return f"git {git_version} log {' '.join(LOG_FLAGS)} -L <span>:<path>"
+
+
+class GitFailed(RuntimeError):
+    """git exited non-zero; the message carries its own words."""
+
+
+def _git(repo: Path, *args: str) -> str:
+    """Run git in `repo` with global and system config switched off."""
+    env = {**os.environ, "GIT_CONFIG_GLOBAL": os.devnull, "GIT_CONFIG_NOSYSTEM": "1"}
+    done = subprocess.run(
+        ["git", "-C", str(repo), *args],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env=env,
+        check=False,
+    )
+    if done.returncode != 0:
+        raise GitFailed(f"git {args[0]} failed ({done.returncode}): {done.stderr.strip()[:500]}")
+    return done.stdout
+
+
+def git_version() -> str:
+    """`2.43.0`, from `git version 2.43.0`."""
+    done = subprocess.run(["git", "--version"], capture_output=True, text=True, check=True)
+    return done.stdout.strip().removeprefix("git version ").strip()
+
+
+def show(repo: Path, rev: str, path: str) -> str:
+    """A file's text at a revision."""
+    return _git(repo, "show", f"{rev}:{path}")
+
+
+def blame_lines(
+    repo: Path,
+    rev: str,
+    path: str,
+    spans: Sequence[tuple[int, int]],
+    *,
+    ignore_revs: Path | None = None,
+) -> list[LineOwner]:
+    """One owner per line of `spans` in `path` at `rev`: one call, one `-L` per span.
+
+    One call per file gives every line the owner one call per span would: on the three
+    Airflow files with the most functions, none of 4,573 lines differed (2026-11-09).
+    """
+    args = ["blame", *BLAME_FLAGS, *_NO_CONFIGURED_IGNORES]
+    if ignore_revs is not None:
+        args += ["--ignore-revs-file", str(ignore_revs.resolve())]
+    for first, last in spans:
+        args += ["-L", f"{first},{last}"]
+    return parse_porcelain(_git(repo, *args, rev, "--", path))
+
+
+def line_log(repo: Path, rev: str, path: str, spans: Sequence[tuple[int, int]]) -> list[str]:
+    """Every commit `git log --first-parent -L` lists for `spans` of `path` at `rev`."""
+    args = ["log", *LOG_FLAGS]
+    for first, last in spans:
+        args += ["-L", f"{first},{last}:{path}"]
+    return parse_line_log(_git(repo, *args, rev))
+
+
+def renames(repo: Path, commit: str) -> dict[str, str]:
+    """`{new_path: old_path}` for the files `commit` renamed, against its first parent."""
+    found: dict[str, str] = {}
+    for raw in _git(repo, "diff", "-M", "--name-status", f"{commit}^", commit).split("\n"):
+        fields = raw.split("\t")
+        if len(fields) == 3 and fields[0].startswith("R"):
+            found[fields[2]] = fields[1]
+    return found
