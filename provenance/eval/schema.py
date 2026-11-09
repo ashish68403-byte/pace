@@ -231,6 +231,9 @@ class GoldenRecord(BaseModel):
     generation_strategy: str = Field(min_length=1)
     unanswerable_strategy: UnanswerableStrategy | None = None
     leakage: LeakageProbe | None = None
+    #: An S3 record's hidden evidence: the commit and pull request that retrieval must not
+    #: return for this question (ADR-0006 §2).
+    held_out: GoldEvidence | None = None
 
     corpus_commit: str | None = None
     notes: str | None = None
@@ -243,6 +246,9 @@ class GoldenRecord(BaseModel):
                 raise ValueError(f"{self.qid}: unanswerable records need a construction strategy")
             if not self.required_evidence.is_empty():
                 raise ValueError(f"{self.qid}: unanswerable records must have no required evidence")
+            held_back = self.unanswerable_strategy is UnanswerableStrategy.S3_HELD_OUT
+            if held_back and (self.held_out is None or self.held_out.is_empty()):
+                raise ValueError(f"{self.qid}: an s3_held_out record needs its held-out evidence")
         else:
             if self.unanswerable_strategy is not None:
                 raise ValueError(
@@ -252,9 +258,15 @@ class GoldenRecord(BaseModel):
                 raise ValueError(
                     f"{self.qid}: answerable records need at least one required anchor"
                 )
-        if self.leakage is None and not self.is_handwritten:
+        if (
+            self.held_out is not None
+            and self.unanswerable_strategy is not UnanswerableStrategy.S3_HELD_OUT
+        ):
+            raise ValueError(f"{self.qid}: only an s3_held_out record holds held-out evidence")
+        if self.leakage is None and not self.is_handwritten and not unanswerable:
             # Generated records without a probe cannot be retention-filtered, and an
-            # unfiltered generated set is the 0.986-grep-recall failure mode.
+            # unfiltered generated set is the 0.986-grep-recall failure mode. An unanswerable
+            # record has nothing for grep to leak, so it carries none (passes_leakage_filter).
             raise ValueError(
                 f"{self.qid}: generated records must carry a leakage probe measured at "
                 "generation time (generation_strategy="

@@ -119,3 +119,33 @@ def test_grep_recall_alone_no_longer_decides() -> None:
 
 def test_hand_written_records_are_always_retained() -> None:
     assert passes_leakage_filter(GoldenRecord.model_validate(payload()))
+
+
+def unanswerable(**overrides: object) -> dict[str, object]:
+    base = payload(
+        query_class="unanswerable",
+        required_evidence={},
+        unanswerable_strategy="s4_temporal",
+        generation_strategy="unanswerable_v0",
+    )
+    base.update(overrides)
+    return base
+
+
+def test_a_generated_unanswerable_record_needs_no_leakage_probe() -> None:
+    record = GoldenRecord.model_validate(unanswerable())
+    assert record.leakage is None and passes_leakage_filter(record)
+    with pytest.raises(ValidationError, match="leakage probe"):
+        GoldenRecord.model_validate(payload(generation_strategy="ast_diff_v0"))
+
+
+def test_held_out_evidence_belongs_to_an_s3_record_alone() -> None:
+    s3 = unanswerable(unanswerable_strategy="s3_held_out", held_out={"commit_shas": [SHA]})
+    record = GoldenRecord.model_validate(s3)
+    assert record.held_out is not None and record.held_out.commit_shas == [SHA]
+    with pytest.raises(ValidationError, match="needs its held-out evidence"):
+        GoldenRecord.model_validate({**s3, "held_out": None})
+    with pytest.raises(ValidationError, match="only an s3_held_out record"):
+        GoldenRecord.model_validate({**s3, "unanswerable_strategy": "s4_temporal"})
+    with pytest.raises(ValidationError, match="only an s3_held_out record"):
+        GoldenRecord.model_validate(payload(held_out={"commit_shas": [SHA]}))
