@@ -192,6 +192,17 @@ the same bytes.
 - **`git blame -C -C -C`.** Rejected for cost, above.
 - **500 hand-labelled functions** as tracker 004's fallback. Not needed: the oracle exists.
 
+## Errata
+
+- **2026-11-09 — what `--ignore-revs-file` does with a line the ignored commit added (slice
+  C2).** The first addendum below says git "cannot re-attribute a line the ignored commit
+  added". Slice C2's fixture showed otherwise: git attributes such a line to the commit of a line
+  near it when it can (git-blame(1): "blamed on the previous commit that changed that line or
+  nearby lines"), and leaves on the ignored commit only a line it cannot place
+  ([tasks/symbols-blame/001](tasks/symbols-blame/001_blame_arms.md)). The rule that addendum fixes
+  is unchanged: a line git leaves on a mechanical commit is stored with no filtered owner. On the
+  benchmark's functions that is 149 of 40,071 lines.
+
 ## Addenda
 
 - **2026-11-09 — blame and `git log -L` follow first parents, and how slice C2 runs and stores
@@ -220,6 +231,13 @@ the same bytes.
     followed `243fe86d4b`. Nothing was scored against gold.
 
   §1's questions, §3's measure, §4's statistics and §5's claims are unchanged.
+- **2026-11-09 — the 2025 move, measured (slice C2).** Known limits asked whether `git log -L`
+  stops at `243fe86d4b`. Of the 1,061 question functions that existed before it, `git log -L`
+  lists commits from before the move for 1,049, and blame has an owner at the old path for 1,035
+  ([results/blame_arms.json](../results/blame_arms.json)): neither tool stops there. A function
+  can have no owner from before the move simply because all of its lines were rewritten since.
+  PREREGISTRATION.md's agreement check reports the functions `git log -L` follows across the move
+  apart from the rest, as it says.
 
 ## References
 

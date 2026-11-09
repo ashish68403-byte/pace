@@ -49,3 +49,8 @@ implemented dependent variable, and a ground truth that may not exist.
   control's exact chance. `preregistration.py` holds the thresholds and the decision rules, which
   return the pre-registered words, and a test keeps them equal to the committed file. The tests
   run in `pace_test` and refuse `pace`. Next: slice C2, the blame arm.
+- **2026-11-09 — slice C2 closed.** Arms A and L are stored for the 1,777 functions
+  ([symbols-blame/001](../tasks/symbols-blame/001_blame_arms.md),
+  [results/blame_arms.json](../../results/blame_arms.json)): per function, a median of 3
+  commits by blame and 4 by `git log -L`, and neither tool stops at the 2025 move. Next: slice
+  C3, the identity layer and its oracle check.

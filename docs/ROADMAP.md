@@ -42,7 +42,9 @@ retained (87.3%), 4,206 dev; leakage verdict **PASS**
 Checkpoint B closes when the gold-validity audit's re-label (from 14 Nov) is in; then checkpoint C.
 Checkpoint C's experiment was fixed before any of its numbers ([ADR-0005](ADR-0005-lineage-vs-blame.md)
 and [PREREGISTRATION.md](PREREGISTRATION.md), `27205d76a8`), and its first slice is done: the
-measure and the decision rules in code, and a test suite that runs in its own database.
+measure and the decision rules in code, and a test suite that runs in its own database. Slice C2
+is done too: blame, twice per file, and `git log -L` are stored for the 1,777 functions, and both
+follow the 2025 move ([results/blame_arms.json](../results/blame_arms.json)).
 
 ---
 
@@ -166,6 +168,15 @@ thousand files. It means a subject-regex filter is cheap and high-yield.
 
 *Mitigation:* blame with `--ignore-revs-file`, **including in the baseline**, or the comparison is a
 straw man. Add `commit.is_mechanical`; report the recall improvement as an ablation row.
+
+*Prior work, and what slice C2 measured.* The mitigation is published prior work: AG-SZZ ignores
+cosmetic changes when it traces a line back to the change that introduced it (Kim, Zimmermann,
+Pan, Whitehead, ASE 2006), and da Costa et al. (TSE 2017) is the model for evaluating such a
+correction. Slice C2 blamed the 40,071 lines of the benchmark's 1,777 functions with `-w`, which
+already hides whitespace-only reformatting such as Black's: 4.7% have a mechanical plain owner,
+and 0.4% keep one with the mechanical list ignored
+([results/blame_arms.json](../results/blame_arms.json)). Those are different lines, blamed with
+a different command, from the 29% above, so the two numbers are not compared.
 
 ### Trap 4 — the symbol layer's prescribed tool is unmaintained
 

@@ -3,7 +3,7 @@
 **Task(s):** [docs/tasks/symbols-blame/](../tasks/symbols-blame/) — 001 (checkpoint C, slice C2, blame and `git log -L`) written 2026-11-09
 **Decision records:** [ADR-0005](../ADR-0005-lineage-vs-blame.md) §6 and its 2026-11-09 addendum; [PREREGISTRATION.md](../PREREGISTRATION.md)'s amendment of the same date
 **Priority:** P1
-**Status:** ⬜ Not started
+**Status:** 🚧 In progress — task 001 (slice C2) done; the unfiltered row is C4's
 **Date:** 2026-10-06
 
 ---
@@ -22,9 +22,9 @@ work, and currently reads as invented here.
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 1 | Blame with `--ignore-revs-file`, **including in the baseline**, or the comparison is a straw man | ⬜ | `provenance/ingest/`, blame layer |
-| 2 | Add `commit.is_mechanical`; report the recall improvement as an ablation row | ⬜ | schema + `005_RETRIEVAL` ablation |
-| 3 | Cite AG-SZZ (Kim et al. 2006) beside Trap 3's mitigation and Da Costa et al. (TSE 2017) as the model for evaluating a blame correction (finding 13) | ⬜ | `docs/ROADMAP.md` §4 trap 3, §7 |
+| 1 | Blame with `--ignore-revs-file`, **including in the baseline**, or the comparison is a straw man | ✅ | `provenance/ingest/blame.py` ([symbols-blame/001](../tasks/symbols-blame/001_blame_arms.md)): arm A is filtered blame, and the stored plain owner gives the unfiltered row |
+| 2 | Add `commit.is_mechanical`; report the recall improvement as an ablation row | 🚧 | schema + `005_RETRIEVAL` ablation: both owners stored in C2 ([results/blame_arms.json](../../results/blame_arms.json)); the row is C4's |
+| 3 | Cite AG-SZZ (Kim et al. 2006) beside Trap 3's mitigation and Da Costa et al. (TSE 2017) as the model for evaluating a blame correction (finding 13) | ✅ | `docs/ROADMAP.md` §4 trap 3: both cited beside the mitigation, with slice C2's measurement |
 | 4 | Reframe Cross-cutting as idiom detection over normalised AST hashes rather than `find_references` | ⬜ | ROADMAP §4 trap 4 |
 
 ## Dependencies

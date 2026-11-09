@@ -126,6 +126,20 @@ codebook. Commit `provenance/eval/audit/` and `results/gold_validity_audit.json`
 stage. A regenerated golden set or a grown pool makes the audit stale: the commands refuse,
 and a new sample is needed (ADR-0004 §9).
 
+### The blame arms
+
+Arms A and L of ADR-0005's comparison, stored for the retained dev questions' functions
+([tasks/symbols-blame/001](tasks/symbols-blame/001_blame_arms.md)).
+
+```bash
+uv run alembic upgrade head      # once: migration 0010 adds line_log_commits
+uv run pace blame build          # about 30 minutes; a rerun skips what is stored
+uv run pace measure blame        # results/blame_arms.json, the same bytes on every run
+```
+
+When the mechanical list (`commits.is_mechanical`) or git's version changes, the build refuses
+the old rows; `uv run pace blame build --rebuild` deletes them first.
+
 ### Before pushing
 
 ```bash

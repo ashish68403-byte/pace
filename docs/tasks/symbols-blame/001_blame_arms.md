@@ -2,7 +2,7 @@
 
 **Tracker:** [003_SYMBOLS_BLAME](../../tracker/003_SYMBOLS_BLAME.md) rows 1 and 2 · **checkpoint C**,
 slice C2 of four
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-11-09)
 **Decision records:** [ADR-0005](../../ADR-0005-lineage-vs-blame.md) §2 and §6, and its addendum of
 2026-11-09; [`PREREGISTRATION.md`](../../PREREGISTRATION.md)'s amendment of the same date — both
 in this spec's commit
@@ -53,8 +53,10 @@ and the tests' own database); checkpoint A's `commits.is_mechanical`
 
   ADR-0005 left this question to C2.
 - **A line an ignored commit added.** `git blame --ignore-revs-file` re-attributes a line the
-  ignored commit changed. A line that commit added stays on it; `blame.markUnblamableLines`
-  marks it with `*`, and porcelain output gives no sign of it.
+  ignored commit changed. A line that commit added stays on it only when git cannot place it;
+  `blame.markUnblamableLines` marks such a line with `*`, and porcelain output gives no sign of
+  it. (Corrected 2026-11-09: a line added on its own goes to a nearby line's commit, as the
+  fixture showed; ADR-0005's Errata.)
 - **Tables.** `blame_ranges` (migration 0002) is empty. `edge_symbol_commit` needs C3's lineage
   ids, and its `source` check admits no `git log -L`.
 
