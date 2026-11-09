@@ -140,6 +140,19 @@ uv run pace measure blame        # results/blame_arms.json, the same bytes on ev
 When the mechanical list (`commits.is_mechanical`) or git's version changes, the build refuses
 the old rows; `uv run pace blame build --rebuild` deletes them first.
 
+### The lineage
+
+Arm C's identities and versions, for every in-scope function
+([tasks/function-identity/002](tasks/function-identity/002_lineage_engine.md)).
+
+```bash
+uv run alembic upgrade head      # once: migration 0011 widens symbol_versions' stages
+uv run pace lineage build        # about 6 minutes; always from scratch, in one transaction
+uv run pace measure lineage      # results/lineage.json, the same bytes on every run
+```
+
+`pace measure lineage` needs `pace blame build` first: its agreement check reads arm L.
+
 ### Before pushing
 
 ```bash

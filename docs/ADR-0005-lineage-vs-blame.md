@@ -257,6 +257,35 @@ the same bytes.
   can have no owner from before the move simply because all of its lines were rewritten since.
   PREREGISTRATION.md's agreement check reports the functions `git log -L` follows across the move
   apart from the rest, as it says.
+- **2026-11-09 — the agreement check, measured, and a limit it shows (slice C3a). Recorded
+  before the oracle is run.** On PREREGISTRATION.md's 100 Airflow functions, lineage's commit
+  sets agree with `git log -L`'s at a mean F1 of 0.771 (95% bootstrap interval 0.721 to 0.817),
+  short of `AGREEMENT_MIN_F1` (0.90). The check is missed, and as the pre-registration says, that
+  qualifies claims 1 to 3 ([results/lineage.json](../results/lineage.json)). Its breakdown of the
+  differences (`agreement.breakdown_not_preregistered`) was added after the miss and changes no
+  earlier number. 414 commits are in both sets. The readings below, made case by case, are not
+  pre-registered either.
+  - **274 commits only `git log -L` lists.** 57 come after the function's birth, at commits where
+    lineage records no change to it. In most of these, nothing in the function changed:
+    `git log -L` saw a change on lines outside it. The rest edit only its comments or layout. The
+    other 217 come before lineage's birth for their function.
+  - **198 commits only lineage lists.** 66 change only the function's path, nearly all by a file
+    rename, which `git log -L` does not list; most are at the 2025 move (`243fe86d4b`), which is
+    not a mechanical commit. 123 change the function's tokens or name where `git log -L`'s line
+    range missed the changed lines. In over a third, the function later moved to another file,
+    which `git log -L` does not follow, and a few come before the 2025 move, where it stops. In
+    the rest, its range had drifted off those lines. 9 are births.
+  - **The 25 functions with commits before their birth.** In 14, another function died in the
+    same file at the birth commit. About half of those 14 are a rename made together with a body
+    edit: the dead function's code reappears, edited, under the new name. Neither name-blind hash
+    links that, so lineage splits one function into two identities. That is a limit of §7's
+    matching. The other functions among the 25 were extracted from another function, which
+    lineage starts as a new identity (extract edges come later), or are new or rewritten code.
+    For those, `git log -L` carries on into the history of the lines they came from or replaced.
+
+  The engine is frozen as built (`lineage-mvp-1`). Slice C3b runs it on CodeShovel's oracle with
+  this limit stated in advance. Similarity matching, which could link a rename made with an edit,
+  is future work.
 
 ## References
 

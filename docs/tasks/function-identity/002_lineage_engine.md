@@ -3,7 +3,7 @@
 **Tracker:** [004_FUNCTION_IDENTITY](../../tracker/004_FUNCTION_IDENTITY.md) rows 3 and 4 ·
 **checkpoint C**, slice C3a (C3 is split: C3a builds and checks the engine on Airflow, C3b runs it
 once on CodeShovel's oracle)
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-11-09)
 **Decision records:** [ADR-0005](../../ADR-0005-lineage-vs-blame.md) §7–§8 and its Errata of
 2026-11-09 (change detection, name-blind hashes); [`PREREGISTRATION.md`](../../PREREGISTRATION.md)'s
 amendment of the same date — both in this spec's commit

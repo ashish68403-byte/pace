@@ -44,7 +44,10 @@ Checkpoint C's experiment was fixed before any of its numbers ([ADR-0005](ADR-00
 and [PREREGISTRATION.md](PREREGISTRATION.md), `27205d76a8`), and its first slice is done: the
 measure and the decision rules in code, and a test suite that runs in its own database. Slice C2
 is done too: blame, twice per file, and `git log -L` are stored for the 1,777 functions, and both
-follow the 2025 move ([results/blame_arms.json](../results/blame_arms.json)).
+follow the 2025 move ([results/blame_arms.json](../results/blame_arms.json)). Slice C3a is done:
+lineage gives Airflow's functions 5,023 identities across renames and moves, and its agreement
+with `git log -L` misses the pre-registered 0.90 at 0.771 ([results/lineage.json](../results/lineage.json)).
+Next, C3b runs the frozen engine on CodeShovel's oracle.
 
 ---
 
@@ -311,7 +314,10 @@ Two hash tiers (`h1` token stream with comments and layout dropped — this abso
 for free; `h3` alpha-renamed AST). A forward pass, same-file only, bucketing on each tier — that
 alone covers 63% of the oracle's entries. Then **one** cross-file rule: an exact structural match in
 any file touched by the same commit, which covers renames and moves and with them most of the **16
-of the oracle's 40 methods that hold an identity-breaking event**.
+of the oracle's 40 methods that hold an identity-breaking event**. On Airflow (slice C3a) the rule
+linked 397 moves between files. A rename made together with a body edit is beyond both tiers:
+it splits one function into two identities, as the agreement check's breakdown shows
+([ADR-0005](ADR-0005-lineage-vs-blame.md), Addenda).
 
 Quoted with its n and interval, that is the most quotable number available: *a path-anchored
 baseline truncates 16 of CodeShovel's 40 Python function histories* — 40%, Wilson 95% interval
