@@ -1,0 +1,159 @@
+{
+  "agreement": {
+    "breakdown_not_preregistered": {
+      "commits_both_list": 414,
+      "functions_with_commits_before_their_birth": {
+        "another_function_died_in_the_file_there": 14,
+        "nothing_died_there": 11
+      },
+      "only_git_log_l": {
+        "before_the_birth": 217,
+        "no_version_there": 57
+      },
+      "only_lineage": {
+        "a_path_only_version": 66,
+        "a_token_or_name_change": 123,
+        "the_birth": 9
+      }
+    },
+    "groups": {
+      "moved_reaches": {
+        "hi": 0.8145,
+        "lo": 0.7071,
+        "n": 38,
+        "point": 0.7652
+      },
+      "moved_stops": {
+        "hi": 0.95,
+        "lo": 0.6347,
+        "n": 12,
+        "point": 0.8097
+      },
+      "other": {
+        "hi": 0.8402,
+        "lo": 0.6864,
+        "n": 50,
+        "point": 0.7663
+      }
+    },
+    "mean_f1": {
+      "hi": 0.8173,
+      "lo": 0.7207,
+      "n": 100,
+      "point": 0.7711
+    },
+    "sample": {
+      "moved_reaches": 38,
+      "moved_stops": 12,
+      "other": 50
+    },
+    "threshold": 0.9,
+    "verdict": "misses"
+  },
+  "ambiguous_cases": 20,
+  "arm_c_per_function": {
+    "max": 99,
+    "median": 5.0,
+    "p90": 17.0,
+    "zero": 0
+  },
+  "identities": {
+    "alive_at_pinned": 2808,
+    "deaths": 2215,
+    "total": 5023
+  },
+  "identity_breaks": {
+    "move_commit": "243fe86d4b3e59bb12977b3e36ca3f2ed27ca0f8",
+    "with_the_move": {
+      "any": {
+        "count": 1729,
+        "share": 0.6157,
+        "wilson": [
+          0.5976,
+          0.6336
+        ]
+      },
+      "cross_file_move": {
+        "count": 212,
+        "share": 0.0755,
+        "wilson": [
+          0.0663,
+          0.0859
+        ]
+      },
+      "file_rename": {
+        "count": 1657,
+        "share": 0.5901,
+        "wilson": [
+          0.5718,
+          0.6082
+        ]
+      },
+      "function_rename": {
+        "count": 234,
+        "share": 0.0833,
+        "wilson": [
+          0.0737,
+          0.0941
+        ]
+      },
+      "n": 2808
+    },
+    "without_it": {
+      "any": {
+        "count": 599,
+        "share": 0.2133,
+        "wilson": [
+          0.1986,
+          0.2289
+        ]
+      },
+      "cross_file_move": {
+        "count": 212,
+        "share": 0.0755,
+        "wilson": [
+          0.0663,
+          0.0859
+        ]
+      },
+      "file_rename": {
+        "count": 399,
+        "share": 0.1421,
+        "wilson": [
+          0.1297,
+          0.1555
+        ]
+      },
+      "function_rename": {
+        "count": 234,
+        "share": 0.0833,
+        "wilson": [
+          0.0737,
+          0.0941
+        ]
+      },
+      "n": 2808
+    }
+  },
+  "inputs": {
+    "detector": "lineage-mvp-1",
+    "functions": 1777,
+    "golden_sha256": "a6ffb590fad4d590ed0e0349e9517c19d158d7d7b26c9477387447bcd455d990",
+    "pinned": "1e2ad803f74eadb5fb28d4504ca06b008c48b63e"
+  },
+  "refused_revisions": 1,
+  "schema": 1,
+  "versions": {
+    "by_stage": {
+      "birth": 5023,
+      "h1": 298,
+      "h3": 52,
+      "move": 397,
+      "name": 22557
+    },
+    "cross_file_moves": 397,
+    "file_renames": 3206,
+    "renames": 395,
+    "total": 28327
+  }
+}
