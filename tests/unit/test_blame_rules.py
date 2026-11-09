@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import pytest
 
+from provenance.eval.runner import FULL_GOLDEN
 from provenance.ingest.blame import (
     LineOwner,
     OwnerRange,
     blame_algo,
+    golden_target,
     log_algo,
     owner_ranges,
     parse_line_log,
@@ -108,3 +110,10 @@ def test_the_algorithm_strings_name_what_made_a_row():
     made = blame_algo("2.43.0", 2223, "f" * 64)
     assert "--first-parent" in made and "2223 mechanical commits" in made and "f" * 64 in made
     assert log_algo("2.43.0") == "git 2.43.0 log --first-parent --format=%H -s -L <span>:<path>"
+
+
+def test_the_golden_target_is_the_retained_dev_records_functions():
+    target = golden_target(FULL_GOLDEN)
+    assert target.pinned == "1e2ad803f74eadb5fb28d4504ca06b008c48b63e"
+    assert (target.questions, len(target.functions)) == (4206, 1777)
+    assert len({path for path, _ in target.functions}) == 215

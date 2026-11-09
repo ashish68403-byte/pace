@@ -196,6 +196,23 @@ def embed(ctx: typer.Context) -> None:
 app.add_typer(pool_app, name="pool")
 
 
+blame_app = typer.Typer(no_args_is_help=True, add_completion=False)
+
+
+@blame_app.callback()
+def _blame() -> None:
+    """Who owns each line of the questions' functions, and what `git log -L` lists (slice C2)."""
+
+
+@blame_app.command(name="build", context_settings=PASSTHROUGH)
+def blame_build(ctx: typer.Context) -> None:
+    """Blame each question's function twice, with and without mechanical commits, and log it."""
+    _call(_load("provenance.ingest.blame", "main"), ctx.args)
+
+
+app.add_typer(blame_app, name="blame")
+
+
 golden_app = typer.Typer(no_args_is_help=True, add_completion=False)
 
 

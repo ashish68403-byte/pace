@@ -251,6 +251,27 @@ def blame_repo(tmp_path: Path, hermetic_git: None) -> Any:
 
 
 @pytest.fixture
+def blame_graph(blame_repo: Any, test_repo_id: int, writer_conn: Any) -> Any:
+    """The blame fixture repository, walked into the test repository row."""
+    from blame_fixture import PATH
+
+    from provenance.ingest.git_walk import walk_history
+    from provenance.ingest.graph_writer import GraphWriter
+
+    writer = GraphWriter(writer_conn, repo_id=test_repo_id, scope=[PATH], batch_size=3)
+    walk_history(
+        blame_repo.root,
+        rev="HEAD",
+        scope=[PATH],
+        repo_id=test_repo_id,
+        writer=writer,
+        checkpoint_every=3,
+        max_commits=None,
+    )
+    return blame_repo
+
+
+@pytest.fixture
 def pooled(
     history_repo: HistoryRepo, test_repo_id: int, ingest: Callable[..., Any], migrated_database: Any
 ) -> HistoryRepo:

@@ -98,3 +98,9 @@ def test_pace_pool_lists_embed():
     result = CliRunner().invoke(app, ["pool", "--help"])
     assert result.exit_code == 0
     assert "embed" in result.output
+
+
+def test_pace_blame_lists_build():
+    result = CliRunner().invoke(app, ["blame", "--help"])
+    assert result.exit_code == 0
+    assert "build" in result.output
