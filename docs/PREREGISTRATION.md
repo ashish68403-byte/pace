@@ -92,3 +92,8 @@ reported beside.
   date to [ADR-0005](ADR-0005-lineage-vs-blame.md) records: checkpoint A's commit graph is the
   first-parent line, and every gold commit is on it. Committed before any blame number. No claim,
   threshold or reading changes.
+- **2026-11-09.** Lineage writes a version when a function's token stream, qualified name or path
+  changes, comments and layout not counting, and matches renames with name-blind hashes, as
+  [ADR-0005](ADR-0005-lineage-vs-blame.md)'s Errata of this date record: that is what CodeShovel's
+  labels count as a change. Committed before any lineage number. No claim, threshold or reading
+  changes.

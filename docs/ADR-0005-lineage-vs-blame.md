@@ -202,6 +202,25 @@ the same bytes.
   ([tasks/symbols-blame/001](tasks/symbols-blame/001_blame_arms.md)). The rule that addendum fixes
   is unchanged: a line git leaves on a mechanical commit is stored with no filtered owner. On the
   benchmark's functions that is 149 of 40,071 lines.
+- **2026-11-09 — what lineage counts as a change, and how it compares names (slice C3a).
+  Committed before any lineage number.** §7 says a version is written when a function's text
+  changes, "comments included and whitespace not, because CodeShovel's oracle counts comment and
+  reformatting edits as body changes". That reason is wrong. CodeShovel's Python body is the
+  ANTLR text of the function's suite, and its pinned grammar (antlr/grammars-v4 `8803cbe8`,
+  `python/PythonLexer.g4`) sends comments and whitespace to the hidden channel, so its body change
+  is a change in the token stream. Docstrings are string tokens and do count. CodeShovel also
+  labels a commit that only renames the function's file. So, replacing §7's sentence:
+  - **A version is written** at birth, when the function's token stream changes (the ordinary h1:
+    code and docstrings count, comments and layout do not), when its qualified name changes, and
+    when its path changes by a file rename or a move.
+  - **Identity hashes are name-blind.** h1 and h3 include the function's own name (h3 renames
+    locals, not the function itself), so a pure rename would change both. §7's "an equal h1" and
+    "an equal h3" are therefore computed with the definition's own name replaced by a placeholder.
+  - **Stages.** `symbol_versions.match_stage` records how each version kept its identity: `birth`,
+    `name`, `h1`, `h3` or `move` (migration 0011).
+
+  §7's matching order, its one cross-file rule and its ambiguity rule are unchanged, and so are
+  §1–§6, §8 and §9 ([tasks/function-identity/002](tasks/function-identity/002_lineage_engine.md)).
 
 ## Addenda
 

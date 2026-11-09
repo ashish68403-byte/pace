@@ -1,6 +1,6 @@
 # Tracker: Function identity and the lineage DAG
 
-**Task(s):** [docs/tasks/function-identity/](../tasks/function-identity/) — 001 (checkpoint C, slice C1, the pre-registration) written 2026-11-08
+**Task(s):** [docs/tasks/function-identity/](../tasks/function-identity/) — 001 (checkpoint C, slice C1, the pre-registration) written 2026-11-08; 002 (slice C3a, the lineage engine on Airflow) written 2026-11-09
 **Decision records:** [ADR-0005](../ADR-0005-lineage-vs-blame.md) — the lineage-against-blame experiment; [PREREGISTRATION.md](../PREREGISTRATION.md)
 **Priority:** P0
 **Status:** 🚧 In progress — slice C1 done; C2, the blame arm, next
