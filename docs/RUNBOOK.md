@@ -181,6 +181,19 @@ It writes nothing while a tracked file is modified, unless every question's func
 stored arms, the arms' sizes equal the censuses' and the gold's validity is current. It was run
 once, on `dfcba182e9`; a rerun writes the same bytes.
 
+### The unanswerable questions
+
+Slice D1's negatives ([tasks/agent-refusal/001](tasks/agent-refusal/001_unanswerable_questions.md)),
+built from the retained questions, lineage's names and the rationale pool, into
+`provenance/eval/golden/unanswerable.jsonl` and `results/unanswerable_census.json`.
+
+```bash
+uv run pace golden unanswerable      # about two minutes; a rerun writes the same bytes
+```
+
+It writes nothing before a lineage build, or when any kind falls short of 300 dev and 214 test.
+The committed files came from `bf24b1a3e0`.
+
 ### Before pushing
 
 ```bash

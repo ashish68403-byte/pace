@@ -13,7 +13,7 @@ so that wherever time runs out the submission is still complete, measured and de
 
 | | |
 |---|---|
-| Last updated | 2026-11-08 |
+| Last updated | 2026-11-09 |
 | Current checkpoint | **B** — the GitHub backfill and the leakage-checked benchmark |
 | Last completed | Phase 0 (`7951158`), scope freeze (`81f121b`), **checkpoint A** (history graph + truncation measurement, [tasks/ingest/001-003](tasks/ingest/)) |
 | Deadline | final submission mid-to-late December 2026 |
@@ -53,7 +53,10 @@ Slice C4 scored the comparison once: claim 1 holds, C − A 0.3134 [0.2993, 0.32
 reads "blame is more precise per commit, and lineage's gain is coverage alone"
 ([results/provenance.json](../results/provenance.json)). Checkpoint C's measurements are in, and
 its gate is met: every commit of `PREREGISTRATION.md` precedes both comparison runs in `git log`,
-and the volume-matched arm is reported beside the unbudgeted one.
+and the volume-matched arm is reported beside the unbudgeted one. Checkpoint D was designed
+refusal first ([ADR-0006](ADR-0006-refusal-first-checkpoint-d.md)). Slice D1 built its unanswerable
+questions, 300 dev and 214 test of each of three kinds, in their own file
+([results/unanswerable_census.json](../results/unanswerable_census.json)).
 
 ---
 

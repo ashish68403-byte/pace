@@ -2,7 +2,7 @@
 
 **Tracker:** [007_AGENT_REFUSAL](../../tracker/007_AGENT_REFUSAL.md) tasks 3 and 4 · **checkpoint
 D**, slice D1
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-11-09)
 **Decision records:** [ADR-0006](../../ADR-0006-refusal-first-checkpoint-d.md) §2, in this spec's
 commit; [ADR-0003](../../ADR-0003-rationale-pool-benchmark.md) (the answerable benchmark, its
 templates and splits)
