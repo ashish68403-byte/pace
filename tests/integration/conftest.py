@@ -301,6 +301,33 @@ def lineage_graph(lineage_repo: Any, test_repo_id: int, writer_conn: Any) -> Any
 
 
 @pytest.fixture
+def oracle_repo(tmp_path: Path, hermetic_git: None) -> Any:
+    """Slice C3b's fixture (tests/integration/oracle_fixture.py)."""
+    from oracle_fixture import make_oracle_fixture
+
+    return make_oracle_fixture(tmp_path / "oracle")
+
+
+@pytest.fixture
+def oracle_graph(oracle_repo: Any, test_repo_id: int, writer_conn: Any) -> Any:
+    """The oracle fixture's repository, walked into the test repository row, every file kept."""
+    from provenance.ingest.git_walk import walk_history
+    from provenance.ingest.graph_writer import GraphWriter
+
+    writer = GraphWriter(writer_conn, repo_id=test_repo_id, scope=None, batch_size=3)
+    walk_history(
+        oracle_repo.repo,
+        rev="HEAD",
+        scope=None,
+        repo_id=test_repo_id,
+        writer=writer,
+        checkpoint_every=3,
+        max_commits=None,
+    )
+    return oracle_repo
+
+
+@pytest.fixture
 def pooled(
     history_repo: HistoryRepo, test_repo_id: int, ingest: Callable[..., Any], migrated_database: Any
 ) -> HistoryRepo:
