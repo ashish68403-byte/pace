@@ -1,0 +1,2448 @@
+{
+  "claim_3": {
+    "difference": 0.0631,
+    "interval": [
+      -0.0242,
+      0.1487
+    ],
+    "n": 40,
+    "prob_not_better": 0.0775,
+    "threshold": 0.05,
+    "verdict": "The lineage layer did not track Python functions measurably better than git log -L on CodeShovel's oracle."
+  },
+  "functions": [
+    {
+      "files_walked": 1,
+      "git_log_l": {
+        "commits": [
+          "33a21aa2da853e2c6a38c7c7f9bd665240edc82f",
+          "3cc2a541e1abfdf5c04800838e5aade7283fcd0d",
+          "42ecc26b7eb59ed83c1b6a07f8ba64a2e83f8f0c",
+          "479cfafecba2595332113ce18b421bc4955b1ad4",
+          "8927554e445a0915a67da3c32e656645aee7a96c",
+          "8f804bf687e6ccdf62ffed2afe6e765fc758c460",
+          "96ea4e735e5d5dac54ce4bd3011920f09e4905a3",
+          "a3a38794e5e1d962c2941ea9667326c09b52aa64",
+          "ac58f27a2e758bf4cd3c5eb3d11a343b27b95dbc",
+          "b857f155d3e93ff6f3015b88e5c40e64a81ae6f5",
+          "d665ebf5569a84ab52b51b5c91661250f69c5a0c",
+          "fb1e25d933851743f4aed744279ab5361af9ad4b",
+          "fef56d548fece46c56dc698d1325a6df01770833"
+        ],
+        "f1": 0.8182,
+        "precision": 0.6923,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 19,
+      "lineage": {
+        "commits": [
+          "3cc2a541e1abfdf5c04800838e5aade7283fcd0d",
+          "479cfafecba2595332113ce18b421bc4955b1ad4",
+          "8927554e445a0915a67da3c32e656645aee7a96c",
+          "8f804bf687e6ccdf62ffed2afe6e765fc758c460",
+          "96ea4e735e5d5dac54ce4bd3011920f09e4905a3",
+          "a3a38794e5e1d962c2941ea9667326c09b52aa64",
+          "ac58f27a2e758bf4cd3c5eb3d11a343b27b95dbc",
+          "fb1e25d933851743f4aed744279ab5361af9ad4b",
+          "fef56d548fece46c56dc698d1325a6df01770833"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "_play",
+      "oracle": "Z_asciinema-player-_play",
+      "oracle_commits": [
+        "3cc2a541e1abfdf5c04800838e5aade7283fcd0d",
+        "479cfafecba2595332113ce18b421bc4955b1ad4",
+        "8927554e445a0915a67da3c32e656645aee7a96c",
+        "8f804bf687e6ccdf62ffed2afe6e765fc758c460",
+        "96ea4e735e5d5dac54ce4bd3011920f09e4905a3",
+        "a3a38794e5e1d962c2941ea9667326c09b52aa64",
+        "ac58f27a2e758bf4cd3c5eb3d11a343b27b95dbc",
+        "fb1e25d933851743f4aed744279ab5361af9ad4b",
+        "fef56d548fece46c56dc698d1325a6df01770833"
+      ],
+      "path": "asciinema/player.py",
+      "project": "asciinema",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 1,
+      "span": [
+        19,
+        75
+      ],
+      "start": "631831deadfc2d6ee55fff9d8c035caf5ef38d56",
+      "symbol": "Player._play"
+    },
+    {
+      "files_walked": 2,
+      "git_log_l": {
+        "commits": [
+          "3cc2a541e1abfdf5c04800838e5aade7283fcd0d",
+          "b857f155d3e93ff6f3015b88e5c40e64a81ae6f5"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "top-level",
+      "line": 25,
+      "lineage": {
+        "commits": [
+          "3cc2a541e1abfdf5c04800838e5aade7283fcd0d"
+        ],
+        "f1": 0.6667,
+        "precision": 1.0,
+        "recall": 0.5
+      },
+      "name": "read_blocking",
+      "oracle": "Z_asciinema-term-read_blocking",
+      "oracle_commits": [
+        "3cc2a541e1abfdf5c04800838e5aade7283fcd0d",
+        "b857f155d3e93ff6f3015b88e5c40e64a81ae6f5"
+      ],
+      "path": "asciinema/term.py",
+      "project": "asciinema",
+      "projected_labels": 1,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        25,
+        29
+      ],
+      "start": "350d5e9d8b7cee1be5db4091815942c9d035e7dc",
+      "symbol": "read_blocking"
+    },
+    {
+      "files_walked": 28,
+      "git_log_l": {
+        "commits": [
+          "a415ce70bef6d91036b00dd2c8544aed7aeeaaed",
+          "eea0bf7bd58cda4618ecc10133f0ad09effe1a2e"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 175,
+      "lineage": {
+        "commits": [
+          "a415ce70bef6d91036b00dd2c8544aed7aeeaaed",
+          "eea0bf7bd58cda4618ecc10133f0ad09effe1a2e"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "read_body",
+      "oracle": "Z_django-asgi-read_body",
+      "oracle_commits": [
+        "a415ce70bef6d91036b00dd2c8544aed7aeeaaed",
+        "eea0bf7bd58cda4618ecc10133f0ad09effe1a2e"
+      ],
+      "path": "django/core/handlers/asgi.py",
+      "project": "django",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        175,
+        191
+      ],
+      "start": "d0861fcb2dbb2e733a189115b546651a5042a327",
+      "symbol": "ASGIHandler.read_body"
+    },
+    {
+      "files_walked": 1,
+      "git_log_l": {
+        "commits": [
+          "0d912258921a442c48d5787228db2db5af7e8fa5",
+          "126e0ec0c3096ae5c631b00b29ff9e9f01ca15c2",
+          "12e9a84429b2719b00f4eb17d5b80d2c8f19812c",
+          "1884bf8e8e9fb3f9f44a9ec216aca96f63974268",
+          "190c987e631efeebfab5892aef9a980963cfab7e",
+          "300f26defffcfa7b474823b3272c378f6a8af043",
+          "301de774c21d055e9e5a7073e5bffdb52bc71079",
+          "356662cf74c99fac90afb0f5e6aac8d2d573e62a",
+          "3d1ceab1aa894d522af614b1a2f6f77e4b4571a6",
+          "3eb679a86956d9eedf24492f0002de002f7180f5",
+          "3f9ec12d9c9eff9a3b1a205d87c7e66587cf9967",
+          "46b0713315020d63fa8ce7c4ea14d99daf256e47",
+          "477f4d80616392bbd3352cad50faedb9c1494b33",
+          "4a103086d5c67fa4fcc53c106c9fdf644c742dd8",
+          "4a14f2e23350aaf33de7f830b644a47a06100a1b",
+          "4db61fb406afb8447fb8dfe4808ccb426b824064",
+          "54b8277ffb4cad90fb65ca4edf69d8279b8df898",
+          "584bd14dcfdee9585fec7794d53ce120ea73d0bc",
+          "5c645ec81a872116533ee6d3928b750d3737b68a",
+          "5e83b79d260598fcdcc2014f99e6669c5b2a44f7",
+          "682e435c5f334bc0211b12f05398fe79e4e72713",
+          "6d36d97cb8d0c982d7481e7d439c9848ded46a77",
+          "748e55b1daa1260964d9ec29f50e01b4b4c0f5d8",
+          "75516392b8bc93ae80a9faeb58d8d9cb5298be9d",
+          "7b2f2e74adb36a4334e83130f6abc2f79d395235",
+          "7c7bc6391a3e83566f9ace59955e63503bc76cee",
+          "8346680e1ca4a8ddc8190baf3f5f944f6418d5cf",
+          "88a2f53b858fedf46ceb84a9fe09558b31038eb7",
+          "88f1dd31b7054b905768e1e7121fc3c14e9c5343",
+          "8a4a8023d61cb31093db7b511e58ea3502e47cb6",
+          "8fdc56d2a6f7537cdd52272501af9e94cab96ed4",
+          "92803205cbcaaee16ac0eb724c45019a9d896aac",
+          "931b9f310854e30a814cb3073c67007e709f6e5f",
+          "953badbea5a04159adbfa970f5805c0232b6a401",
+          "962f133f72abe2a1174d48baa52aa8549762a022",
+          "9931c9e1321e3290b065bc0f5ec8353b1bcb71f3",
+          "a92e7f37c4ae84b6b8d8016cc6783211e9047219",
+          "b4a67359a34c77e2e40f1ab8e30b96278a063007",
+          "b8fa80bd0020eee186e5288e3fd2552695093025",
+          "bb45c394a6d65d3aa1bd1adfd9417a2e4ded532b",
+          "bcd63cbfb0590a2e2bed3e4beab3f467279ad3db",
+          "bdca5ea345c548a82a80d198906818c9ccbef896",
+          "c50d333c23a3c53d05623ce15df79e624c57f37c",
+          "c5ef65bcf324f4c90b53be90f4aec069a68e8c59",
+          "ce249d4366a800ebc033cefb8beb33b9b0dba051",
+          "cf75fcc8321b822cb4758d167f1fade56a60ad4f",
+          "d0fcef9db0f53ef84535694f4fbcb135f0648e24",
+          "d93021eb10b1ff8c49a4f4746789c22589886260",
+          "e130031fd2e1fa6946e56c73efab0c3ac67ebaea",
+          "ee48f4af99a8b5666339f927c459253f9f98e91f",
+          "f2d8027c9aea93750fc4213d9e733c8575e89502"
+        ],
+        "f1": 0.7765,
+        "precision": 0.6471,
+        "recall": 0.9706
+      },
+      "kind": "method",
+      "line": 192,
+      "lineage": {
+        "commits": [
+          "0a7d8b18ff844edad75ac3b21fb89e479db4705a",
+          "1884bf8e8e9fb3f9f44a9ec216aca96f63974268",
+          "301de774c21d055e9e5a7073e5bffdb52bc71079",
+          "356662cf74c99fac90afb0f5e6aac8d2d573e62a",
+          "3eb679a86956d9eedf24492f0002de002f7180f5",
+          "3f9ec12d9c9eff9a3b1a205d87c7e66587cf9967",
+          "46786b4193e04d398532bbfc3dcf63c03c1793cb",
+          "477f4d80616392bbd3352cad50faedb9c1494b33",
+          "54b8277ffb4cad90fb65ca4edf69d8279b8df898",
+          "584bd14dcfdee9585fec7794d53ce120ea73d0bc",
+          "5c645ec81a872116533ee6d3928b750d3737b68a",
+          "5e83b79d260598fcdcc2014f99e6669c5b2a44f7",
+          "748e55b1daa1260964d9ec29f50e01b4b4c0f5d8",
+          "7b2f2e74adb36a4334e83130f6abc2f79d395235",
+          "7c7bc6391a3e83566f9ace59955e63503bc76cee",
+          "8346680e1ca4a8ddc8190baf3f5f944f6418d5cf",
+          "8a4a8023d61cb31093db7b511e58ea3502e47cb6",
+          "8fdc56d2a6f7537cdd52272501af9e94cab96ed4",
+          "92803205cbcaaee16ac0eb724c45019a9d896aac",
+          "931b9f310854e30a814cb3073c67007e709f6e5f",
+          "953badbea5a04159adbfa970f5805c0232b6a401",
+          "962f133f72abe2a1174d48baa52aa8549762a022",
+          "9931c9e1321e3290b065bc0f5ec8353b1bcb71f3",
+          "a92e7f37c4ae84b6b8d8016cc6783211e9047219",
+          "b4a67359a34c77e2e40f1ab8e30b96278a063007",
+          "b8fa80bd0020eee186e5288e3fd2552695093025",
+          "bcd63cbfb0590a2e2bed3e4beab3f467279ad3db",
+          "bdca5ea345c548a82a80d198906818c9ccbef896",
+          "c50d333c23a3c53d05623ce15df79e624c57f37c",
+          "c5ef65bcf324f4c90b53be90f4aec069a68e8c59",
+          "ce249d4366a800ebc033cefb8beb33b9b0dba051",
+          "cf75fcc8321b822cb4758d167f1fade56a60ad4f",
+          "d0fcef9db0f53ef84535694f4fbcb135f0648e24",
+          "d93021eb10b1ff8c49a4f4746789c22589886260"
+        ],
+        "f1": 0.9706,
+        "precision": 0.9706,
+        "recall": 0.9706
+      },
+      "name": "_html_output",
+      "oracle": "Z_django-forms-_html_output",
+      "oracle_commits": [
+        "1884bf8e8e9fb3f9f44a9ec216aca96f63974268",
+        "301de774c21d055e9e5a7073e5bffdb52bc71079",
+        "356662cf74c99fac90afb0f5e6aac8d2d573e62a",
+        "3eb679a86956d9eedf24492f0002de002f7180f5",
+        "3f9ec12d9c9eff9a3b1a205d87c7e66587cf9967",
+        "46786b4193e04d398532bbfc3dcf63c03c1793cb",
+        "477f4d80616392bbd3352cad50faedb9c1494b33",
+        "4a103086d5c67fa4fcc53c106c9fdf644c742dd8",
+        "54b8277ffb4cad90fb65ca4edf69d8279b8df898",
+        "584bd14dcfdee9585fec7794d53ce120ea73d0bc",
+        "5c645ec81a872116533ee6d3928b750d3737b68a",
+        "5e83b79d260598fcdcc2014f99e6669c5b2a44f7",
+        "748e55b1daa1260964d9ec29f50e01b4b4c0f5d8",
+        "7b2f2e74adb36a4334e83130f6abc2f79d395235",
+        "7c7bc6391a3e83566f9ace59955e63503bc76cee",
+        "8346680e1ca4a8ddc8190baf3f5f944f6418d5cf",
+        "8a4a8023d61cb31093db7b511e58ea3502e47cb6",
+        "8fdc56d2a6f7537cdd52272501af9e94cab96ed4",
+        "92803205cbcaaee16ac0eb724c45019a9d896aac",
+        "931b9f310854e30a814cb3073c67007e709f6e5f",
+        "953badbea5a04159adbfa970f5805c0232b6a401",
+        "962f133f72abe2a1174d48baa52aa8549762a022",
+        "9931c9e1321e3290b065bc0f5ec8353b1bcb71f3",
+        "a92e7f37c4ae84b6b8d8016cc6783211e9047219",
+        "b4a67359a34c77e2e40f1ab8e30b96278a063007",
+        "b8fa80bd0020eee186e5288e3fd2552695093025",
+        "bcd63cbfb0590a2e2bed3e4beab3f467279ad3db",
+        "bdca5ea345c548a82a80d198906818c9ccbef896",
+        "c50d333c23a3c53d05623ce15df79e624c57f37c",
+        "c5ef65bcf324f4c90b53be90f4aec069a68e8c59",
+        "ce249d4366a800ebc033cefb8beb33b9b0dba051",
+        "cf75fcc8321b822cb4758d167f1fade56a60ad4f",
+        "d0fcef9db0f53ef84535694f4fbcb135f0648e24",
+        "d93021eb10b1ff8c49a4f4746789c22589886260"
+      ],
+      "path": "django/forms/forms.py",
+      "project": "django",
+      "projected_labels": 1,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 1,
+      "span": [
+        192,
+        267
+      ],
+      "start": "39791c8e6de3a71879eb26dd9f8d01273847f395",
+      "symbol": "BaseForm._html_output"
+    },
+    {
+      "files_walked": 3,
+      "git_log_l": {
+        "commits": [
+          "1dda032b00cb4f7a783e018a7c370ee88f15e797",
+          "31174fecd2dccd48aa56d4eefc7c808ae93d9262",
+          "32c7e43dda6600828ae9b11111d722ab92fb0594",
+          "5fd81f702c148b1adc565987c50746fcdc29a2f3",
+          "a59cbd4f5256a356fcb7858bf0a5a0ad535e8e6d",
+          "dcf21989dc71f4ab93ceaf0627e40c516462bd8c"
+        ],
+        "f1": 0.7273,
+        "precision": 0.6667,
+        "recall": 0.8
+      },
+      "kind": "method",
+      "line": 154,
+      "lineage": {
+        "commits": [
+          "32c7e43dda6600828ae9b11111d722ab92fb0594",
+          "a59cbd4f5256a356fcb7858bf0a5a0ad535e8e6d",
+          "ab8d60d826f2e07f70973c754134fd9508232b8a",
+          "dcf21989dc71f4ab93ceaf0627e40c516462bd8c"
+        ],
+        "f1": 0.8889,
+        "precision": 1.0,
+        "recall": 0.8
+      },
+      "name": "dispatch_request",
+      "oracle": "Z_flask-views-dispatch_request",
+      "oracle_commits": [
+        "1dda032b00cb4f7a783e018a7c370ee88f15e797",
+        "32c7e43dda6600828ae9b11111d722ab92fb0594",
+        "a59cbd4f5256a356fcb7858bf0a5a0ad535e8e6d",
+        "ab8d60d826f2e07f70973c754134fd9508232b8a",
+        "dcf21989dc71f4ab93ceaf0627e40c516462bd8c"
+      ],
+      "path": "src/flask/views.py",
+      "project": "flask",
+      "projected_labels": 2,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        154,
+        163
+      ],
+      "start": "1351d0a56580df36872b466eb245e7634c20dab5",
+      "symbol": "MethodView.dispatch_request"
+    },
+    {
+      "files_walked": 2,
+      "git_log_l": {
+        "commits": [
+          "1dda032b00cb4f7a783e018a7c370ee88f15e797",
+          "2e022cb2727cfa99355261f2c18d1e0fc56e82ee",
+          "3400b78db23fbd305cb11368946be1bf280e2696",
+          "5fd81f702c148b1adc565987c50746fcdc29a2f3",
+          "63129e8426ba0ab71a3500172ca04fb41ca67daa",
+          "ac99cd33a827f0694d718dae5f2699430263ed7e",
+          "bafc13981002dee4610234c7c97ac176766181c1"
+        ],
+        "f1": 0.8571,
+        "precision": 0.8571,
+        "recall": 0.8571
+      },
+      "kind": "method",
+      "line": 87,
+      "lineage": {
+        "commits": [
+          "2e022cb2727cfa99355261f2c18d1e0fc56e82ee",
+          "3400b78db23fbd305cb11368946be1bf280e2696",
+          "63129e8426ba0ab71a3500172ca04fb41ca67daa",
+          "ab8d60d826f2e07f70973c754134fd9508232b8a",
+          "ac99cd33a827f0694d718dae5f2699430263ed7e",
+          "bafc13981002dee4610234c7c97ac176766181c1"
+        ],
+        "f1": 0.9231,
+        "precision": 1.0,
+        "recall": 0.8571
+      },
+      "name": "_load_form_data",
+      "oracle": "Z_flask-wrappers-_load_from_data",
+      "oracle_commits": [
+        "1dda032b00cb4f7a783e018a7c370ee88f15e797",
+        "2e022cb2727cfa99355261f2c18d1e0fc56e82ee",
+        "3400b78db23fbd305cb11368946be1bf280e2696",
+        "63129e8426ba0ab71a3500172ca04fb41ca67daa",
+        "ab8d60d826f2e07f70973c754134fd9508232b8a",
+        "ac99cd33a827f0694d718dae5f2699430263ed7e",
+        "bafc13981002dee4610234c7c97ac176766181c1"
+      ],
+      "path": "src/flask/wrappers.py",
+      "project": "flask",
+      "projected_labels": 4,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        87,
+        100
+      ],
+      "start": "1351d0a56580df36872b466eb245e7634c20dab5",
+      "symbol": "Request._load_form_data"
+    },
+    {
+      "files_walked": 1,
+      "git_log_l": {
+        "commits": [
+          "1fc8396c4ba6b6e6fda19fb1d3a7d8fa40296cd5",
+          "36bc64e02fa0940d16aad5ceb573f0bd894b3d00",
+          "40bd8f65af247896f26456a8fc099633d23f5cf6",
+          "5a1177d57e58072d929a674a28e80661b81a393a",
+          "6c3b983c1861cc6079ef3e1a98028adf08ab1810",
+          "7917f1b40c299145b005fcc8b99627a0dd5645f9",
+          "9b2a293e6efdda98aada896d0eac1cf10c331194",
+          "aab5cd9da077c3584265d2e4160ca43f84843f3e",
+          "b01906a45c7b745a487af535310373a890b2758a",
+          "ebfce6fb93b077a039a5aef7f5deb0e5f23b5c28"
+        ],
+        "f1": 0.6667,
+        "precision": 0.5,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 472,
+      "lineage": {
+        "commits": [
+          "1fc8396c4ba6b6e6fda19fb1d3a7d8fa40296cd5",
+          "40bd8f65af247896f26456a8fc099633d23f5cf6",
+          "5a1177d57e58072d929a674a28e80661b81a393a",
+          "7f624e61b54a47b53959d451544423efd28f7f93",
+          "b01906a45c7b745a487af535310373a890b2758a",
+          "ebfce6fb93b077a039a5aef7f5deb0e5f23b5c28"
+        ],
+        "f1": 0.9091,
+        "precision": 0.8333,
+        "recall": 1.0
+      },
+      "name": "sum_up",
+      "oracle": "Z_httpie-sessions-sum_up",
+      "oracle_commits": [
+        "1fc8396c4ba6b6e6fda19fb1d3a7d8fa40296cd5",
+        "40bd8f65af247896f26456a8fc099633d23f5cf6",
+        "5a1177d57e58072d929a674a28e80661b81a393a",
+        "b01906a45c7b745a487af535310373a890b2758a",
+        "ebfce6fb93b077a039a5aef7f5deb0e5f23b5c28"
+      ],
+      "path": "httpie/downloads.py",
+      "project": "httpie",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 1,
+      "span": [
+        472,
+        494
+      ],
+      "start": "bece3c77bb51ecc55dcc4008375dc29ccd91575c",
+      "symbol": "ProgressReporterThread.sum_up"
+    },
+    {
+      "files_walked": 3,
+      "git_log_l": {
+        "commits": [
+          "0f654388fc49c0ab7af4c45c7b5294117c435074",
+          "45e8e4e4ea001d80d76c202ccfa1aec06e71b809",
+          "467d126b6c67dd2ce6da703858cbe0cdf81782b3",
+          "589887939507ff26d36ec74bd2c045819cfa3d56",
+          "e09b74021c9c955fd7c3bab11f22801aaf9dc1b8"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 69,
+      "lineage": {
+        "commits": [
+          "0f654388fc49c0ab7af4c45c7b5294117c435074",
+          "45e8e4e4ea001d80d76c202ccfa1aec06e71b809",
+          "467d126b6c67dd2ce6da703858cbe0cdf81782b3",
+          "589887939507ff26d36ec74bd2c045819cfa3d56",
+          "e09b74021c9c955fd7c3bab11f22801aaf9dc1b8"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "update_headers",
+      "oracle": "Z_httpie-sessions-update_headers",
+      "oracle_commits": [
+        "0f654388fc49c0ab7af4c45c7b5294117c435074",
+        "45e8e4e4ea001d80d76c202ccfa1aec06e71b809",
+        "467d126b6c67dd2ce6da703858cbe0cdf81782b3",
+        "589887939507ff26d36ec74bd2c045819cfa3d56",
+        "e09b74021c9c955fd7c3bab11f22801aaf9dc1b8"
+      ],
+      "path": "httpie/sessions.py",
+      "project": "httpie",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        69,
+        91
+      ],
+      "start": "bece3c77bb51ecc55dcc4008375dc29ccd91575c",
+      "symbol": "Session.update_headers"
+    },
+    {
+      "files_walked": 3,
+      "git_log_l": {
+        "commits": [
+          "3b440235e237ef59ec5763c413e7f4292dab5d79",
+          "49f5b931410bc2e56378f20a15e8ac919e0efb88",
+          "555ca942df407b8c1bf1d48383c60fa1bf09cc1d",
+          "958239c621a6be037c5f8b30be9270310735f725",
+          "98465b85d020f1326bcef7632f1261a9a7a84e92",
+          "c13d2723d01212d09dfdda39b0ad439803ec9230",
+          "e27b8b9343da4558b98570d6d45599bd0e365723"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "top-level",
+      "line": 26,
+      "lineage": {
+        "commits": [
+          "3b440235e237ef59ec5763c413e7f4292dab5d79",
+          "49f5b931410bc2e56378f20a15e8ac919e0efb88",
+          "555ca942df407b8c1bf1d48383c60fa1bf09cc1d",
+          "958239c621a6be037c5f8b30be9270310735f725",
+          "98465b85d020f1326bcef7632f1261a9a7a84e92",
+          "c13d2723d01212d09dfdda39b0ad439803ec9230",
+          "e27b8b9343da4558b98570d6d45599bd0e365723"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "_clone_functional_model",
+      "oracle": "Z_keras-models-_clone_functional_model",
+      "oracle_commits": [
+        "3b440235e237ef59ec5763c413e7f4292dab5d79",
+        "49f5b931410bc2e56378f20a15e8ac919e0efb88",
+        "555ca942df407b8c1bf1d48383c60fa1bf09cc1d",
+        "958239c621a6be037c5f8b30be9270310735f725",
+        "98465b85d020f1326bcef7632f1261a9a7a84e92",
+        "c13d2723d01212d09dfdda39b0ad439803ec9230",
+        "e27b8b9343da4558b98570d6d45599bd0e365723"
+      ],
+      "path": "keras/models.py",
+      "project": "keras",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        26,
+        175
+      ],
+      "start": "ccecd39dd9281d65bada97f6762f622563227315",
+      "symbol": "_clone_functional_model"
+    },
+    {
+      "files_walked": 4,
+      "git_log_l": {
+        "commits": [
+          "6b18a908b8ee6e9b58c834a3f7b1944e002764a3",
+          "8d317c986721371f6d11ae9fbc0afa0212a088dc",
+          "aeb22266c91af9d17bee7a4c266c7396a6167cbf",
+          "e8190a8d8d4a59359f93bc9b366d04b9c72cc2ed"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "nested",
+      "line": 3188,
+      "lineage": {
+        "commits": [
+          "26e6df8a98670802286978e1657526fe2afa61d5",
+          "5e73db6c00d62ac61cbae9056628a7683122b392",
+          "6b18a908b8ee6e9b58c834a3f7b1944e002764a3",
+          "8d317c986721371f6d11ae9fbc0afa0212a088dc",
+          "914d976801c5d2323cdc87b902a5342637e86dc7",
+          "aeb22266c91af9d17bee7a4c266c7396a6167cbf",
+          "e8190a8d8d4a59359f93bc9b366d04b9c72cc2ed"
+        ],
+        "f1": 0.7273,
+        "precision": 0.5714,
+        "recall": 1.0
+      },
+      "name": "range_less_than",
+      "oracle": "Z_keras-tensorflow_backend-range_less_than",
+      "oracle_commits": [
+        "6b18a908b8ee6e9b58c834a3f7b1944e002764a3",
+        "8d317c986721371f6d11ae9fbc0afa0212a088dc",
+        "aeb22266c91af9d17bee7a4c266c7396a6167cbf",
+        "e8190a8d8d4a59359f93bc9b366d04b9c72cc2ed"
+      ],
+      "path": "keras/backend/tensorflow_backend.py",
+      "project": "keras",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        3188,
+        3190
+      ],
+      "start": "8d317c986721371f6d11ae9fbc0afa0212a088dc",
+      "symbol": "ctc_label_dense_to_sparse"
+    },
+    {
+      "files_walked": 54,
+      "git_log_l": {
+        "commits": [
+          "9ca59f8a50d079e89dc799dfd81c7597f59b3b79",
+          "ada2ed77bdef7d7d9ada617e094e62fc05f0d7db",
+          "bcb231f00c252f4525d4a60be1dd6c605a296b6a"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 61,
+      "lineage": {
+        "commits": [
+          "9ca59f8a50d079e89dc799dfd81c7597f59b3b79",
+          "ada2ed77bdef7d7d9ada617e094e62fc05f0d7db",
+          "bcb231f00c252f4525d4a60be1dd6c605a296b6a"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "__call__",
+      "oracle": "Z_models-input_reader-__call__",
+      "oracle_commits": [
+        "9ca59f8a50d079e89dc799dfd81c7597f59b3b79",
+        "ada2ed77bdef7d7d9ada617e094e62fc05f0d7db",
+        "bcb231f00c252f4525d4a60be1dd6c605a296b6a"
+      ],
+      "path": "official/vision/detection/dataloader/input_reader.py",
+      "project": "models",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        61,
+        96
+      ],
+      "start": "17d26cb77556c094d4f89504826dd5f58aa744f9",
+      "symbol": "InputFn.__call__"
+    },
+    {
+      "files_walked": 27,
+      "git_log_l": {
+        "commits": [
+          "05ccaf88f7bd617a614f96a2414602f571cc2768"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "top-level",
+      "line": 394,
+      "lineage": {
+        "commits": [
+          "05ccaf88f7bd617a614f96a2414602f571cc2768"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "xception",
+      "oracle": "Z_models-xception-xception",
+      "oracle_commits": [
+        "05ccaf88f7bd617a614f96a2414602f571cc2768"
+      ],
+      "path": "research/deeplab/core/xception.py",
+      "project": "models",
+      "projected_labels": 1,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        394,
+        481
+      ],
+      "start": "f1d35b4ee525e4a2ef434414268eb050de81da7b",
+      "symbol": "xception"
+    },
+    {
+      "files_walked": 4,
+      "git_log_l": {
+        "commits": [
+          "5c906ff9262a2e1c250486eef5420da38cddf63d",
+          "8b15dff89a0386110459bfd8ef6af96c75320439",
+          "bb6135880e5e453d7701764b9f2e4ad3356a68d7"
+        ],
+        "f1": 0.8,
+        "precision": 0.6667,
+        "recall": 1.0
+      },
+      "kind": "top-level",
+      "line": 53,
+      "lineage": {
+        "commits": [
+          "5c906ff9262a2e1c250486eef5420da38cddf63d",
+          "8b15dff89a0386110459bfd8ef6af96c75320439"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "register_vcs_handler",
+      "oracle": "Z_pandas-_version-register_vcs_handler",
+      "oracle_commits": [
+        "5c906ff9262a2e1c250486eef5420da38cddf63d",
+        "8b15dff89a0386110459bfd8ef6af96c75320439"
+      ],
+      "path": "pandas/_version.py",
+      "project": "pandas",
+      "projected_labels": 1,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        53,
+        60
+      ],
+      "start": "eddd9f09a76628e1842cc19634b3f9b9f3b0fe83",
+      "symbol": "register_vcs_handler"
+    },
+    {
+      "files_walked": 6,
+      "git_log_l": {
+        "commits": [
+          "020e9485baf9889c508154fe95663b5ab2210bc4",
+          "04db779d4c93d286bb0ab87780a85d50ec490266",
+          "05e734ab171be0fda838c6b12839c38fa588da2c",
+          "0cfc08cf4584e8442c84c30d53f1dceafeac5abf",
+          "109d682215eeaded5966de5d898c2832bc98ebe0",
+          "179363765110611ad10883bab55d79785369da9b",
+          "1a42c70e532ae01c95596d071ab62dc535e2bac9",
+          "2c2b6585c1c45889d32491b4a0403617a2d48e17",
+          "2d0c96119391c85bd4f7ffbb847759ee3777162a",
+          "32dd92912f15a5c66035f5674c116d23f21bdbca",
+          "60fe82c8a2829e831d28cf6d4b3595637c3c5802",
+          "762f488ba1eaa098525c17c487ad5e14aeead6fa",
+          "793020293ee1e5fa023f45c12943a4ac51cc23d0",
+          "7dd4091458d9117e57d2ad9ce3126855bd00108c",
+          "870b6a6d6415c76d051b287adcb180ac3020b6e8",
+          "a1dfb037de79e6982a0e7ccf883e5af11e9cc843",
+          "aa9d0cf7fa0061058125d79d22d86f82f69c9185",
+          "bb6135880e5e453d7701764b9f2e4ad3356a68d7",
+          "c13dc7d22f657d2ef1e6d5e80f38ae5fe67b2d13",
+          "dfaf8c6918ff20ef781d3177f464a29e70ee5d65",
+          "e053ee301d82a44ddc86dc7e164fea2d5c5178f8"
+        ],
+        "f1": 0.9756,
+        "precision": 0.9524,
+        "recall": 1.0
+      },
+      "kind": "top-level",
+      "line": 380,
+      "lineage": {
+        "commits": [
+          "020e9485baf9889c508154fe95663b5ab2210bc4",
+          "04db779d4c93d286bb0ab87780a85d50ec490266",
+          "05e734ab171be0fda838c6b12839c38fa588da2c",
+          "0cfc08cf4584e8442c84c30d53f1dceafeac5abf",
+          "109d682215eeaded5966de5d898c2832bc98ebe0",
+          "179363765110611ad10883bab55d79785369da9b",
+          "1a42c70e532ae01c95596d071ab62dc535e2bac9",
+          "2c2b6585c1c45889d32491b4a0403617a2d48e17",
+          "2d0c96119391c85bd4f7ffbb847759ee3777162a",
+          "32dd92912f15a5c66035f5674c116d23f21bdbca",
+          "60fe82c8a2829e831d28cf6d4b3595637c3c5802",
+          "793020293ee1e5fa023f45c12943a4ac51cc23d0",
+          "7dd4091458d9117e57d2ad9ce3126855bd00108c",
+          "870b6a6d6415c76d051b287adcb180ac3020b6e8",
+          "a1dfb037de79e6982a0e7ccf883e5af11e9cc843",
+          "aa9d0cf7fa0061058125d79d22d86f82f69c9185",
+          "bb6135880e5e453d7701764b9f2e4ad3356a68d7",
+          "c13dc7d22f657d2ef1e6d5e80f38ae5fe67b2d13",
+          "dfaf8c6918ff20ef781d3177f464a29e70ee5d65",
+          "e053ee301d82a44ddc86dc7e164fea2d5c5178f8"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "isin",
+      "oracle": "Z_pandas-algorithms-isin",
+      "oracle_commits": [
+        "020e9485baf9889c508154fe95663b5ab2210bc4",
+        "04db779d4c93d286bb0ab87780a85d50ec490266",
+        "05e734ab171be0fda838c6b12839c38fa588da2c",
+        "0cfc08cf4584e8442c84c30d53f1dceafeac5abf",
+        "109d682215eeaded5966de5d898c2832bc98ebe0",
+        "179363765110611ad10883bab55d79785369da9b",
+        "1a42c70e532ae01c95596d071ab62dc535e2bac9",
+        "2c2b6585c1c45889d32491b4a0403617a2d48e17",
+        "2d0c96119391c85bd4f7ffbb847759ee3777162a",
+        "32dd92912f15a5c66035f5674c116d23f21bdbca",
+        "60fe82c8a2829e831d28cf6d4b3595637c3c5802",
+        "793020293ee1e5fa023f45c12943a4ac51cc23d0",
+        "7dd4091458d9117e57d2ad9ce3126855bd00108c",
+        "870b6a6d6415c76d051b287adcb180ac3020b6e8",
+        "a1dfb037de79e6982a0e7ccf883e5af11e9cc843",
+        "aa9d0cf7fa0061058125d79d22d86f82f69c9185",
+        "bb6135880e5e453d7701764b9f2e4ad3356a68d7",
+        "c13dc7d22f657d2ef1e6d5e80f38ae5fe67b2d13",
+        "dfaf8c6918ff20ef781d3177f464a29e70ee5d65",
+        "e053ee301d82a44ddc86dc7e164fea2d5c5178f8"
+      ],
+      "path": "pandas/core/algorithms.py",
+      "project": "pandas",
+      "projected_labels": 1,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        380,
+        448
+      ],
+      "start": "555e6e1cbb852b2b0c2cd13f6f575656254160f6",
+      "symbol": "isin"
+    },
+    {
+      "files_walked": 2,
+      "git_log_l": {
+        "commits": [
+          "34c64cda94f5697d051953a99431c46c80b95501",
+          "6418e7f8c9d9ad9f8248211d24902004033713b1",
+          "6e6d235981368f96006915b61516e7dc4e7f2e45",
+          "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+          "cb3f2414b78a73d93f2f691d0038f47b49a835cb",
+          "e1b913401ebe08ee6d97761019c7714c34753158"
+        ],
+        "f1": 0.5,
+        "precision": 0.6667,
+        "recall": 0.4
+      },
+      "kind": "top-level",
+      "line": 160,
+      "lineage": {
+        "commits": [
+          "4ea3e3e8d8f1ac333eecd4b81536179f8096d42b",
+          "5d7be6b7bdc531622a2a72163804a806aeeef93f",
+          "61bb9823301307dc53b5e138234e0567facd8f68",
+          "6752af0245a6bc2eaf01941676df830c66a7c508",
+          "6e6d235981368f96006915b61516e7dc4e7f2e45",
+          "9166928bd6d148a4fa32bd62bb801e193224cc0e",
+          "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+          "dc4495be37100e4b6f489db4d294a789b8f1e8d5",
+          "e1b913401ebe08ee6d97761019c7714c34753158"
+        ],
+        "f1": 0.9474,
+        "precision": 1.0,
+        "recall": 0.9
+      },
+      "name": "execute",
+      "oracle": "Z_rebound-rebound-execute",
+      "oracle_commits": [
+        "34c64cda94f5697d051953a99431c46c80b95501",
+        "4ea3e3e8d8f1ac333eecd4b81536179f8096d42b",
+        "5d7be6b7bdc531622a2a72163804a806aeeef93f",
+        "61bb9823301307dc53b5e138234e0567facd8f68",
+        "6752af0245a6bc2eaf01941676df830c66a7c508",
+        "6e6d235981368f96006915b61516e7dc4e7f2e45",
+        "9166928bd6d148a4fa32bd62bb801e193224cc0e",
+        "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+        "dc4495be37100e4b6f489db4d294a789b8f1e8d5",
+        "e1b913401ebe08ee6d97761019c7714c34753158"
+      ],
+      "path": "rebound/rebound.py",
+      "project": "rebound",
+      "projected_labels": 1,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        160,
+        200
+      ],
+      "start": "0dc15bce43a66ef71901ce7a9e1c54b80f5ea856",
+      "symbol": "execute"
+    },
+    {
+      "files_walked": 2,
+      "git_log_l": {
+        "commits": [
+          "61a1abd4acdfe867711da49e3a36546dade6add9",
+          "6418e7f8c9d9ad9f8248211d24902004033713b1",
+          "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+          "e1b913401ebe08ee6d97761019c7714c34753158"
+        ],
+        "f1": 0.5455,
+        "precision": 0.75,
+        "recall": 0.4286
+      },
+      "kind": "top-level",
+      "line": 243,
+      "lineage": {
+        "commits": [
+          "61a1abd4acdfe867711da49e3a36546dade6add9",
+          "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+          "e1b913401ebe08ee6d97761019c7714c34753158"
+        ],
+        "f1": 0.6,
+        "precision": 1.0,
+        "recall": 0.4286
+      },
+      "name": "get_search_results",
+      "oracle": "Z_rebound-rebound-get_search_results",
+      "oracle_commits": [
+        "4ea3e3e8d8f1ac333eecd4b81536179f8096d42b",
+        "61a1abd4acdfe867711da49e3a36546dade6add9",
+        "61bb9823301307dc53b5e138234e0567facd8f68",
+        "6752af0245a6bc2eaf01941676df830c66a7c508",
+        "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+        "dc4495be37100e4b6f489db4d294a789b8f1e8d5",
+        "e1b913401ebe08ee6d97761019c7714c34753158"
+      ],
+      "path": "rebound/rebound.py",
+      "project": "rebound",
+      "projected_labels": 1,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        243,
+        265
+      ],
+      "start": "61a1abd4acdfe867711da49e3a36546dade6add9",
+      "symbol": "get_search_results"
+    },
+    {
+      "files_walked": 48,
+      "git_log_l": {
+        "commits": [
+          "3f8743f47b61a269e8bfff2322cb544170976574"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 140,
+      "lineage": {
+        "commits": [
+          "3f8743f47b61a269e8bfff2322cb544170976574"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "__getitem__",
+      "oracle": "Z_scikit-learn-_search-__getitem__",
+      "oracle_commits": [
+        "3f8743f47b61a269e8bfff2322cb544170976574"
+      ],
+      "path": "sklearn/model_selection/_search.py",
+      "project": "scikit-learn",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        140,
+        179
+      ],
+      "start": "9e5819aa413ce907134ee5704abba43ad8a61827",
+      "symbol": "ParameterGrid.__getitem__"
+    },
+    {
+      "files_walked": 5,
+      "git_log_l": {
+        "commits": [
+          "0b6308c2708fe03071cdbf24997eb967403f5965",
+          "0e3bb17e6263a391c8409558634b75f437eb3f27",
+          "0e54f44b4e26b28819c1e745793fe5bec9b1cea9",
+          "13981bdce97ab2dd49b6b8707f3f27b5c148b9c0",
+          "1b90237b45dfa1652831cfe72bd4b29a31b070ec",
+          "42c7496c0cdf0fd137f3466f5a7b979a6e8e4680",
+          "47d3b3c30fd408187ce0524043be43bf378397dd",
+          "4c33ea2ee0587f47da3b7e2162ef29fff0ee7f93",
+          "5b20d484add50aec64a1bda5c52ed2ceb7557f36",
+          "8edd9f9f1597094a1f8024f4d091f21e9c1fa66a",
+          "952ef6637a13ba01055bf0ed9d29d525f0fee5bc",
+          "9f842e3496ab59ad593b46553fadff7b2490ef1a",
+          "a65a9e53af4873729ee98de76f0e8afa6f39d8e5",
+          "b3a639ffc2d518b8862c61e4170403a400368571",
+          "b484aa443217d75273dd4c2d11de602b110309b8",
+          "e66aa6dc70bb43541bd2a084ea28d0547b89ed4f"
+        ],
+        "f1": 0.8889,
+        "precision": 1.0,
+        "recall": 0.8
+      },
+      "kind": "method",
+      "line": 260,
+      "lineage": {
+        "commits": [
+          "0b6308c2708fe03071cdbf24997eb967403f5965",
+          "0e3bb17e6263a391c8409558634b75f437eb3f27",
+          "0e54f44b4e26b28819c1e745793fe5bec9b1cea9",
+          "13981bdce97ab2dd49b6b8707f3f27b5c148b9c0",
+          "1b90237b45dfa1652831cfe72bd4b29a31b070ec",
+          "47d3b3c30fd408187ce0524043be43bf378397dd",
+          "4c33ea2ee0587f47da3b7e2162ef29fff0ee7f93",
+          "5b20d484add50aec64a1bda5c52ed2ceb7557f36",
+          "8edd9f9f1597094a1f8024f4d091f21e9c1fa66a",
+          "952ef6637a13ba01055bf0ed9d29d525f0fee5bc",
+          "9f842e3496ab59ad593b46553fadff7b2490ef1a",
+          "a65a9e53af4873729ee98de76f0e8afa6f39d8e5",
+          "b3a639ffc2d518b8862c61e4170403a400368571",
+          "e66aa6dc70bb43541bd2a084ea28d0547b89ed4f"
+        ],
+        "f1": 0.8235,
+        "precision": 1.0,
+        "recall": 0.7
+      },
+      "name": "_fit",
+      "oracle": "Z_scikit-learn-pipeline-_fit",
+      "oracle_commits": [
+        "0b6308c2708fe03071cdbf24997eb967403f5965",
+        "0e3bb17e6263a391c8409558634b75f437eb3f27",
+        "0e54f44b4e26b28819c1e745793fe5bec9b1cea9",
+        "13981bdce97ab2dd49b6b8707f3f27b5c148b9c0",
+        "1b90237b45dfa1652831cfe72bd4b29a31b070ec",
+        "42c7496c0cdf0fd137f3466f5a7b979a6e8e4680",
+        "47d3b3c30fd408187ce0524043be43bf378397dd",
+        "4c33ea2ee0587f47da3b7e2162ef29fff0ee7f93",
+        "5b20d484add50aec64a1bda5c52ed2ceb7557f36",
+        "8edd9f9f1597094a1f8024f4d091f21e9c1fa66a",
+        "94ec683b3fd497afea557f749c9d2737443ce0b5",
+        "952ef6637a13ba01055bf0ed9d29d525f0fee5bc",
+        "9f842e3496ab59ad593b46553fadff7b2490ef1a",
+        "a555f22f3524637df4389daf60c16da5de306d6d",
+        "a65a9e53af4873729ee98de76f0e8afa6f39d8e5",
+        "b3a639ffc2d518b8862c61e4170403a400368571",
+        "b484aa443217d75273dd4c2d11de602b110309b8",
+        "c9fcb82d93caa20aa2d02a58d7c256c48c83acd4",
+        "d2ec8a36d85d7fd821a6f770210fcc0785db4f12",
+        "e66aa6dc70bb43541bd2a084ea28d0547b89ed4f"
+      ],
+      "path": "sklearn/pipeline.py",
+      "project": "scikit-learn",
+      "projected_labels": 14,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        260,
+        320
+      ],
+      "start": "db59dd74df576345cc026cc0d6c99392d3649d3b",
+      "symbol": "Pipeline._fit"
+    },
+    {
+      "files_walked": 3,
+      "git_log_l": {
+        "commits": [
+          "082f23a659bc789df55a4ba7db313d0d72baa7d6",
+          "089ff8a0ae0756584e45d20500579a8edd8da153",
+          "13ee26019f4764c3a25bccb637f6ce737caad041",
+          "5b0ff2a69a830f842b6a6f489e5e6025ad1ab127",
+          "60f30fdb365b15e6b42e87839384cc31d6ce1e2a",
+          "802d3dbbf4b020885c308f584ae536b7c2bb137e",
+          "92bec8cfea448059a71d89a7e7a9229a64c275d4",
+          "beaa62cafaad48e7f3c9ce4a174423aeed61119e",
+          "c3cd3e94c16c80371e97ea224eb02c80660ec1db",
+          "c7b789325473ac3c366b7ff6b21d1b45396de9e9",
+          "c9457d4af0b808c818b928c84e4e518b25123c0b",
+          "dff03fafdaa46d9772545ec6935748dea1e966dd",
+          "ea39fb25565ffdadb9060406dba60b40b2b89eac",
+          "f17974ab32ee8162bb0dcb4386c2bf7609905efd",
+          "fb6abe1b1e9c9491f630879aeb6adf8921d92d3c"
+        ],
+        "f1": 0.9286,
+        "precision": 0.8667,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 189,
+      "lineage": {
+        "commits": [
+          "082f23a659bc789df55a4ba7db313d0d72baa7d6",
+          "089ff8a0ae0756584e45d20500579a8edd8da153",
+          "13ee26019f4764c3a25bccb637f6ce737caad041",
+          "5b0ff2a69a830f842b6a6f489e5e6025ad1ab127",
+          "802d3dbbf4b020885c308f584ae536b7c2bb137e",
+          "92bec8cfea448059a71d89a7e7a9229a64c275d4",
+          "c3cd3e94c16c80371e97ea224eb02c80660ec1db",
+          "c7b789325473ac3c366b7ff6b21d1b45396de9e9",
+          "c9457d4af0b808c818b928c84e4e518b25123c0b",
+          "dff03fafdaa46d9772545ec6935748dea1e966dd",
+          "ea39fb25565ffdadb9060406dba60b40b2b89eac",
+          "f17974ab32ee8162bb0dcb4386c2bf7609905efd",
+          "fb6abe1b1e9c9491f630879aeb6adf8921d92d3c"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "authenticate",
+      "oracle": "Z_zulip-backends-authenticate",
+      "oracle_commits": [
+        "082f23a659bc789df55a4ba7db313d0d72baa7d6",
+        "089ff8a0ae0756584e45d20500579a8edd8da153",
+        "13ee26019f4764c3a25bccb637f6ce737caad041",
+        "5b0ff2a69a830f842b6a6f489e5e6025ad1ab127",
+        "802d3dbbf4b020885c308f584ae536b7c2bb137e",
+        "92bec8cfea448059a71d89a7e7a9229a64c275d4",
+        "c3cd3e94c16c80371e97ea224eb02c80660ec1db",
+        "c7b789325473ac3c366b7ff6b21d1b45396de9e9",
+        "c9457d4af0b808c818b928c84e4e518b25123c0b",
+        "dff03fafdaa46d9772545ec6935748dea1e966dd",
+        "ea39fb25565ffdadb9060406dba60b40b2b89eac",
+        "f17974ab32ee8162bb0dcb4386c2bf7609905efd",
+        "fb6abe1b1e9c9491f630879aeb6adf8921d92d3c"
+      ],
+      "path": "zproject/backends.py",
+      "project": "zulip",
+      "projected_labels": 1,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        189,
+        194
+      ],
+      "start": "6407d0b1f96623760094c604be2e8d1243d06142",
+      "symbol": "ZulipDummyBackend.authenticate"
+    },
+    {
+      "files_walked": 2,
+      "git_log_l": {
+        "commits": [
+          "348f370b796bcaf19563c23d9548c88a5862c307",
+          "67b6179df28522274ebdc66e6820a6e7e41511fa",
+          "71761bc2dac27a8e6acdea692dc46c6c14c7c0a8",
+          "7e75f987df6b537746fcbcb0614a2f9c42a21024",
+          "8c065d1fcdf74d84570f364ff48953bc78a94994"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "top-level",
+      "line": 736,
+      "lineage": {
+        "commits": [
+          "348f370b796bcaf19563c23d9548c88a5862c307",
+          "67b6179df28522274ebdc66e6820a6e7e41511fa",
+          "71761bc2dac27a8e6acdea692dc46c6c14c7c0a8",
+          "7e75f987df6b537746fcbcb0614a2f9c42a21024",
+          "8c065d1fcdf74d84570f364ff48953bc78a94994"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "sync_user_from_ldap",
+      "oracle": "Z_zulip-backends-sync_user_from_ldap",
+      "oracle_commits": [
+        "348f370b796bcaf19563c23d9548c88a5862c307",
+        "67b6179df28522274ebdc66e6820a6e7e41511fa",
+        "71761bc2dac27a8e6acdea692dc46c6c14c7c0a8",
+        "7e75f987df6b537746fcbcb0614a2f9c42a21024",
+        "8c065d1fcdf74d84570f364ff48953bc78a94994"
+      ],
+      "path": "zproject/backends.py",
+      "project": "zulip",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        736,
+        769
+      ],
+      "start": "67b6179df28522274ebdc66e6820a6e7e41511fa",
+      "symbol": "sync_user_from_ldap"
+    },
+    {
+      "files_walked": 4,
+      "git_log_l": {
+        "commits": [
+          "33a21aa2da853e2c6a38c7c7f9bd665240edc82f",
+          "42ecc26b7eb59ed83c1b6a07f8ba64a2e83f8f0c",
+          "479cfafecba2595332113ce18b421bc4955b1ad4",
+          "7b9c8298b49936b0d0ae82ae19d5ba985b0274c6",
+          "8927554e445a0915a67da3c32e656645aee7a96c",
+          "a3a38794e5e1d962c2941ea9667326c09b52aa64",
+          "ac58f27a2e758bf4cd3c5eb3d11a343b27b95dbc",
+          "b857f155d3e93ff6f3015b88e5c40e64a81ae6f5",
+          "d665ebf5569a84ab52b51b5c91661250f69c5a0c"
+        ],
+        "f1": 0.9412,
+        "precision": 0.8889,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 11,
+      "lineage": {
+        "commits": [
+          "33a21aa2da853e2c6a38c7c7f9bd665240edc82f",
+          "42ecc26b7eb59ed83c1b6a07f8ba64a2e83f8f0c",
+          "479cfafecba2595332113ce18b421bc4955b1ad4",
+          "7b9c8298b49936b0d0ae82ae19d5ba985b0274c6",
+          "a3a38794e5e1d962c2941ea9667326c09b52aa64",
+          "ac58f27a2e758bf4cd3c5eb3d11a343b27b95dbc",
+          "b857f155d3e93ff6f3015b88e5c40e64a81ae6f5",
+          "d665ebf5569a84ab52b51b5c91661250f69c5a0c"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "play",
+      "oracle": "asciinema-player-play",
+      "oracle_commits": [
+        "33a21aa2da853e2c6a38c7c7f9bd665240edc82f",
+        "42ecc26b7eb59ed83c1b6a07f8ba64a2e83f8f0c",
+        "479cfafecba2595332113ce18b421bc4955b1ad4",
+        "7b9c8298b49936b0d0ae82ae19d5ba985b0274c6",
+        "a3a38794e5e1d962c2941ea9667326c09b52aa64",
+        "ac58f27a2e758bf4cd3c5eb3d11a343b27b95dbc",
+        "b857f155d3e93ff6f3015b88e5c40e64a81ae6f5",
+        "d665ebf5569a84ab52b51b5c91661250f69c5a0c"
+      ],
+      "path": "asciinema/player.py",
+      "project": "asciinema",
+      "projected_labels": 2,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        11,
+        17
+      ],
+      "start": "631831deadfc2d6ee55fff9d8c035caf5ef38d56",
+      "symbol": "Player.play"
+    },
+    {
+      "files_walked": 3,
+      "git_log_l": {
+        "commits": [
+          "0cec6ab2dd435f88b8b803ceb300d64de257942d",
+          "2fbd561e2c77a860a3b8022d300b3aa80921221d",
+          "4926788675caacd77fb2d7e9a8187721743553b7",
+          "6d81785498b69f77e53c719bb90a049915f605f5",
+          "ac1f970a0de3433022d6244d50e92839d8d1027e",
+          "b7231c28722dfd776298b56b1b0ec68c0305192b"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 11,
+      "lineage": {
+        "commits": [
+          "0cec6ab2dd435f88b8b803ceb300d64de257942d",
+          "2fbd561e2c77a860a3b8022d300b3aa80921221d",
+          "4926788675caacd77fb2d7e9a8187721743553b7",
+          "6d81785498b69f77e53c719bb90a049915f605f5",
+          "ac1f970a0de3433022d6244d50e92839d8d1027e",
+          "b7231c28722dfd776298b56b1b0ec68c0305192b"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "execute",
+      "oracle": "asciinema-upload-execute",
+      "oracle_commits": [
+        "0cec6ab2dd435f88b8b803ceb300d64de257942d",
+        "2fbd561e2c77a860a3b8022d300b3aa80921221d",
+        "4926788675caacd77fb2d7e9a8187721743553b7",
+        "6d81785498b69f77e53c719bb90a049915f605f5",
+        "ac1f970a0de3433022d6244d50e92839d8d1027e",
+        "b7231c28722dfd776298b56b1b0ec68c0305192b"
+      ],
+      "path": "asciinema/commands/upload.py",
+      "project": "asciinema",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        11,
+        29
+      ],
+      "start": "350d5e9d8b7cee1be5db4091815942c9d035e7dc",
+      "symbol": "UploadCommand.execute"
+    },
+    {
+      "files_walked": 1,
+      "git_log_l": {
+        "commits": [
+          "210d0489c5daad56b806f8165f9fe09fb3c2a019",
+          "399cf303cbfe086e78fd9421b75c6df55fc234d0",
+          "58062a6302a2bf1013d100deb053ccae2298bb84",
+          "5987b3c46d5a6948737627d294d95ed54d49eae6",
+          "7c7ad041b358a9819b3bd9f93d4834df4a5b5d57",
+          "892bc91cb0036d6868081363628f65094c4790d6",
+          "a19ed8aea395e8e07164ff7d85bd7dff2f24edca",
+          "acd7b34aafe352ef604edcb73f75041c5cbba6b9",
+          "adeec00979d1b365535b8f26fda4a5f7173e975d",
+          "c6c00fbfbb659de4beaad3c612c271ac74f892a7",
+          "cbfb8ed53b31ec9701f5fb8e519a8644fd4c8095",
+          "d74e33eb0ec289d3125a5a8048d756f9d232bd62",
+          "deed00c0d803d324a3dfdeba52458b6b009c1a90",
+          "ebb504db692cac496f4f45762d1d14644c9fa6fa",
+          "f5c6d3c8d9fa2158734858fa0a7ac917c384cb97"
+        ],
+        "f1": 0.8966,
+        "precision": 0.8667,
+        "recall": 0.9286
+      },
+      "kind": "method",
+      "line": 429,
+      "lineage": {
+        "commits": [
+          "210d0489c5daad56b806f8165f9fe09fb3c2a019",
+          "58062a6302a2bf1013d100deb053ccae2298bb84",
+          "892bc91cb0036d6868081363628f65094c4790d6",
+          "acd7b34aafe352ef604edcb73f75041c5cbba6b9",
+          "adeec00979d1b365535b8f26fda4a5f7173e975d",
+          "c6c00fbfbb659de4beaad3c612c271ac74f892a7",
+          "cbfb8ed53b31ec9701f5fb8e519a8644fd4c8095",
+          "d74e33eb0ec289d3125a5a8048d756f9d232bd62",
+          "deed00c0d803d324a3dfdeba52458b6b009c1a90",
+          "f5c6d3c8d9fa2158734858fa0a7ac917c384cb97"
+        ],
+        "f1": 0.8333,
+        "precision": 1.0,
+        "recall": 0.7143
+      },
+      "name": "changed_data",
+      "oracle": "django-forms-changed_data",
+      "oracle_commits": [
+        "210d0489c5daad56b806f8165f9fe09fb3c2a019",
+        "46786b4193e04d398532bbfc3dcf63c03c1793cb",
+        "58062a6302a2bf1013d100deb053ccae2298bb84",
+        "7c7ad041b358a9819b3bd9f93d4834df4a5b5d57",
+        "892bc91cb0036d6868081363628f65094c4790d6",
+        "a19ed8aea395e8e07164ff7d85bd7dff2f24edca",
+        "acd7b34aafe352ef604edcb73f75041c5cbba6b9",
+        "adeec00979d1b365535b8f26fda4a5f7173e975d",
+        "c6c00fbfbb659de4beaad3c612c271ac74f892a7",
+        "cbfb8ed53b31ec9701f5fb8e519a8644fd4c8095",
+        "d74e33eb0ec289d3125a5a8048d756f9d232bd62",
+        "deed00c0d803d324a3dfdeba52458b6b009c1a90",
+        "ebb504db692cac496f4f45762d1d14644c9fa6fa",
+        "f5c6d3c8d9fa2158734858fa0a7ac917c384cb97"
+      ],
+      "path": "django/forms/forms.py",
+      "project": "django",
+      "projected_labels": 1,
+      "property_part": true,
+      "rename_or_move": true,
+      "rounds": 1,
+      "span": [
+        428,
+        450
+      ],
+      "start": "39791c8e6de3a71879eb26dd9f8d01273847f395",
+      "symbol": "BaseForm.changed_data"
+    },
+    {
+      "files_walked": 28,
+      "git_log_l": {
+        "commits": [
+          "39791c8e6de3a71879eb26dd9f8d01273847f395",
+          "a415ce70bef6d91036b00dd2c8544aed7aeeaaed"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 62,
+      "lineage": {
+        "commits": [
+          "39791c8e6de3a71879eb26dd9f8d01273847f395",
+          "a415ce70bef6d91036b00dd2c8544aed7aeeaaed"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "test_file_response",
+      "oracle": "django-tests-test_file_response",
+      "oracle_commits": [
+        "39791c8e6de3a71879eb26dd9f8d01273847f395",
+        "a415ce70bef6d91036b00dd2c8544aed7aeeaaed"
+      ],
+      "path": "tests/asgi/tests.py",
+      "project": "django",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        61,
+        87
+      ],
+      "start": "39791c8e6de3a71879eb26dd9f8d01273847f395",
+      "symbol": "ASGITest.test_file_response"
+    },
+    {
+      "files_walked": 3,
+      "git_log_l": {
+        "commits": [
+          "1dda032b00cb4f7a783e018a7c370ee88f15e797",
+          "1e112cccaa94dd47e43f9466d859730c412aff1a",
+          "55ad09c9024d2f0d23123c934e505042516cc796"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 731,
+      "lineage": {
+        "commits": [
+          "55ad09c9024d2f0d23123c934e505042516cc796"
+        ],
+        "f1": 0.5,
+        "precision": 1.0,
+        "recall": 0.3333
+      },
+      "name": "templates_auto_reload",
+      "oracle": "flask-app-templates_auto_reload",
+      "oracle_commits": [
+        "1dda032b00cb4f7a783e018a7c370ee88f15e797",
+        "1e112cccaa94dd47e43f9466d859730c412aff1a",
+        "55ad09c9024d2f0d23123c934e505042516cc796"
+      ],
+      "path": "flask/app.py",
+      "project": "flask",
+      "projected_labels": 2,
+      "property_part": true,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        730,
+        743
+      ],
+      "start": "55ad09c9024d2f0d23123c934e505042516cc796",
+      "symbol": "Flask.templates_auto_reload"
+    },
+    {
+      "files_walked": 10,
+      "git_log_l": {
+        "commits": [
+          "175d43b2f9c7825b0df4c1049ab571cb1877a807",
+          "1d6f86bc87253c1dc1cf0c156f421214c38c3202",
+          "1dda032b00cb4f7a783e018a7c370ee88f15e797",
+          "67e4d3ee63dc561eba9b4245b026f24f3cdfc70d",
+          "8071f11328ab2b767608c5c63d0bad72d9408120",
+          "81148db5b649c2db9b3ea1156d684ecdf6ab9938",
+          "a3b30b7e3b026e821716be63d586e078eaa6ee7f",
+          "bb1567dae48fed50f9742b9136c8bd1b82b7bd55",
+          "c3844d11026f84400d5a088dd5c24c6a4a04dcd1",
+          "d16491145dc553bc30aa9c71fb3647fda8d23534",
+          "d4b3d16c142e2189c6faf8f784a195e7f827c596"
+        ],
+        "f1": 0.9091,
+        "precision": 0.9091,
+        "recall": 0.9091
+      },
+      "kind": "top-level",
+      "line": 786,
+      "lineage": {
+        "commits": [
+          "175d43b2f9c7825b0df4c1049ab571cb1877a807",
+          "1d6f86bc87253c1dc1cf0c156f421214c38c3202",
+          "1dda032b00cb4f7a783e018a7c370ee88f15e797",
+          "40e0024d7b87150ed694829a5335bd2435962225",
+          "67e4d3ee63dc561eba9b4245b026f24f3cdfc70d",
+          "8071f11328ab2b767608c5c63d0bad72d9408120",
+          "81148db5b649c2db9b3ea1156d684ecdf6ab9938",
+          "a3b30b7e3b026e821716be63d586e078eaa6ee7f",
+          "ab8d60d826f2e07f70973c754134fd9508232b8a",
+          "c3844d11026f84400d5a088dd5c24c6a4a04dcd1",
+          "d16491145dc553bc30aa9c71fb3647fda8d23534",
+          "d4b3d16c142e2189c6faf8f784a195e7f827c596"
+        ],
+        "f1": 0.9565,
+        "precision": 0.9167,
+        "recall": 1.0
+      },
+      "name": "get_root_path",
+      "oracle": "flask-helpers-get_root_path",
+      "oracle_commits": [
+        "175d43b2f9c7825b0df4c1049ab571cb1877a807",
+        "1d6f86bc87253c1dc1cf0c156f421214c38c3202",
+        "1dda032b00cb4f7a783e018a7c370ee88f15e797",
+        "67e4d3ee63dc561eba9b4245b026f24f3cdfc70d",
+        "8071f11328ab2b767608c5c63d0bad72d9408120",
+        "81148db5b649c2db9b3ea1156d684ecdf6ab9938",
+        "a3b30b7e3b026e821716be63d586e078eaa6ee7f",
+        "ab8d60d826f2e07f70973c754134fd9508232b8a",
+        "c3844d11026f84400d5a088dd5c24c6a4a04dcd1",
+        "d16491145dc553bc30aa9c71fb3647fda8d23534",
+        "d4b3d16c142e2189c6faf8f784a195e7f827c596"
+      ],
+      "path": "src/flask/helpers.py",
+      "project": "flask",
+      "projected_labels": 4,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        786,
+        831
+      ],
+      "start": "980168d08498c00a14ab0f687ffac8cc50edb326",
+      "symbol": "get_root_path"
+    },
+    {
+      "files_walked": 8,
+      "git_log_l": {
+        "commits": [
+          "2a25d71aa4929ef9cb0d5d993ec9f25160d25d65",
+          "bece3c77bb51ecc55dcc4008375dc29ccd91575c",
+          "e2751e5fa38b5e5cd53a607e5e82dd58ae9904bf"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "nested",
+      "line": 37,
+      "lineage": {
+        "commits": [
+          "01ca7f0eb28790a594ce94b337caf6f776078215",
+          "0572158ba1dd26d58e148e694dba5c3aaac9532e",
+          "098e1d3100a4d33df22e8308e5bccb9358942be6",
+          "0a673613eff75a276981274ea7f60ba232d9a61c",
+          "0d2d24eac7272dda521198f3a7ea85a4d6af9a50",
+          "0f654388fc49c0ab7af4c45c7b5294117c435074",
+          "15e62ad26d3eed587b2e2889421170eab5ab01ef",
+          "1fbe7a6121da47251ba54c9ae186e2cc144e9991",
+          "1fc8396c4ba6b6e6fda19fb1d3a7d8fa40296cd5",
+          "2646ebaaed81a53303c7fb60a6b50452c81bc025",
+          "26a76e8243812c9933422d0a0231971b6af21e3b",
+          "2a25d71aa4929ef9cb0d5d993ec9f25160d25d65",
+          "2acb30355200369137643fdc4d7e1bb11572fa42",
+          "356e0436510fee70b4071fac58be81c0a0a7db59",
+          "383dba524a6e1b4e622470479e6d007d5707909c",
+          "4029dbf3092a801213084820984f52910a0d3c24",
+          "40bd8f65af247896f26456a8fc099633d23f5cf6",
+          "4660da949fa5834540abde37fabfbb7fed210dbe",
+          "4b1a04e5ed0c19e30f984ea379658cf9c6acd3e4",
+          "4c0d7d526ff032d3898650ea594498449addc70c",
+          "4e58a3849a120ab6cb3966d9656ce65cf7d0aefc",
+          "50810e5bd9c9c78fbb125f2157578d499ca40375",
+          "52e46beddaa9dccadb85378c76eaaece1e399a7e",
+          "53caf6ae72751ee8a2f85d817d04f0bf8485506c",
+          "548bef7dffb5d830b9695c7cebadadef1f3dfc1e",
+          "674acfe2c290e395c67ffa7bcf75646360b70de8",
+          "87042f65c9b0bc050a24acb1a41b6eed44b788e4",
+          "8e04a24b90475608d65ad13ce66d59a41ed8b457",
+          "8e170b059cb229d9739f97a52913f95c231a09fa",
+          "8e6c765be22803f1705f9a6c053a0728adeaf820",
+          "923a8b71bd68c56b2dc1c39e26b9605fe16be495",
+          "99f82bbd32fb62f1536f91be23b62843e3696072",
+          "9b23a4ac9a08e3f63677b328b3838816b08d8459",
+          "9b2a293e6efdda98aada896d0eac1cf10c331194",
+          "9ec328ff6f9e2dde7c894f3bb2d4b844e0a8a32c",
+          "aba3b1ec0108197f747b9266c7a622cb16e34fdc",
+          "b2ec4f797fabd95a87f0e966e6dc5a4f74751f36",
+          "b596fedf1394b64a165e75d38558a9cdc75d2f90",
+          "bece3c77bb51ecc55dcc4008375dc29ccd91575c",
+          "c01dd8d64aaeece2496eb27fe5c907f9e950dfac",
+          "c6d4f6cdf6199ff60af86dddf2bb0ba40ed8d9af",
+          "c7657e3c4b51d86be9d62c2b9d05f5371a2b02fc",
+          "cbbaac13ea775c4e937bc259c25501cc77ca1010",
+          "d9b3a16fa63211a95accb1021eda68fb140bc772",
+          "da0eb7db79f6ef24b34cbc0d9043ba3c96d5a038",
+          "dd2c89412c72262b809d42e41274c296b59370b4",
+          "e25d64a610d18eff94bcbd20a01965cb144f8290",
+          "e2751e5fa38b5e5cd53a607e5e82dd58ae9904bf",
+          "e4c68063b9946147509166b512a49294f3891b8c",
+          "ed08ab133eab5991fe46db011e6e04f3230f0026",
+          "f2d59ba6bd1d21f8f79c11c43c8acaa7e2f8c453",
+          "f45cc0eec0049029f08f0227d9950dccf035a4d1"
+        ],
+        "f1": 0.1091,
+        "precision": 0.0577,
+        "recall": 1.0
+      },
+      "name": "log_error",
+      "oracle": "httpie-sessions-log_error",
+      "oracle_commits": [
+        "2a25d71aa4929ef9cb0d5d993ec9f25160d25d65",
+        "bece3c77bb51ecc55dcc4008375dc29ccd91575c",
+        "e2751e5fa38b5e5cd53a607e5e82dd58ae9904bf"
+      ],
+      "path": "httpie/core.py",
+      "project": "httpie",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        37,
+        39
+      ],
+      "start": "d9b3a16fa63211a95accb1021eda68fb140bc772",
+      "symbol": "main"
+    },
+    {
+      "files_walked": 1,
+      "git_log_l": {
+        "commits": [
+          "1fc8396c4ba6b6e6fda19fb1d3a7d8fa40296cd5",
+          "347653b369298c66fc046597d20981380a2c9394",
+          "36bc64e02fa0940d16aad5ceb573f0bd894b3d00",
+          "5a1177d57e58072d929a674a28e80661b81a393a",
+          "5af88756a6d89a44c191225d58953204b11e1bc2",
+          "674acfe2c290e395c67ffa7bcf75646360b70de8",
+          "6c3b983c1861cc6079ef3e1a98028adf08ab1810",
+          "7917f1b40c299145b005fcc8b99627a0dd5645f9",
+          "9b2a293e6efdda98aada896d0eac1cf10c331194",
+          "aab5cd9da077c3584265d2e4160ca43f84843f3e",
+          "c63a92f9b7fe6159ab83d49921131d725b3c5cfd",
+          "cfa7199f0b505424343bac0b904f333ea6a67673",
+          "d17e02792b5a2150f7be0ace1effcd361b0b5fd1",
+          "ebfce6fb93b077a039a5aef7f5deb0e5f23b5c28"
+        ],
+        "f1": 0.7273,
+        "precision": 0.5714,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 418,
+      "lineage": {
+        "commits": [
+          "1fc8396c4ba6b6e6fda19fb1d3a7d8fa40296cd5",
+          "347653b369298c66fc046597d20981380a2c9394",
+          "5a1177d57e58072d929a674a28e80661b81a393a",
+          "5af88756a6d89a44c191225d58953204b11e1bc2",
+          "7f624e61b54a47b53959d451544423efd28f7f93",
+          "c63a92f9b7fe6159ab83d49921131d725b3c5cfd",
+          "cfa7199f0b505424343bac0b904f333ea6a67673",
+          "d17e02792b5a2150f7be0ace1effcd361b0b5fd1",
+          "ebfce6fb93b077a039a5aef7f5deb0e5f23b5c28"
+        ],
+        "f1": 0.9412,
+        "precision": 0.8889,
+        "recall": 1.0
+      },
+      "name": "report_speed",
+      "oracle": "httpie-sessions-report_speed",
+      "oracle_commits": [
+        "1fc8396c4ba6b6e6fda19fb1d3a7d8fa40296cd5",
+        "347653b369298c66fc046597d20981380a2c9394",
+        "5a1177d57e58072d929a674a28e80661b81a393a",
+        "5af88756a6d89a44c191225d58953204b11e1bc2",
+        "c63a92f9b7fe6159ab83d49921131d725b3c5cfd",
+        "cfa7199f0b505424343bac0b904f333ea6a67673",
+        "d17e02792b5a2150f7be0ace1effcd361b0b5fd1",
+        "ebfce6fb93b077a039a5aef7f5deb0e5f23b5c28"
+      ],
+      "path": "httpie/downloads.py",
+      "project": "httpie",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 1,
+      "span": [
+        418,
+        470
+      ],
+      "start": "bece3c77bb51ecc55dcc4008375dc29ccd91575c",
+      "symbol": "ProgressReporterThread.report_speed"
+    },
+    {
+      "files_walked": 28,
+      "git_log_l": {
+        "commits": [
+          "06610325092f8be6d1d8810289343f5be5327a61",
+          "2afe0b0054694045aff3dd7e263b5c44f04c323a",
+          "2d8739dda9859b91bf2b7da5402d242555c48d7d",
+          "321d838ba880c3c3529997354617963bb501eaec",
+          "33ed943ad59fc99f469c0d9d52bfd8462542bf74",
+          "36098bf0d7ca1e8285f63963130877746dc2809d",
+          "361fd41f12b6f4982db91dc117074a8f5d9a2294",
+          "3653f906ebf7d249bb7e0a07f991f495f56f13b7",
+          "37a1db225420851cc668600c49697d9a2057f098",
+          "544625545afe2e9c2b358e356c11bb8be53ceb51",
+          "5f7e78df65a865084a34fc54a6cb4f78c1592137",
+          "6fc8660a5148c1693e2c02874ffdb6a7d8f1a2c8",
+          "a164addd8d5d1642d613100226a94398d929804d",
+          "aa21a15bd3b1f5a32f49710d771f2c59deb9c7a0",
+          "b2e8d5ab7c476fbed088ebee27ec3373e508af47",
+          "b581eb3f27a49c57f861ae64a3dfdd6f8fba53b3",
+          "ea47e6de279397cb1adf953ae971cf884587447d"
+        ],
+        "f1": 0.9714,
+        "precision": 1.0,
+        "recall": 0.9444
+      },
+      "kind": "method",
+      "line": 245,
+      "lineage": {
+        "commits": [
+          "06610325092f8be6d1d8810289343f5be5327a61",
+          "2afe0b0054694045aff3dd7e263b5c44f04c323a",
+          "2d8739dda9859b91bf2b7da5402d242555c48d7d",
+          "321d838ba880c3c3529997354617963bb501eaec",
+          "33ed943ad59fc99f469c0d9d52bfd8462542bf74",
+          "36098bf0d7ca1e8285f63963130877746dc2809d",
+          "361fd41f12b6f4982db91dc117074a8f5d9a2294",
+          "3653f906ebf7d249bb7e0a07f991f495f56f13b7",
+          "37a1db225420851cc668600c49697d9a2057f098",
+          "544625545afe2e9c2b358e356c11bb8be53ceb51",
+          "5f7e78df65a865084a34fc54a6cb4f78c1592137",
+          "6fc8660a5148c1693e2c02874ffdb6a7d8f1a2c8",
+          "a164addd8d5d1642d613100226a94398d929804d",
+          "aa21a15bd3b1f5a32f49710d771f2c59deb9c7a0",
+          "b2e8d5ab7c476fbed088ebee27ec3373e508af47",
+          "b581eb3f27a49c57f861ae64a3dfdd6f8fba53b3",
+          "e5844deadccf77aef650b6af263453a2e2d83e09",
+          "ea47e6de279397cb1adf953ae971cf884587447d"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "__init__",
+      "oracle": "keras-optimizers-__init__",
+      "oracle_commits": [
+        "06610325092f8be6d1d8810289343f5be5327a61",
+        "2afe0b0054694045aff3dd7e263b5c44f04c323a",
+        "2d8739dda9859b91bf2b7da5402d242555c48d7d",
+        "321d838ba880c3c3529997354617963bb501eaec",
+        "33ed943ad59fc99f469c0d9d52bfd8462542bf74",
+        "36098bf0d7ca1e8285f63963130877746dc2809d",
+        "361fd41f12b6f4982db91dc117074a8f5d9a2294",
+        "3653f906ebf7d249bb7e0a07f991f495f56f13b7",
+        "37a1db225420851cc668600c49697d9a2057f098",
+        "544625545afe2e9c2b358e356c11bb8be53ceb51",
+        "5f7e78df65a865084a34fc54a6cb4f78c1592137",
+        "6fc8660a5148c1693e2c02874ffdb6a7d8f1a2c8",
+        "a164addd8d5d1642d613100226a94398d929804d",
+        "aa21a15bd3b1f5a32f49710d771f2c59deb9c7a0",
+        "b2e8d5ab7c476fbed088ebee27ec3373e508af47",
+        "b581eb3f27a49c57f861ae64a3dfdd6f8fba53b3",
+        "e5844deadccf77aef650b6af263453a2e2d83e09",
+        "ea47e6de279397cb1adf953ae971cf884587447d"
+      ],
+      "path": "keras/optimizers.py",
+      "project": "keras",
+      "projected_labels": 3,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        245,
+        254
+      ],
+      "start": "7a39b6c62d43c25472b2c2476bd2a8983ae4f682",
+      "symbol": "RMSprop.__init__"
+    },
+    {
+      "files_walked": 15,
+      "git_log_l": {
+        "commits": [
+          "cf3b3dff329cb2b50724ef44977abfd0a841ad77",
+          "f04fdec9e61eabe9750af00f56c18bdde8972045"
+        ],
+        "f1": 0.5,
+        "precision": 1.0,
+        "recall": 0.3333
+      },
+      "kind": "method",
+      "line": 33,
+      "lineage": {
+        "commits": [
+          "1c630c3e3c8969b40a47d07b9f2edda50ec69720",
+          "ff62eb251b04b8301e71aee970bdb157f2649fa9"
+        ],
+        "f1": 0.25,
+        "precision": 0.5,
+        "recall": 0.1667
+      },
+      "name": "__init__",
+      "oracle": "keras-regularizers-__init__",
+      "oracle_commits": [
+        "90d0eb9b88c5ef6f756574f60d314c0aa7916f2c",
+        "cc750adf60aab3e339269e552e0e6559546c7b7d",
+        "cf3b3dff329cb2b50724ef44977abfd0a841ad77",
+        "f04fdec9e61eabe9750af00f56c18bdde8972045",
+        "fe00f5ff6436a94a1212676916a9edd824d44338",
+        "ff62eb251b04b8301e71aee970bdb157f2649fa9"
+      ],
+      "path": "keras/regularizers.py",
+      "project": "keras",
+      "projected_labels": 2,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        33,
+        35
+      ],
+      "start": "efe72ef433852b1d7d54f283efff53085ec4f756",
+      "symbol": "L1L2.__init__"
+    },
+    {
+      "files_walked": 24,
+      "git_log_l": {
+        "commits": [
+          "1862b9c3ee60575a54d5c02a8f00e12cccf85d71"
+        ],
+        "f1": 0.6667,
+        "precision": 1.0,
+        "recall": 0.5
+      },
+      "kind": "top-level",
+      "line": 47,
+      "lineage": {
+        "commits": [
+          "1862b9c3ee60575a54d5c02a8f00e12cccf85d71",
+          "30d14a96d518555853f1bcac60641f3bcd73f150"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "unpack_inputs",
+      "oracle": "models-tf_utils-unpack_inputs",
+      "oracle_commits": [
+        "1862b9c3ee60575a54d5c02a8f00e12cccf85d71",
+        "30d14a96d518555853f1bcac60641f3bcd73f150"
+      ],
+      "path": "official/modeling/tf_utils.py",
+      "project": "models",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        47,
+        70
+      ],
+      "start": "e37e8049ff079786b680c36eacb676f1173f65c5",
+      "symbol": "unpack_inputs"
+    },
+    {
+      "files_walked": 35,
+      "git_log_l": {
+        "commits": [
+          "f1d35b4ee525e4a2ef434414268eb050de81da7b"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 195,
+      "lineage": {
+        "commits": [
+          "f1d35b4ee525e4a2ef434414268eb050de81da7b"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "call",
+      "oracle": "models-transformer-call",
+      "oracle_commits": [
+        "f1d35b4ee525e4a2ef434414268eb050de81da7b"
+      ],
+      "path": "official/nlp/modeling/layers/transformer.py",
+      "project": "models",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        195,
+        228
+      ],
+      "start": "5c15ce77868cad6c09b95423c10222ff2ca7fad7",
+      "symbol": "Transformer.call"
+    },
+    {
+      "files_walked": 4,
+      "git_log_l": {
+        "commits": [
+          "5c906ff9262a2e1c250486eef5420da38cddf63d",
+          "8b15dff89a0386110459bfd8ef6af96c75320439"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "nested",
+      "line": 54,
+      "lineage": {
+        "commits": [
+          "5c906ff9262a2e1c250486eef5420da38cddf63d",
+          "8b15dff89a0386110459bfd8ef6af96c75320439"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "decorate",
+      "oracle": "pandas-_version-decorate",
+      "oracle_commits": [
+        "5c906ff9262a2e1c250486eef5420da38cddf63d",
+        "8b15dff89a0386110459bfd8ef6af96c75320439"
+      ],
+      "path": "pandas/_version.py",
+      "project": "pandas",
+      "projected_labels": 1,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        54,
+        58
+      ],
+      "start": "eddd9f09a76628e1842cc19634b3f9b9f3b0fe83",
+      "symbol": "register_vcs_handler"
+    },
+    {
+      "files_walked": 4,
+      "git_log_l": {
+        "commits": [
+          "0436570f05c3b6e7bbb7c7d8fc8fa2f28a0420a8",
+          "26a2d41ebdb506e2419f2b38a53ecf622d16c319",
+          "2bf5ce76ded6e05aba88f27adc6459d32c5f6144",
+          "6b0c7e72b141831b7a9a5651f9e19eef53ec9e76",
+          "76b35c6662136302d212448906c1c8bf8225fffd",
+          "9c37226a228784e993a220a02424fc8b68fe8257",
+          "a85f1d7dcbddb32eaf6b848bf184ae422b7771fa",
+          "bb6135880e5e453d7701764b9f2e4ad3356a68d7",
+          "bcaa5da3671b2fd1b3dfca98ebd529d3525815c0",
+          "d691ec01cdd892920a4eabca458f72025a2e1b8b",
+          "d9b3993cc3722ddd01367089d374652c0b5ce0ce",
+          "f7d6b584f83babf3f5c6d1610f6150d809be460f"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 267,
+      "lineage": {
+        "commits": [
+          "0436570f05c3b6e7bbb7c7d8fc8fa2f28a0420a8",
+          "26a2d41ebdb506e2419f2b38a53ecf622d16c319",
+          "2bf5ce76ded6e05aba88f27adc6459d32c5f6144",
+          "6b0c7e72b141831b7a9a5651f9e19eef53ec9e76",
+          "76b35c6662136302d212448906c1c8bf8225fffd",
+          "9c37226a228784e993a220a02424fc8b68fe8257",
+          "a85f1d7dcbddb32eaf6b848bf184ae422b7771fa",
+          "bcaa5da3671b2fd1b3dfca98ebd529d3525815c0",
+          "d691ec01cdd892920a4eabca458f72025a2e1b8b",
+          "d9b3993cc3722ddd01367089d374652c0b5ce0ce",
+          "f7d6b584f83babf3f5c6d1610f6150d809be460f"
+        ],
+        "f1": 0.9565,
+        "precision": 1.0,
+        "recall": 0.9167
+      },
+      "name": "apply_standard",
+      "oracle": "pandas-apply-apply_standard",
+      "oracle_commits": [
+        "0436570f05c3b6e7bbb7c7d8fc8fa2f28a0420a8",
+        "26a2d41ebdb506e2419f2b38a53ecf622d16c319",
+        "2bf5ce76ded6e05aba88f27adc6459d32c5f6144",
+        "6b0c7e72b141831b7a9a5651f9e19eef53ec9e76",
+        "76b35c6662136302d212448906c1c8bf8225fffd",
+        "9c37226a228784e993a220a02424fc8b68fe8257",
+        "a85f1d7dcbddb32eaf6b848bf184ae422b7771fa",
+        "bb6135880e5e453d7701764b9f2e4ad3356a68d7",
+        "bcaa5da3671b2fd1b3dfca98ebd529d3525815c0",
+        "d691ec01cdd892920a4eabca458f72025a2e1b8b",
+        "d9b3993cc3722ddd01367089d374652c0b5ce0ce",
+        "f7d6b584f83babf3f5c6d1610f6150d809be460f"
+      ],
+      "path": "pandas/core/apply.py",
+      "project": "pandas",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        267,
+        315
+      ],
+      "start": "555e6e1cbb852b2b0c2cd13f6f575656254160f6",
+      "symbol": "FrameApply.apply_standard"
+    },
+    {
+      "files_walked": 2,
+      "git_log_l": {
+        "commits": [
+          "4b34e6df44ddb02ab82319589e848a1fece47a91",
+          "5ac8ab5bc1ba92876781ada01e6ed0e2ef356ab3",
+          "6418e7f8c9d9ad9f8248211d24902004033713b1",
+          "6c7eb4557ac5bd4b5b058bd33b91a51f86989cc1",
+          "6e6d235981368f96006915b61516e7dc4e7f2e45",
+          "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+          "dc7163523f9e7a5a1c5471ae3aec78a6fc356160",
+          "e1b913401ebe08ee6d97761019c7714c34753158"
+        ],
+        "f1": 0.4286,
+        "precision": 0.75,
+        "recall": 0.3
+      },
+      "kind": "top-level",
+      "line": 102,
+      "lineage": {
+        "commits": [
+          "2a0c3a4bdf4b56e07c569596d5cc287c00dcc36c",
+          "4b34e6df44ddb02ab82319589e848a1fece47a91",
+          "4ea3e3e8d8f1ac333eecd4b81536179f8096d42b",
+          "5ac8ab5bc1ba92876781ada01e6ed0e2ef356ab3",
+          "5d7be6b7bdc531622a2a72163804a806aeeef93f",
+          "61bb9823301307dc53b5e138234e0567facd8f68",
+          "6752af0245a6bc2eaf01941676df830c66a7c508",
+          "6c7eb4557ac5bd4b5b058bd33b91a51f86989cc1",
+          "6e6d235981368f96006915b61516e7dc4e7f2e45",
+          "85cd6a104bd1cf4d0cdddfe3519a48df62867337",
+          "95ff64600a7d005f7eb660df95c936288690f7da",
+          "9a98c5bdf98d10edbeac15961694d17ea1dea096",
+          "a7f4f5a9a8059208046bc28ffe5f80a2ab58d837",
+          "af9df567fd4712800d0ccecafa4b0301f105b13b",
+          "b7c9aa3b3a8aea5a568da3bdcb6f1ce7d3837fa8",
+          "bdb9ac415bc9811272fbdf40cffa2dcae8626028",
+          "dc4495be37100e4b6f489db4d294a789b8f1e8d5",
+          "dc7163523f9e7a5a1c5471ae3aec78a6fc356160",
+          "e1b913401ebe08ee6d97761019c7714c34753158"
+        ],
+        "f1": 0.9744,
+        "precision": 1.0,
+        "recall": 0.95
+      },
+      "name": "get_error_message",
+      "oracle": "rebound-rebound-get_error_message",
+      "oracle_commits": [
+        "2a0c3a4bdf4b56e07c569596d5cc287c00dcc36c",
+        "4b34e6df44ddb02ab82319589e848a1fece47a91",
+        "4ea3e3e8d8f1ac333eecd4b81536179f8096d42b",
+        "5ac8ab5bc1ba92876781ada01e6ed0e2ef356ab3",
+        "5d7be6b7bdc531622a2a72163804a806aeeef93f",
+        "61bb9823301307dc53b5e138234e0567facd8f68",
+        "6752af0245a6bc2eaf01941676df830c66a7c508",
+        "6c7eb4557ac5bd4b5b058bd33b91a51f86989cc1",
+        "6e6d235981368f96006915b61516e7dc4e7f2e45",
+        "85cd6a104bd1cf4d0cdddfe3519a48df62867337",
+        "9166928bd6d148a4fa32bd62bb801e193224cc0e",
+        "95ff64600a7d005f7eb660df95c936288690f7da",
+        "9a98c5bdf98d10edbeac15961694d17ea1dea096",
+        "a7f4f5a9a8059208046bc28ffe5f80a2ab58d837",
+        "af9df567fd4712800d0ccecafa4b0301f105b13b",
+        "b7c9aa3b3a8aea5a568da3bdcb6f1ce7d3837fa8",
+        "bdb9ac415bc9811272fbdf40cffa2dcae8626028",
+        "dc4495be37100e4b6f489db4d294a789b8f1e8d5",
+        "dc7163523f9e7a5a1c5471ae3aec78a6fc356160",
+        "e1b913401ebe08ee6d97761019c7714c34753158"
+      ],
+      "path": "rebound/rebound.py",
+      "project": "rebound",
+      "projected_labels": 6,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        102,
+        132
+      ],
+      "start": "0dc15bce43a66ef71901ce7a9e1c54b80f5ea856",
+      "symbol": "get_error_message"
+    },
+    {
+      "files_walked": 2,
+      "git_log_l": {
+        "commits": [
+          "4b34e6df44ddb02ab82319589e848a1fece47a91",
+          "5ac8ab5bc1ba92876781ada01e6ed0e2ef356ab3",
+          "6418e7f8c9d9ad9f8248211d24902004033713b1",
+          "67b61dd763d288955749bcc41377a07b4893786a",
+          "6e6d235981368f96006915b61516e7dc4e7f2e45",
+          "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+          "dc7163523f9e7a5a1c5471ae3aec78a6fc356160",
+          "e1b913401ebe08ee6d97761019c7714c34753158"
+        ],
+        "f1": 0.56,
+        "precision": 0.875,
+        "recall": 0.4118
+      },
+      "kind": "top-level",
+      "line": 84,
+      "lineage": {
+        "commits": [
+          "2a0c3a4bdf4b56e07c569596d5cc287c00dcc36c",
+          "4b34e6df44ddb02ab82319589e848a1fece47a91",
+          "4ea3e3e8d8f1ac333eecd4b81536179f8096d42b",
+          "5ac8ab5bc1ba92876781ada01e6ed0e2ef356ab3",
+          "5d7be6b7bdc531622a2a72163804a806aeeef93f",
+          "61bb9823301307dc53b5e138234e0567facd8f68",
+          "6752af0245a6bc2eaf01941676df830c66a7c508",
+          "67b61dd763d288955749bcc41377a07b4893786a",
+          "6e6d235981368f96006915b61516e7dc4e7f2e45",
+          "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+          "a7f4f5a9a8059208046bc28ffe5f80a2ab58d837",
+          "af9df567fd4712800d0ccecafa4b0301f105b13b",
+          "b7c9aa3b3a8aea5a568da3bdcb6f1ce7d3837fa8",
+          "bdb9ac415bc9811272fbdf40cffa2dcae8626028",
+          "dc4495be37100e4b6f489db4d294a789b8f1e8d5",
+          "dc7163523f9e7a5a1c5471ae3aec78a6fc356160",
+          "e1b913401ebe08ee6d97761019c7714c34753158"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "get_language",
+      "oracle": "rebound-rebound-get_language",
+      "oracle_commits": [
+        "2a0c3a4bdf4b56e07c569596d5cc287c00dcc36c",
+        "4b34e6df44ddb02ab82319589e848a1fece47a91",
+        "4ea3e3e8d8f1ac333eecd4b81536179f8096d42b",
+        "5ac8ab5bc1ba92876781ada01e6ed0e2ef356ab3",
+        "5d7be6b7bdc531622a2a72163804a806aeeef93f",
+        "61bb9823301307dc53b5e138234e0567facd8f68",
+        "6752af0245a6bc2eaf01941676df830c66a7c508",
+        "67b61dd763d288955749bcc41377a07b4893786a",
+        "6e6d235981368f96006915b61516e7dc4e7f2e45",
+        "a468be4e3ac7a1691061114214b3c1ae58ddfcb7",
+        "a7f4f5a9a8059208046bc28ffe5f80a2ab58d837",
+        "af9df567fd4712800d0ccecafa4b0301f105b13b",
+        "b7c9aa3b3a8aea5a568da3bdcb6f1ce7d3837fa8",
+        "bdb9ac415bc9811272fbdf40cffa2dcae8626028",
+        "dc4495be37100e4b6f489db4d294a789b8f1e8d5",
+        "dc7163523f9e7a5a1c5471ae3aec78a6fc356160",
+        "e1b913401ebe08ee6d97761019c7714c34753158"
+      ],
+      "path": "rebound/rebound.py",
+      "project": "rebound",
+      "projected_labels": 5,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        84,
+        99
+      ],
+      "start": "61a1abd4acdfe867711da49e3a36546dade6add9",
+      "symbol": "get_language"
+    },
+    {
+      "files_walked": 380,
+      "git_log_l": {
+        "commits": [
+          "11b61921cc9681939f53f2512c45c5341b0f69ff",
+          "8192ceaa365833caae987fb12d3e1653b1dfd74d",
+          "834608ec1dc5de20b25411f283df739fc110478b",
+          "aaa5ca45f5d7a2e2f32e941e15b9fad56ffcd595",
+          "c68ad194e92b72e05302e5a2f476a46672a2f4b8",
+          "c7795695d06622acc805e98c83c305de1cb5905f",
+          "e7d451954619e9bed02aaf72ea6f920e1051c60a",
+          "ee5f93c6b3af1a903f46888cd34f568308461ec7"
+        ],
+        "f1": 0.5,
+        "precision": 0.375,
+        "recall": 0.75
+      },
+      "kind": "method",
+      "line": 377,
+      "lineage": {
+        "commits": [
+          "437ca0553ce8d97571cecc3f4df8493e5cf959c5",
+          "8192ceaa365833caae987fb12d3e1653b1dfd74d",
+          "834608ec1dc5de20b25411f283df739fc110478b",
+          "c7795695d06622acc805e98c83c305de1cb5905f"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "_validate_X_predict",
+      "oracle": "scikit-learn-_classes-_validate_X_predict",
+      "oracle_commits": [
+        "437ca0553ce8d97571cecc3f4df8493e5cf959c5",
+        "8192ceaa365833caae987fb12d3e1653b1dfd74d",
+        "834608ec1dc5de20b25411f283df739fc110478b",
+        "c7795695d06622acc805e98c83c305de1cb5905f"
+      ],
+      "path": "sklearn/tree/_classes.py",
+      "project": "scikit-learn",
+      "projected_labels": 4,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        377,
+        393
+      ],
+      "start": "9e5819aa413ce907134ee5704abba43ad8a61827",
+      "symbol": "BaseDecisionTree._validate_X_predict"
+    },
+    {
+      "files_walked": 7,
+      "git_log_l": {
+        "commits": [
+          "6252883f49a2e2cd632471ce1017567af529c423",
+          "aff7da78347fc3ef0ff104ce7aab14ffbb486b64",
+          "b3c22194b1db90fb6c0effe697fe2ae4d65f7318",
+          "b484aa443217d75273dd4c2d11de602b110309b8",
+          "b4b5de8cf9748a07d8f3a2d1fc89ccaacdf6576f",
+          "c7795695d06622acc805e98c83c305de1cb5905f"
+        ],
+        "f1": 0.6667,
+        "precision": 0.5,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 1001,
+      "lineage": {
+        "commits": [
+          "6252883f49a2e2cd632471ce1017567af529c423",
+          "b4b5de8cf9748a07d8f3a2d1fc89ccaacdf6576f",
+          "c7795695d06622acc805e98c83c305de1cb5905f"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "_update_feature_log_prob",
+      "oracle": "scikit-learn-naive_bayes-_update_feature_log_prob",
+      "oracle_commits": [
+        "6252883f49a2e2cd632471ce1017567af529c423",
+        "b4b5de8cf9748a07d8f3a2d1fc89ccaacdf6576f",
+        "c7795695d06622acc805e98c83c305de1cb5905f"
+      ],
+      "path": "sklearn/naive_bayes.py",
+      "project": "scikit-learn",
+      "projected_labels": 3,
+      "property_part": false,
+      "rename_or_move": true,
+      "rounds": 2,
+      "span": [
+        1001,
+        1007
+      ],
+      "start": "9e5819aa413ce907134ee5704abba43ad8a61827",
+      "symbol": "BernoulliNB._update_feature_log_prob"
+    },
+    {
+      "files_walked": 1,
+      "git_log_l": {
+        "commits": [
+          "371a7768ad611417c6e94a31878481e7c656607a",
+          "719d6c49dfcf1b5a0ce80182755038b347eb7cc4",
+          "873aca4a8243e3187fc00c38ae4da80ccf0cd88a",
+          "c3cd3e94c16c80371e97ea224eb02c80660ec1db",
+          "d1ff4293a51c6e565c5de1aa553cf7911e88b325",
+          "e603237010c6bb3520ae0b01454876bea443f85b",
+          "fb6abe1b1e9c9491f630879aeb6adf8921d92d3c"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "kind": "top-level",
+      "line": 142,
+      "lineage": {
+        "commits": [
+          "371a7768ad611417c6e94a31878481e7c656607a",
+          "719d6c49dfcf1b5a0ce80182755038b347eb7cc4",
+          "873aca4a8243e3187fc00c38ae4da80ccf0cd88a",
+          "c3cd3e94c16c80371e97ea224eb02c80660ec1db",
+          "d1ff4293a51c6e565c5de1aa553cf7911e88b325",
+          "e603237010c6bb3520ae0b01454876bea443f85b",
+          "fb6abe1b1e9c9491f630879aeb6adf8921d92d3c"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "common_get_active_user",
+      "oracle": "zulip-backends-common_get_active_user",
+      "oracle_commits": [
+        "371a7768ad611417c6e94a31878481e7c656607a",
+        "719d6c49dfcf1b5a0ce80182755038b347eb7cc4",
+        "873aca4a8243e3187fc00c38ae4da80ccf0cd88a",
+        "c3cd3e94c16c80371e97ea224eb02c80660ec1db",
+        "d1ff4293a51c6e565c5de1aa553cf7911e88b325",
+        "e603237010c6bb3520ae0b01454876bea443f85b",
+        "fb6abe1b1e9c9491f630879aeb6adf8921d92d3c"
+      ],
+      "path": "zproject/backends.py",
+      "project": "zulip",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 1,
+      "span": [
+        142,
+        164
+      ],
+      "start": "6407d0b1f96623760094c604be2e8d1243d06142",
+      "symbol": "common_get_active_user"
+    },
+    {
+      "files_walked": 3,
+      "git_log_l": {
+        "commits": [
+          "1e3aa55f4f238d392fa7c0ddb5c4216c5656ba9a",
+          "35c4a9f1d2b3adf5820cc239afd5caba2062b93f",
+          "6b2b7ab3ffc2e0c68ca4457ce7ac55ddc95a239e",
+          "71d34e91bddba5641ceb8149ade7f6dbf2c12d3e",
+          "802de53ede18e6758c19b24ae43ea958599b50d1",
+          "80d62de40a7f0a27e0fc7e1d9b010a60050ebe4c",
+          "86125080d1b0dba907142d683648967356d3eab2",
+          "9bb6d45c06c84b10fd03ba7f97e550e23af79144",
+          "da84ff37469712ec45173b475583cef52f6c43c2"
+        ],
+        "f1": 0.2,
+        "precision": 0.1111,
+        "recall": 1.0
+      },
+      "kind": "method",
+      "line": 1147,
+      "lineage": {
+        "commits": [
+          "35c4a9f1d2b3adf5820cc239afd5caba2062b93f"
+        ],
+        "f1": 1.0,
+        "precision": 1.0,
+        "recall": 1.0
+      },
+      "name": "user_data",
+      "oracle": "zulip-backends-user_data",
+      "oracle_commits": [
+        "35c4a9f1d2b3adf5820cc239afd5caba2062b93f"
+      ],
+      "path": "zproject/backends.py",
+      "project": "zulip",
+      "projected_labels": 0,
+      "property_part": false,
+      "rename_or_move": false,
+      "rounds": 2,
+      "span": [
+        1147,
+        1171
+      ],
+      "start": "67b6179df28522274ebdc66e6820a6e7e41511fa",
+      "symbol": "GitHubAuthBackend.user_data"
+    }
+  ],
+  "inputs": {
+    "codeshovel_commit": "0d29f498cc619078aaac61aa6132a153664fe123",
+    "detector": "lineage-mvp-1",
+    "git": "2.43.0",
+    "git_log_l": "git 2.43.0 log --first-parent --format=%H -s -L <span>:<path>",
+    "oracle_files": 40,
+    "oracle_sha256": "56f913f7d022a4ebe6f39223ddf0908f597d935768da500644d7987acfc4dffb",
+    "preregistration_commit": "a462b0ed644d9eb6d2ec0957d16d5def0809a463",
+    "repository_commit": "2671da966bb38d327dd3db8feb23961aa6d38fa5"
+  },
+  "means": {
+    "all": {
+      "git_log_l": {
+        "f1": 0.8363,
+        "precision": 0.8528,
+        "recall": 0.8833
+      },
+      "lineage": {
+        "f1": 0.8994,
+        "precision": 0.9435,
+        "recall": 0.9059
+      },
+      "n": 40
+    },
+    "nested_or_property": {
+      "git_log_l": {
+        "f1": 0.9793,
+        "precision": 0.9733,
+        "recall": 0.9857
+      },
+      "lineage": {
+        "f1": 0.6339,
+        "precision": 0.7258,
+        "recall": 0.8095
+      },
+      "n": 5
+    },
+    "rename_or_move": {
+      "git_log_l": {
+        "f1": 0.7434,
+        "precision": 0.804,
+        "recall": 0.75
+      },
+      "lineage": {
+        "f1": 0.8803,
+        "precision": 0.993,
+        "recall": 0.8221
+      },
+      "n": 16
+    }
+  },
+  "oracle": {
+    "commits": 310,
+    "functions": 40,
+    "labels": 327,
+    "projected_labels": 61
+  },
+  "schema": 1
+}
