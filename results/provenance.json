@@ -1,0 +1,299 @@
+{
+  "arm_sizes": {
+    "A": {
+      "max": 62,
+      "median": 6.0,
+      "p90": 17.0,
+      "zero": 0
+    },
+    "C": {
+      "max": 99,
+      "median": 9.0,
+      "p90": 35.0,
+      "zero": 0
+    },
+    "L": {
+      "max": 153,
+      "median": 8.0,
+      "p90": 32.0,
+      "zero": 0
+    }
+  },
+  "claim_1": {
+    "difference": 0.3134,
+    "interval": [
+      0.2993,
+      0.3274
+    ],
+    "threshold": 0.05,
+    "verdict": "holds"
+  },
+  "claim_2": {
+    "difference": -0.0266,
+    "interval": [
+      -0.0397,
+      -0.0134
+    ],
+    "reading": "blame is more precise per commit, and lineage's gain is coverage alone"
+  },
+  "cross_check": {
+    "agrees": true,
+    "commits_per_function": {
+      "arm_a": {
+        "max": 62,
+        "median": 3.0,
+        "p90": 10.0,
+        "zero": 0
+      },
+      "arm_c": {
+        "max": 99,
+        "median": 5.0,
+        "p90": 17.0,
+        "zero": 0
+      },
+      "arm_l": {
+        "max": 153,
+        "median": 4.0,
+        "p90": 17.0,
+        "zero": 0
+      },
+      "blame_unfiltered": {
+        "max": 65,
+        "median": 3.0,
+        "p90": 11.0,
+        "zero": 0
+      }
+    }
+  },
+  "differences": {
+    "B-A": {
+      "difference": -0.0266,
+      "interval": [
+        -0.0397,
+        -0.0134
+      ],
+      "n": 4206,
+      "over_validity": {
+        "at_lower": -0.0313,
+        "at_point": -0.0278,
+        "at_upper": -0.0269
+      },
+      "prob_not_better": 1.0
+    },
+    "C-A": {
+      "difference": 0.3134,
+      "discordant": 1322,
+      "interval": [
+        0.2993,
+        0.3274
+      ],
+      "mde": 0.0169,
+      "n": 4206,
+      "over_validity": {
+        "at_lower": 0.3692,
+        "at_point": 0.328,
+        "at_upper": 0.3172
+      },
+      "prob_not_better": 0.0
+    },
+    "C-B": {
+      "difference": 0.34,
+      "interval": [
+        0.3329,
+        0.3472
+      ],
+      "n": 4206,
+      "over_validity": {
+        "at_lower": 0.4005,
+        "at_point": 0.3558,
+        "at_upper": 0.3441
+      },
+      "prob_not_better": 0.0
+    },
+    "L-A": {
+      "difference": 0.2463,
+      "discordant": 1082,
+      "interval": [
+        0.2335,
+        0.2596
+      ],
+      "mde": 0.0153,
+      "n": 4206,
+      "over_validity": {
+        "at_lower": 0.2902,
+        "at_point": 0.2578,
+        "at_upper": 0.2493
+      },
+      "prob_not_better": 0.0
+    },
+    "blame_unfiltered-A": {
+      "difference": -0.0145,
+      "discordant": 61,
+      "interval": [
+        -0.0181,
+        -0.0112
+      ],
+      "mde": 0.0036,
+      "n": 4206,
+      "over_validity": {
+        "at_lower": -0.0171,
+        "at_point": -0.0152,
+        "at_upper": -0.0147
+      },
+      "prob_not_better": 1.0
+    }
+  },
+  "inputs": {
+    "blame": "git 2.43.0 blame --porcelain -w -M --first-parent; filtered with --ignore-revs-file: 2223 mechanical commits, sha256 d6ecef8da2574401f262336f2f0361eea3e8090e9ba008bd06213cec97080216",
+    "detector": "lineage-mvp-1",
+    "functions": 1777,
+    "golden_sha256": "a6ffb590fad4d590ed0e0349e9517c19d158d7d7b26c9477387447bcd455d990",
+    "line_log": "git 2.43.0 log --first-parent --format=%H -s -L <span>:<path>",
+    "pinned": "1e2ad803f74eadb5fb28d4504ca06b008c48b63e",
+    "pool_version": "rationale-v1:commit=6810,issue_comment=18972,pull_request=5961,review_comment=38026",
+    "preregistration_commit": "a462b0ed644d9eb6d2ec0957d16d5def0809a463",
+    "questions": 4206,
+    "repository_commit": "dfcba182e998ba9075c839c04fffaeaf91988048"
+  },
+  "qualification": {
+    "agreement_check": {
+      "mean_f1": {
+        "hi": 0.8173,
+        "lo": 0.7207,
+        "n": 100,
+        "point": 0.7711
+      },
+      "threshold": 0.9,
+      "verdict": "misses"
+    },
+    "source": "results/lineage.json"
+  },
+  "recall": {
+    "A": {
+      "all": {
+        "hi": 0.6938,
+        "lo": 0.6652,
+        "n": 4206,
+        "point": 0.6795
+      },
+      "by_class": {
+        "archaeology": {
+          "hi": 0.6488,
+          "lo": 0.6147,
+          "n": 3135,
+          "point": 0.6319
+        },
+        "provenance": {
+          "hi": 0.8413,
+          "lo": 0.7955,
+          "n": 1071,
+          "point": 0.8189
+        }
+      }
+    },
+    "B": {
+      "all": {
+        "hi": 0.66,
+        "lo": 0.6456,
+        "n": 4206,
+        "point": 0.6529
+      },
+      "by_class": {
+        "archaeology": {
+          "hi": 0.6222,
+          "lo": 0.6051,
+          "n": 3135,
+          "point": 0.6137
+        },
+        "provenance": {
+          "hi": 0.782,
+          "lo": 0.7537,
+          "n": 1071,
+          "point": 0.7677
+        }
+      }
+    },
+    "C": {
+      "all": {
+        "hi": 0.9952,
+        "lo": 0.9903,
+        "n": 4206,
+        "point": 0.9929
+      },
+      "by_class": {
+        "archaeology": {
+          "hi": 0.9936,
+          "lo": 0.9869,
+          "n": 3135,
+          "point": 0.9904
+        },
+        "provenance": {
+          "hi": 1.0,
+          "lo": 1.0,
+          "n": 1071,
+          "point": 1.0
+        }
+      }
+    },
+    "L": {
+      "all": {
+        "hi": 0.9334,
+        "lo": 0.918,
+        "n": 4206,
+        "point": 0.9258
+      },
+      "by_class": {
+        "archaeology": {
+          "hi": 0.9544,
+          "lo": 0.9388,
+          "n": 3135,
+          "point": 0.9467
+        },
+        "provenance": {
+          "hi": 0.8842,
+          "lo": 0.8441,
+          "n": 1071,
+          "point": 0.8646
+        }
+      }
+    },
+    "blame_unfiltered": {
+      "all": {
+        "hi": 0.6793,
+        "lo": 0.6507,
+        "n": 4206,
+        "point": 0.665
+      },
+      "by_class": {
+        "archaeology": {
+          "hi": 0.6316,
+          "lo": 0.5974,
+          "n": 3135,
+          "point": 0.6147
+        },
+        "provenance": {
+          "hi": 0.8348,
+          "lo": 0.788,
+          "n": 1071,
+          "point": 0.8123
+        }
+      }
+    }
+  },
+  "schema": 1,
+  "split": {
+    "B-A": -0.0266,
+    "C-A": 0.3134,
+    "C-B": 0.34,
+    "adds_up": true
+  },
+  "validity": {
+    "ci95": [
+      0.8488,
+      0.9879
+    ],
+    "rate": 0.9554,
+    "source": "results/gold_validity_audit.json",
+    "status": "current"
+  }
+}
