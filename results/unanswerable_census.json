@@ -1,0 +1,82 @@
+{
+  "inputs": {
+    "counts": {
+      "dev": 300,
+      "test": 214
+    },
+    "generation_strategy": "unanswerable_v0",
+    "golden_sha256": "a6ffb590fad4d590ed0e0349e9517c19d158d7d7b26c9477387447bcd455d990",
+    "lineage": {
+      "alive": 2808,
+      "names_seen": 5073
+    },
+    "pinned": "1e2ad803f74eadb5fb28d4504ca06b008c48b63e",
+    "pool_version": "rationale-v1:commit=6810,issue_comment=18972,pull_request=5961,review_comment=38026",
+    "salt": "pace-unanswerable-v1:"
+  },
+  "schema": 1,
+  "splits": {
+    "dev": {
+      "retained": 4206,
+      "s3": {
+        "count": 300,
+        "read": 300,
+        "templates": {
+          "added": 64,
+          "changed": 236
+        }
+      },
+      "s4": {
+        "count": 300,
+        "read": 334,
+        "templates": {
+          "changed": 300
+        }
+      },
+      "s5": {
+        "already_used": 15,
+        "count": 300,
+        "found_in_the_pool": 39,
+        "no_parts": 22,
+        "read": 317,
+        "seen_by_lineage": 56,
+        "templates": {
+          "added": 81,
+          "changed": 219
+        },
+        "tried": 410
+      }
+    },
+    "test": {
+      "retained": 2993,
+      "s3": {
+        "count": 214,
+        "read": 214,
+        "templates": {
+          "added": 61,
+          "changed": 153
+        }
+      },
+      "s4": {
+        "count": 214,
+        "read": 288,
+        "templates": {
+          "changed": 214
+        }
+      },
+      "s5": {
+        "already_used": 68,
+        "count": 214,
+        "found_in_the_pool": 51,
+        "no_parts": 0,
+        "read": 232,
+        "seen_by_lineage": 100,
+        "templates": {
+          "added": 48,
+          "changed": 166
+        },
+        "tried": 433
+      }
+    }
+  }
+}
