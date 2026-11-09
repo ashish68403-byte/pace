@@ -3,7 +3,7 @@
 **Task(s):** [docs/tasks/function-identity/](../tasks/function-identity/) — 001 (checkpoint C, slice C1, the pre-registration) written 2026-11-08; 002 (slice C3a, the lineage engine on Airflow) written 2026-11-09; 003 (slice C3b, the oracle run) written 2026-11-09
 **Decision records:** [ADR-0005](../ADR-0005-lineage-vs-blame.md) — the lineage-against-blame experiment; [PREREGISTRATION.md](../PREREGISTRATION.md)
 **Priority:** P0
-**Status:** 🚧 In progress — slices C1, C2 and C3a done; C3b, the oracle run, next
+**Status:** 🚧 In progress — slices C1, C2, C3a and C3b done; C4, the comparison, next
 **Date:** 2026-10-06
 
 ---
@@ -61,3 +61,11 @@ implemented dependent variable, and a ground truth that may not exist.
   builds store the same content. Arm C has a median of 5 commits per question function. The
   agreement check misses 0.90 at 0.771, and ADR-0005's Addenda break the gap down. The engine is
   frozen as `lineage-mvp-1`. Next: slice C3b, one run on CodeShovel's oracle.
+- **2026-11-09 — slice C3b closed.** The frozen engine ran once on CodeShovel's 40 Python oracle
+  functions ([function-identity/003](../tasks/function-identity/003_oracle_run.md),
+  [results/oracle.json](../../results/oracle.json)), on `2671da966b`; a repeat wrote the same
+  bytes. Mean F1 is 0.8994 for lineage and 0.8363 for `git log -L`: a difference of 0.0631, 95%
+  paired interval -0.0242 to 0.1487 (n = 40). Claim 3 failed, in the pre-registered words: "The
+  lineage layer did not track Python functions measurably better than git log -L on
+  CodeShovel's oracle." The 16 rename-or-move functions, reported apart: 0.8803 against 0.7434.
+  On Airflow, lineage walks only the 303 in-scope files. Next: slice C4, the comparison.

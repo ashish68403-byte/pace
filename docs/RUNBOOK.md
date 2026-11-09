@@ -153,6 +153,20 @@ uv run pace measure lineage      # results/lineage.json, the same bytes on every
 
 `pace measure lineage` needs `pace blame build` first: its agreement check reads arm L.
 
+### The oracle run (claim 3)
+
+Slice C3b's single run ([tasks/function-identity/003](tasks/function-identity/003_oracle_run.md)).
+It reads CodeShovel's oracle and the ten projects' bare clones as data, and writes only
+`results/oracle.json`; nothing goes to the database.
+
+```bash
+uv run pace eval oracle --codeshovel ~/corpus/codeshovel --clones ~/corpus/oracle   # ~18 minutes
+```
+
+It writes nothing while a tracked file is modified, unless CodeShovel is at `0d29f498cc` with its
+40 oracle files unmodified, and unless every label is an ancestor of its start commit and every
+function resolves. It was run once, on `2671da966b`; a rerun writes the same bytes.
+
 ### Before pushing
 
 ```bash

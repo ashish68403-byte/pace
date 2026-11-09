@@ -2,7 +2,7 @@
 
 **Tracker:** [004_FUNCTION_IDENTITY](../../tracker/004_FUNCTION_IDENTITY.md), verification step 1
 (the oracle's number) · **checkpoint C**, slice C3b
-**Priority:** P0 · **Status:** ⬜ Not started
+**Priority:** P0 · **Status:** ✅ Done (2026-11-09)
 **Decision records:** [ADR-0005](../../ADR-0005-lineage-vs-blame.md) §7–§8 and its addendum of
 2026-11-09 on the oracle run; [`PREREGISTRATION.md`](../../PREREGISTRATION.md) claim 3 and its
 amendment of the same date — both in this spec's commit

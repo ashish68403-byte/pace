@@ -313,6 +313,16 @@ the same bytes.
   - **The transfer.** On Airflow the engine walks only the 303 in-scope files, so a function moved
     in from any other file is a birth there. The oracle measures the engine with every file its
     chains need, and claim 3's result is quoted with that difference.
+- **2026-11-09 — claim 3, measured (slice C3b).** The engine, frozen as `lineage-mvp-1`, ran
+  once on CodeShovel's 40 Python oracle functions under the rules above, on `2671da966b`; a
+  repeat wrote the same bytes ([results/oracle.json](../results/oracle.json)). Lineage's mean
+  commit-set F1 is 0.8994 and `git log -L`'s 0.8363: a difference of 0.0631, 95% paired
+  bootstrap interval -0.0242 to 0.1487. The difference clears `IDENTITY_MIN_F1_GAIN` (0.05), but
+  its interval does not lie above 0, so claim 3 failed. As the pre-registration requires, the
+  write-up says: "The lineage layer did not track Python functions measurably better than git
+  log -L on CodeShovel's oracle." The 16 rename-or-move functions, reported apart and deciding
+  nothing, score 0.8803 against 0.7434. The oracle measured the engine with every file its
+  chains need; Airflow's lineage walks only the 303 in-scope files.
 
 ## References
 

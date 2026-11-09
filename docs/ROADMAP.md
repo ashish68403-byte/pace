@@ -47,7 +47,9 @@ is done too: blame, twice per file, and `git log -L` are stored for the 1,777 fu
 follow the 2025 move ([results/blame_arms.json](../results/blame_arms.json)). Slice C3a is done:
 lineage gives Airflow's functions 5,023 identities across renames and moves, and its agreement
 with `git log -L` misses the pre-registered 0.90 at 0.771 ([results/lineage.json](../results/lineage.json)).
-Next, C3b runs the frozen engine on CodeShovel's oracle.
+Slice C3b ran the frozen engine once on CodeShovel's oracle: claim 3 failed, a mean F1 difference
+of 0.0631 [-0.0242, 0.1487] over `git log -L` ([results/oracle.json](../results/oracle.json)).
+Next, C4 runs the comparison.
 
 ---
 
