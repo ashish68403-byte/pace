@@ -170,6 +170,12 @@ def pool_census(ctx: typer.Context) -> None:
     _call(_load("provenance.analysis.pool_census", "main"), ctx.args)
 
 
+@measure_app.command(name="blame", context_settings=PASSTHROUGH)
+def blame_census(ctx: typer.Context) -> None:
+    """Slice C2's blame arms, counted: trap 3 on the questions' lines, and the 2025 move."""
+    _call(_load("provenance.analysis.blame_census", "main"), ctx.args)
+
+
 app.add_typer(measure_app, name="measure")
 
 
