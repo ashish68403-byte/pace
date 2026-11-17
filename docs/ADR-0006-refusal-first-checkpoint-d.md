@@ -107,6 +107,30 @@ reports it beside the decision, labelled as not pre-registered.
   record.
 - **Hand-written negatives.** Realistic, but slow and small: the n ≈ 40 finding 14 criticises.
 
+## Addenda
+
+- **2026-11-17 — slice D2's model, its grounding check, and what leaves the machine. Committed
+  before any D2 code and before any call to the model.** Designing slice D2
+  ([tasks/agent-refusal/002](tasks/agent-refusal/002_served_pipeline.md)) fixed what §1 left
+  open:
+  - **The model is OpenAI's `gpt-6-luna`, on the author's own key**, kept in the gitignored `.env`
+    as `PACE_OPENAI_API_KEY`. It is the cheapest current tier on OpenAI's pricing page on 17 Nov
+    2026, $0.10 per million input tokens and $0.50 output: about $3 for a 3,000-question run with
+    its check. The evaluation and the demo use the same model. No Claude model was used, for want
+    of an account of the author's own.
+  - **The grounding check is a second `gpt-6-luna` call.** It sees the question, the answer and
+    only the documents the answer cites, and returns a verdict and a support score from 0 to 100.
+    Two rules run first: a cited label must be one of the documents shown, and a quote must appear
+    in its document. The local checkers ROADMAP §8 names, MiniCheck and HHEM, need torch and more
+    memory than this 4 GB machine has. The check shares the answerer's model, which is one more
+    reason D3 reports the fused-score threshold beside claim 5's decision (§3).
+  - **A provisional threshold of 50** on the support score refuses answers in D2's demo and pilot,
+    and decides nothing. D3's addendum fixes the operating point on dev before claim 5's run.
+  - **What leaves the machine** is the question, up to eight pool documents (public GitHub text,
+    emails already scrubbed, no author logins), and for the check the answer with the documents
+    it cites, sent with `store=false`. [DATA-PROTECTION.md](DATA-PROTECTION.md) §6 records it.
+    Every call is recorded in the local database, so a rerun replays rather than re-sends.
+
 ## References
 
 - [`PREREGISTRATION.md`](PREREGISTRATION.md) claim 5; [ADR-0003](ADR-0003-rationale-pool-benchmark.md),

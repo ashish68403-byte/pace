@@ -1,8 +1,8 @@
 # Data protection statement — PACE
 
 *Provenance-Aware Code Intelligence. Final-year undergraduate project. Single researcher,
-single machine, no third-party data sharing.*
-Last reviewed: 2026-10-29.
+single machine; one third-party processor, the LLM provider named in §6.*
+Last reviewed: 2026-11-17.
 
 ## 1. What personal data is processed
 
@@ -96,6 +96,7 @@ one per page of each kind of its comments — no scraping of the web UI.
 | ID manifest (`results/github_manifest.jsonl`) | Retained as part of the open-access publication: it contains no text and no login. |
 | Fetched text (the `pace-db` tables `pull_requests`, `review_comments` and `issue_comments`, and the pool documents in `chunks`) | Deleted with the database at project completion, or on request. Re-fetchable at any time with `pace github backfill`. |
 | Database (`pace-db` volume) | Deleted at project completion (`docker volume rm pace-pgdata`). |
+| LLM recordings and the per-query log (the `pace-db` tables `llm_calls` and `ask_log`, checkpoint D) | Deleted with the database. The recordings hold the text sent to the LLM provider and its answers; the log holds ids and numbers only. The provider's own logs are covered in §6. |
 | Evaluation reports (`eval/reports/*.json`) | Retained — they contain metrics and query ids, no personal data. |
 | Golden set | Questions are researcher-authored; gold evidence is anchors only (`commit_sha`, `pr_number`, `issue_number`, `review_comment_id`, `(path, qualified_name)`). No body text, no personal data beyond what an anchor implies. |
 
@@ -110,11 +111,27 @@ on GitHub remains only in the local database, which is itself deleted at project
 Single-machine processing. The database is bound to `localhost` only and is not exposed
 to the network. The GitHub token is a fine-grained token with read-only access to public
 repositories and a 30-day expiry. It is kept in the gitignored `.env` as `PACE_GITHUB_TOKEN`,
-read as a secret value, and never logged, printed or stored. No personal data leaves the
-machine: retrieval and the eval pipeline run locally, and the only outbound calls are to the
-GitHub API (fetching data, not sending it) and — in the generation half only, never in the
-deterministic retrieval gate — to an LLM provider, where the payload is corpus text already
-public on GitHub.
+read as a secret value, and never logged, printed or stored. Retrieval and the eval pipeline run
+locally, and the only outbound calls are to the GitHub API (fetching data, not sending it) and —
+in the generation half only, never in the deterministic retrieval gate or in CI — to the LLM
+provider below, where the payload is corpus text already public on GitHub. Any personal data in
+that text is incidental to it (§1).
+
+**The LLM provider (checkpoint D, slice D2; recorded 2026-11-17, before the first call).**
+OpenAI's API, model `gpt-6-luna`, on the researcher's own account. The key is kept in the
+gitignored `.env` as `PACE_OPENAI_API_KEY`, read as a secret value, and never logged.
+- **What is sent.** For each question: the question and up to eight pool documents (commit
+  messages, PR descriptions and comments), each as its id and its text, with email addresses
+  already scrubbed (§2) and no author login. For the grounding check: the answer and the
+  documents it cites.
+- **How.** Every request is sent with `store=false`, so OpenAI keeps no response for later
+  retrieval. Requests and responses are recorded in the local database (§5), so a rerun replays
+  instead of sending again. Nothing containing pool or answer text is committed (§3).
+- **OpenAI's terms for API data**, read on 2026-11-17
+  ([developers.openai.com/api/docs/guides/your-data](https://developers.openai.com/api/docs/guides/your-data)).
+  API data is not used to train its models unless the customer opts in. Abuse-monitoring logs
+  are kept for up to 30 days. Zero data retention needs OpenAI's prior approval, which this
+  project does not have.
 
 ## 7. Ethics self-assessment
 
@@ -132,6 +149,7 @@ carries a date.
 | Profiling, or decisions about individuals? | None. PACE evaluates its own retrieval, not the people whose comments it indexes. |
 | Storage | A local database bound to localhost, never committed, deleted at project completion (§5, §6). |
 | Redistribution | None: the repository commits identifiers and hashes only (§3). |
+| Third-party processing | One processor, added 2026-11-17 before its first call: OpenAI's API answers and checks questions over public corpus text, with no author login, sent with `store=false`; OpenAI keeps abuse-monitoring logs for up to 30 days and does not train on API data (§6). |
 | GitHub's terms | API access only, with a read-only token and its rate limits respected. The dissertation is open access, the condition GitHub's Acceptable Use Policies set for research use (§3). |
 
 This statement is the artefact submitted for institutional ethics self-assessment.

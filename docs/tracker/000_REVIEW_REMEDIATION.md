@@ -61,9 +61,9 @@ Severity is the audited severity. "Before checkpoint B" means it gates B's work 
 |---|---|---|---|---|
 | 13 | §7 surveys the field the project is not in (SZZ, traceability, commit→issue linking) | major | ⬜ | `docs/ROADMAP.md` §7 |
 | 14 | Week-13 refusal numbers are bare point estimates on n≈40; a committed row says 0.00 on an unscoreable class | major | ⬜ | `provenance/eval/runner.py`, `metrics.py` |
-| 15 | Refusal scored only against its own label; no evidence it beats a score threshold | major | ⬜ | `provenance/eval/runner.py` (`PER_QUERY_COLUMNS`) |
+| 15 | Refusal scored only against its own label; no evidence it beats a score threshold | major | ⬜ | the per-query log `ask_log`, written from the first call ([agent-refusal/002](../tasks/agent-refusal/002_served_pipeline.md), slice D2); the comparison with a score threshold is D3's |
 | 16 | 6% of HEAD chunks exceed the embedder window; splitting drops comments | major | ⬜ | `provenance/parse/chunker.py`: future work with HEAD code chunks ([ADR-0006](../ADR-0006-refusal-first-checkpoint-d.md) §1) |
-| 17 | "Warm-resident reranker" is a hard constraint on no week and no cut list | major | ⬜ | `provenance/retrieve/`, `api/main.py`, `docs/ROADMAP.md` §6 |
+| 17 | "Warm-resident reranker" is a hard constraint on no week and no cut list | major | ⬜ | `provenance/retrieve/rerank.py`, `api/main.py`: MiniLM loaded once by `pace serve`, which the demo and the evaluation share ([agent-refusal/002](../tasks/agent-refusal/002_served_pipeline.md), slice D2) |
 | 18 | Two of Trap 2's numbers have no reproducible method; 0.986/n=358 has no committed derivation | major | ⬜ | `docs/ROADMAP.md` §4, `artifacts/corpus_facts.json` (new) |
 | 19 | The Status block has three checkable errors | minor | ✅ | `docs/ROADMAP.md` lines 18-25, `tests/integration/test_schema.py` |
 | 20 | "Every number reproduces from one command" has no defined bundle | minor | ⬜ | `docs/ROADMAP.md` §5 week 15-16 |

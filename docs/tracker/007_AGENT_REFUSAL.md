@@ -1,9 +1,9 @@
 # Tracker: Agent loop and refusal
 
-**Task(s):** [docs/tasks/agent-refusal/](../tasks/agent-refusal/) — 001 (checkpoint D, slice D1, the unanswerable questions) written and done 2026-11-09
+**Task(s):** [docs/tasks/agent-refusal/](../tasks/agent-refusal/) — 001 (checkpoint D, slice D1, the unanswerable questions) written and done 2026-11-09; 002 (slice D2, the served pipeline) written 2026-11-17
 **Decision records:** [ADR-0006](../ADR-0006-refusal-first-checkpoint-d.md) — refusal-first D; [PREREGISTRATION.md](../PREREGISTRATION.md) claim 5
 **Priority:** P1
-**Status:** 🚧 In progress — D designed refusal first (ADR-0006); D1, the unanswerable questions, done; D2, the served pipeline, next
+**Status:** 🚧 In progress — D designed refusal first (ADR-0006); D1, the unanswerable questions, done; D2, the served pipeline, specified ([agent-refusal/002](../tasks/agent-refusal/002_served_pipeline.md))
 **Date:** 2026-10-06
 
 ---
@@ -22,7 +22,7 @@ grounding verification is dead weight in the thesis rather than a contribution.
 
 | # | Task | Status | File |
 |---|------|--------|------|
-| 1 | **Hard deadline — D's first agent run.** Log per query, including refused ones: fused top-1 and top-10 scores, verifier score, citation-precision/correctness outcome (finding 15) | ⬜ | `provenance/eval/runner.py` `PER_QUERY_COLUMNS` |
+| 1 | **Hard deadline — D's first agent run.** Log per query, including refused ones: fused top-1 and top-10 scores, verifier score, citation-precision/correctness outcome (finding 15) | 🚧 | `ask_log`, one row per `/ask` from the first call, refused or not ([agent-refusal/002](../tasks/agent-refusal/002_served_pipeline.md), slice D2) |
 | 2 | Risk-coverage curve over answerables, plus the same curve for two trivial abstainers (fused-score threshold; empty-evidence rule); quote the coverage level at which headline citation precision is stated | ⬜ | `provenance/eval/metrics.py` |
 | 3 | Oversample unanswerables; report refusal recall and false-refusal rate (prevalence-free), derive precision analytically at the 20% base rate (finding 14) | 🚧 | the questions: [agent-refusal/001](../tasks/agent-refusal/001_unanswerable_questions.md) (slice D1), 300 dev and 214 test of each of S3, S4 and S5, built in `provenance/eval/golden/unanswerable.jsonl`; the rates are slice D3's |
 | 4 | Publish counts per `UnanswerableStrategy` — with ~40 negatives across five strategies, no per-strategy claim is possible | ✅ | [results/unanswerable_census.json](../../results/unanswerable_census.json): 300 dev and 214 test per kind (slice D1); D3 reports every rate per kind |
@@ -64,3 +64,9 @@ grounding verification is dead weight in the thesis rather than a contribution.
   underscores alone is not spliced (22 pairs on dev). S4's months came out 141, 165 and 208,
   October to December: the hash rule's chance (a split that uneven has p ≈ 0.001, and 20 control
   salts showed no bias), kept as specified, since every month is after the pin.
+- **2026-11-17 — D2 specified** ([agent-refusal/002](../tasks/agent-refusal/002_served_pipeline.md),
+  with an addendum to [ADR-0006](../ADR-0006-refusal-first-checkpoint-d.md)). The model is
+  OpenAI's `gpt-6-luna` on the author's own key, about $3 for a 3,000-question run. The grounding
+  check is a second call returning a support score, after two rules: a cited label must be one
+  shown, and a quote must be found in its document. Task 1's log lands as `ask_log`, written from
+  the first call. DATA-PROTECTION.md §6 names the provider before any call is made.
